@@ -18,69 +18,103 @@
 
     const FONT_SIZE = 13;
     const LINE_HEIGHT = 19;
-    const RADIUS = 85;
+    const ENTER_SIZE = 54;
+    const ENTER_TEXT = '[Enter Site]';
     const ALL_CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     let charWidth = 8;
     let cols = 0, rows = 0;
     let cells = [];
-    let secretX = 0, secretY = 0;
     let mouseX = -9999, mouseY = -9999;
+    let enterX = 0, enterY = 0, enterW = 0;
+    const startTime = performance.now();
 
     function setup() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+
       ctx.font = `${FONT_SIZE}px monospace`;
       charWidth = ctx.measureText('M').width;
-
       cols = Math.floor(canvas.width / charWidth);
       rows = Math.floor(canvas.height / LINE_HEIGHT);
 
-      const sCol = Math.floor(cols * 0.58);
-      const sRow = Math.floor(rows * 0.43);
-      const secretIdx = sRow * cols + sCol;
-
-      secretX = sCol * charWidth + charWidth / 2;
-      secretY = sRow * LINE_HEIGHT + LINE_HEIGHT / 2;
-
       cells = [];
       for (let i = 0; i < cols * rows; i++) {
-        cells.push(i === secretIdx
-          ? 'C'
-          : ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]
-        );
+        cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
       }
+
+      ctx.font = `bold ${ENTER_SIZE}px monospace`;
+      enterW = ctx.measureText(ENTER_TEXT).width;
+      enterX = (canvas.width - enterW) / 2;
+      enterY = canvas.height / 2 - ENTER_SIZE / 2;
+    }
+
+    function venomShape(dx, dy, t) {
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+
+      const blob = 52
+        + 18 * Math.sin(angle * 2 + t * 0.5)
+        + 11 * Math.sin(angle * 5 - t * 0.9)
+        + 7  * Math.cos(angle * 8 + t * 0.4);
+
+      let tendril = 0;
+      const count = 7;
+      for (let i = 0; i < count; i++) {
+        const ta = (i / count) * Math.PI * 2 + t * 0.18 + i * 0.93;
+        const diff = Math.abs(((angle - ta + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+        const width = 0.10 + 0.04 * Math.sin(t * 0.7 + i * 2.1);
+        if (diff < width) {
+          const s = 1 - diff / width;
+          tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i)));
+        }
+      }
+
+      const totalR = blob + tendril;
+      return { inside: dist < totalR, dist, blob, totalR };
     }
 
     function draw() {
+      const t = (performance.now() - startTime) / 1000;
+
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const maxR = 220;
+      const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth));
+      const cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
+      const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT));
+      const rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
+
       ctx.font = `${FONT_SIZE}px monospace`;
 
-      const cMin = Math.max(0, Math.floor((mouseX - RADIUS) / charWidth));
-      const cMax = Math.min(cols - 1, Math.ceil((mouseX + RADIUS) / charWidth));
-      const rMin = Math.max(0, Math.floor((mouseY - RADIUS) / LINE_HEIGHT));
-      const rMax = Math.min(rows - 1, Math.ceil((mouseY + RADIUS) / LINE_HEIGHT));
-
-      for (let r = rMin; r <= rMax; r++) {
-        for (let c = cMin; c <= cMax; c++) {
-          const x = c * charWidth;
-          const y = r * LINE_HEIGHT + FONT_SIZE;
+      for (let row = rMin; row <= rMax; row++) {
+        for (let col = cMin; col <= cMax; col++) {
+          const x = col * charWidth;
+          const y = row * LINE_HEIGHT + FONT_SIZE;
           const cx = x + charWidth / 2;
-          const cy = r * LINE_HEIGHT + LINE_HEIGHT / 2;
+          const cy = row * LINE_HEIGHT + LINE_HEIGHT / 2;
 
-          const dx = cx - mouseX;
-          const dy = cy - mouseY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const { inside, dist, blob, totalR } = venomShape(cx - mouseX, cy - mouseY, t);
 
-          if (dist < RADIUS) {
-            const t = 1 - dist / RADIUS;
-            const v = Math.round(t * t * 255);
+          if (inside) {
+            const coreEdge = blob * 0.65;
+            let brightness;
+            if (dist < coreEdge) {
+              brightness = 1;
+            } else {
+              brightness = 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
+            }
+            const v = Math.round(brightness * 255);
             ctx.fillStyle = `rgb(${v},${v},${v})`;
-            ctx.fillText(cells[r * cols + c], x, y);
+            ctx.fillText(cells[row * cols + col], x, y);
           }
         }
       }
+
+      ctx.font = `bold ${ENTER_SIZE}px monospace`;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(ENTER_TEXT, enterX, enterY + ENTER_SIZE);
 
       requestAnimationFrame(draw);
     }
@@ -88,18 +122,19 @@
     window.addEventListener('mousemove', e => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+
+      const overEnter = e.clientX >= enterX && e.clientX <= enterX + enterW
+        && e.clientY >= enterY && e.clientY <= enterY + ENTER_SIZE * 1.2;
+      canvas.style.cursor = overEnter ? 'pointer' : 'default';
     });
 
     canvas.addEventListener('click', e => {
-      const dx = e.clientX - secretX;
-      const dy = e.clientY - secretY;
-      if (Math.sqrt(dx * dx + dy * dy) < charWidth * 2.5) {
-        window.location.href = '/home';
-      }
+      const overEnter = e.clientX >= enterX && e.clientX <= enterX + enterW
+        && e.clientY >= enterY && e.clientY <= enterY + ENTER_SIZE * 1.2;
+      if (overEnter) window.location.href = '/home';
     });
 
     window.addEventListener('resize', setup);
-
     setup();
     draw();
   </script>
