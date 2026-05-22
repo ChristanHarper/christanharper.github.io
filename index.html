@@ -21,10 +21,17 @@
     const ENTER_SIZE = 54;
     const ENTER_TEXT = '[Enter Site]';
     const ALL_CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const COLORS = [
+      [255, 0, 200],   // fuchsia
+      [0, 240, 255],   // cyan
+      [40, 80, 255],   // neon blue
+      [170, 0, 255],   // neon purple
+    ];
 
     let charWidth = 8;
     let cols = 0, rows = 0;
     let cells = [];
+    let cellColors = [];
     let mouseX = -9999, mouseY = -9999;
     let enterX = 0, enterY = 0, enterW = 0;
     const startTime = performance.now();
@@ -39,8 +46,10 @@
       rows = Math.floor(canvas.height / LINE_HEIGHT);
 
       cells = [];
+      cellColors = [];
       for (let i = 0; i < cols * rows; i++) {
         cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
+        cellColors.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
       }
 
       ctx.font = `bold ${ENTER_SIZE}px monospace`;
@@ -105,8 +114,8 @@
             } else {
               brightness = 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
             }
-            const v = Math.round(brightness * 255);
-            ctx.fillStyle = `rgb(${v},${v},${v})`;
+            const [cr, cg, cb] = cellColors[row * cols + col];
+            ctx.fillStyle = `rgb(${Math.round(cr * brightness)},${Math.round(cg * brightness)},${Math.round(cb * brightness)})`;
             ctx.fillText(cells[row * cols + col], x, y);
           }
         }
