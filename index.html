@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; cursor: default; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+
+    const FONT_SIZE = 13;
+    const LINE_HEIGHT = 19;
+    const RADIUS = 85;
+    const ALL_CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    let charWidth = 8;
+    let cols = 0, rows = 0;
+    let cells = [];
+    let secretX = 0, secretY = 0;
+    let mouseX = -9999, mouseY = -9999;
+
+    function setup() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.font = `${FONT_SIZE}px monospace`;
+      charWidth = ctx.measureText('M').width;
+
+      cols = Math.floor(canvas.width / charWidth);
+      rows = Math.floor(canvas.height / LINE_HEIGHT);
+
+      const sCol = Math.floor(cols * 0.58);
+      const sRow = Math.floor(rows * 0.43);
+      const secretIdx = sRow * cols + sCol;
+
+      secretX = sCol * charWidth + charWidth / 2;
+      secretY = sRow * LINE_HEIGHT + LINE_HEIGHT / 2;
+
+      cells = [];
+      for (let i = 0; i < cols * rows; i++) {
+        cells.push(i === secretIdx
+          ? 'C'
+          : ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]
+        );
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${FONT_SIZE}px monospace`;
+
+      const cMin = Math.max(0, Math.floor((mouseX - RADIUS) / charWidth));
+      const cMax = Math.min(cols - 1, Math.ceil((mouseX + RADIUS) / charWidth));
+      const rMin = Math.max(0, Math.floor((mouseY - RADIUS) / LINE_HEIGHT));
+      const rMax = Math.min(rows - 1, Math.ceil((mouseY + RADIUS) / LINE_HEIGHT));
+
+      for (let r = rMin; r <= rMax; r++) {
+        for (let c = cMin; c <= cMax; c++) {
+          const x = c * charWidth;
+          const y = r * LINE_HEIGHT + FONT_SIZE;
+          const cx = x + charWidth / 2;
+          const cy = r * LINE_HEIGHT + LINE_HEIGHT / 2;
+
+          const dx = cx - mouseX;
+          const dy = cy - mouseY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < RADIUS) {
+            const t = 1 - dist / RADIUS;
+            const v = Math.round(t * t * 255);
+            ctx.fillStyle = `rgb(${v},${v},${v})`;
+            ctx.fillText(cells[r * cols + c], x, y);
+          }
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    canvas.addEventListener('click', e => {
+      const dx = e.clientX - secretX;
+      const dy = e.clientY - secretY;
+      if (Math.sqrt(dx * dx + dy * dy) < charWidth * 2.5) {
+        window.location.href = '/home';
+      }
+    });
+
+    window.addEventListener('resize', setup);
+
+    setup();
+    draw();
+  </script>
+</body>
+</html>
