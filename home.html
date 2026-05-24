@@ -145,6 +145,20 @@
     .msg-name { font-weight: bold; margin-right: 6px; }
     .msg-time { font-size: 0.68rem; color: var(--dim); margin-left: 6px; }
 
+    .msg-del {
+      float: right;
+      background: none;
+      border: none;
+      color: #333;
+      font-family: inherit;
+      font-size: 0.68rem;
+      cursor: pointer;
+      padding: 0 4px;
+      display: none;
+      transition: color 0.15s;
+    }
+    .msg-del:hover { color: var(--fuchsia); }
+
     .chat-inputs {
       display: flex;
       gap: 8px;
@@ -487,9 +501,16 @@
           const color = colorFor(name);
           const div   = document.createElement('div');
           div.className = 'msg';
-          div.innerHTML  = `<span class="msg-name" style="color:${color}">${esc(name)}</span>`;
-          div.innerHTML += `<span>${esc(text)}</span>`;
-          div.innerHTML += `<span class="msg-time">${fmtTime(timestamp)}</span>`;
+          div.innerHTML =
+            `<button class="msg-del" data-id="${doc.id}">✕</button>` +
+            `<span class="msg-name" style="color:${color}">${esc(name)}</span>` +
+            `<span>${esc(text)}</span>` +
+            `<span class="msg-time">${fmtTime(timestamp)}</span>`;
+
+          const del = div.querySelector('.msg-del');
+          del.style.display = loggedIn ? 'inline' : 'none';
+          del.addEventListener('click', () => db.collection('messages').doc(doc.id).delete());
+
           msgBox.appendChild(div);
         });
         msgBox.scrollTop = msgBox.scrollHeight;
@@ -561,6 +582,9 @@
       postPanel.style.display = user ? 'flex'  : 'none';
       document.querySelectorAll('.btn-delete').forEach(b => {
         b.style.display = user ? 'block' : 'none';
+      });
+      document.querySelectorAll('.msg-del').forEach(b => {
+        b.style.display = user ? 'inline' : 'none';
       });
     });
 
