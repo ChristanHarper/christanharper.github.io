@@ -183,9 +183,14 @@
       color: var(--dim);
     }
 
-    .btn-delete {
+    .card-actions {
       position: absolute;
       top: 10px; right: 10px;
+      display: none;
+      gap: 6px;
+    }
+
+    .btn-delete, .btn-edit {
       background: none;
       border: 1px solid #222;
       color: #444;
@@ -193,10 +198,10 @@
       font-size: 0.68rem;
       padding: 2px 7px;
       cursor: pointer;
-      display: none;
       transition: all 0.15s;
     }
     .btn-delete:hover { color: var(--fuchsia); border-color: var(--fuchsia); }
+    .btn-edit:hover   { color: var(--cyan);    border-color: var(--cyan); }
 
     .no-beings {
       grid-column: 1 / -1;
@@ -351,7 +356,6 @@
   </header>
 
   <section class="wrap">
-    <div class="section-label">people worth knowing</div>
     <div class="beings-grid" id="beings"></div>
   </section>
 
@@ -371,9 +375,9 @@
     </div>
   </div>
 
-  <!-- ADD PANEL -->
+  <!-- ADD/EDIT PANEL -->
   <div id="add-panel" style="display:none">
-    <h3>add a being</h3>
+    <h3 id="panel-title">add a being</h3>
     <input type="text" id="being-name" placeholder="their name">
     <textarea id="being-body" placeholder="write about them..."></textarea>
     <div class="panel-status" id="panel-status"></div>
@@ -467,6 +471,7 @@
     const COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
     const beingsEl = document.getElementById('beings');
     let loggedIn = false;
+    let editingId = null;
 
     // ── BEINGS ───────────────────────────────────────────
     db.collection('beings')
@@ -479,7 +484,7 @@
         }
         let i = 0;
         snap.forEach(doc => {
-          const { name, body, timestamp } = doc.data();
+          const { name, body } = doc.data();
           const color = COLORS[i % 4];
           const rot   = ((Math.random() * 2) - 1).toFixed(2);
           const card  = document.createElement('div');
@@ -488,15 +493,27 @@
           card.style.boxShadow   = `0 0 14px ${color}22`;
           card.style.transform   = `rotate(${rot}deg)`;
           card.innerHTML =
-            `<button class="btn-delete" data-id="${doc.id}">✕</button>` +
+            `<div class="card-actions">
+               <button class="btn-edit">edit</button>
+               <button class="btn-delete">✕</button>
+             </div>` +
             `<div class="being-name" style="color:${color}">${esc(name || '')}</div>` +
-            `<div class="being-body">${esc(body || '')}</div>` +
-            `<div class="being-footer">${timestamp ? timestamp.toDate().toLocaleDateString() : ''}</div>`;
+            `<div class="being-body">${esc(body || '')}</div>`;
 
-          const del = card.querySelector('.btn-delete');
-          del.style.display = loggedIn ? 'block' : 'none';
-          del.addEventListener('click', () => {
+          const actions = card.querySelector('.card-actions');
+          actions.style.display = loggedIn ? 'flex' : 'none';
+
+          card.querySelector('.btn-delete').addEventListener('click', () => {
             if (confirm('remove this being?')) db.collection('beings').doc(doc.id).delete();
+          });
+
+          card.querySelector('.btn-edit').addEventListener('click', () => {
+            editingId = doc.id;
+            document.getElementById('being-name').value = name || '';
+            document.getElementById('being-body').value = body || '';
+            document.getElementById('panel-title').textContent = 'edit being';
+            document.getElementById('do-add').textContent = 'save';
+            document.getElementById('being-name').focus();
           });
 
           beingsEl.appendChild(card);
@@ -513,8 +530,8 @@
       loggedIn = !!user;
       loginBtn.style.display  = user ? 'none'  : 'block';
       addPanel.style.display  = user ? 'flex'  : 'none';
-      document.querySelectorAll('.btn-delete').forEach(b => {
-        b.style.display = user ? 'block' : 'none';
+      document.querySelectorAll('.card-actions').forEach(b => {
+        b.style.display = user ? 'flex' : 'none';
       });
     });
 
@@ -544,7 +561,15 @@
 
     document.getElementById('do-logout').addEventListener('click', () => auth.signOut());
 
-    // ── ADD BEING ─────────────────────────────────────────
+    // ── ADD / EDIT BEING ──────────────────────────────────
+    function resetPanel() {
+      editingId = null;
+      document.getElementById('being-name').value = '';
+      document.getElementById('being-body').value = '';
+      document.getElementById('panel-title').textContent = 'add a being';
+      document.getElementById('do-add').textContent = 'add';
+    }
+
     document.getElementById('do-add').addEventListener('click', async () => {
       const name   = document.getElementById('being-name').value.trim();
       const body   = document.getElementById('being-body').value.trim();
@@ -554,16 +579,20 @@
       if (!name && !body) return;
 
       btn.disabled = true;
-      status.textContent = 'adding...';
+      status.textContent = editingId ? 'saving...' : 'adding...';
 
-      await db.collection('beings').add({
-        name, body,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      if (editingId) {
+        await db.collection('beings').doc(editingId).update({ name, body });
+        status.textContent = 'saved.';
+      } else {
+        await db.collection('beings').add({
+          name, body,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        status.textContent = 'added.';
+      }
 
-      document.getElementById('being-name').value = '';
-      document.getElementById('being-body').value = '';
-      status.textContent = 'added.';
+      resetPanel();
       setTimeout(() => status.textContent = '', 2500);
       btn.disabled = false;
     });
