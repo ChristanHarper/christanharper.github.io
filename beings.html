@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>beautiful beings</title>
+  <style>
+    :root {
+      --fuchsia: #FF00C8;
+      --cyan:    #00F0FF;
+      --blue:    #2850FF;
+      --purple:  #AA00FF;
+      --bg:      #060606;
+      --surface: #0b0b0b;
+      --text:    #cccccc;
+      --dim:     #444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--purple); }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    nav {
+      position: relative;
+      z-index: 1;
+      text-align: right;
+      padding: 16px 24px 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+    }
+
+    nav a {
+      text-decoration: none;
+      margin-left: 20px;
+      transition: color 0.2s;
+    }
+
+    .site-header {
+      text-align: center;
+      padding: 40px 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .deco-row {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.6em;
+      color: var(--dim);
+      user-select: none;
+      margin: 6px 0;
+    }
+
+    .glitch-wrap {
+      position: relative;
+      display: inline-block;
+      margin: 10px 0;
+    }
+
+    .glitch-title {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      letter-spacing: 0.25em;
+      font-weight: normal;
+      text-transform: lowercase;
+      animation: colorShift 10s infinite;
+    }
+
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+
+    .glitch-title::before {
+      color: var(--cyan);
+      animation: glitch-a 4s infinite;
+      clip-path: polygon(0 0, 100% 0, 100% 42%, 0 42%);
+      opacity: 0;
+    }
+
+    .glitch-title::after {
+      color: var(--fuchsia);
+      animation: glitch-b 4s infinite;
+      clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+      opacity: 0;
+    }
+
+    @keyframes glitch-a {
+      0%, 88%, 100% { transform: none; opacity: 0; }
+      90%  { transform: translate(-3px, -1px); opacity: 0.85; }
+      92%  { transform: translate(2px, 1px);   opacity: 0; }
+      94%  { transform: translate(-2px, 0);    opacity: 0.85; }
+    }
+    @keyframes glitch-b {
+      0%, 89%, 100% { transform: none; opacity: 0; }
+      91%  { transform: translate(3px, 1px);   opacity: 0.85; }
+      93%  { transform: translate(-2px, -1px); opacity: 0; }
+      95%  { transform: translate(2px, 0);     opacity: 0.85; }
+    }
+    @keyframes colorShift {
+      0%   { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      33%  { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+      66%  { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
+      100% { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--purple);
+      color: var(--purple);
+      text-shadow: 0 0 8px var(--purple);
+      user-select: none;
+    }
+
+    .beings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 28px;
+    }
+
+    .being-card {
+      background: var(--surface);
+      border: 1px solid;
+      padding: 24px;
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+
+    .being-card:hover {
+      box-shadow: 0 0 24px rgba(170,0,255,0.1);
+    }
+
+    .being-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.15em;
+      margin-bottom: 12px;
+    }
+
+    .being-body {
+      font-size: 0.84rem;
+      color: #aaa;
+      white-space: pre-wrap;
+      line-height: 1.75;
+    }
+
+    .being-footer {
+      margin-top: 14px;
+      font-size: 0.68rem;
+      color: var(--dim);
+    }
+
+    .btn-delete {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: none;
+      border: 1px solid #222;
+      color: #444;
+      font-family: inherit;
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      cursor: pointer;
+      display: none;
+      transition: all 0.15s;
+    }
+    .btn-delete:hover { color: var(--fuchsia); border-color: var(--fuchsia); }
+
+    .no-beings {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--dim);
+      letter-spacing: 0.4em;
+      font-size: 0.8rem;
+      padding: 60px 0;
+    }
+
+    .btn {
+      background: transparent;
+      border: 1px solid;
+      font-family: inherit;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      padding: 8px 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .btn-p { color: var(--purple);  border-color: var(--purple); }
+    .btn-f { color: var(--fuchsia); border-color: var(--fuchsia); }
+    .btn-c { color: var(--cyan);    border-color: var(--cyan); }
+
+    .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
+    .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
+    .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+
+    #login-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      border-style: dashed;
+      z-index: 90;
+      font-size: 0.78rem;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal-box {
+      background: #090909;
+      border: 1px solid var(--purple);
+      box-shadow: 0 0 40px rgba(170,0,255,0.2);
+      padding: 36px;
+      width: min(340px, 90vw);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-box h3 {
+      color: var(--purple);
+      font-size: 1rem;
+      letter-spacing: 0.4em;
+      text-shadow: 0 0 12px var(--purple);
+    }
+
+    .modal-box input { width: 100%; }
+
+    .modal-err {
+      font-size: 0.78rem;
+      color: var(--fuchsia);
+      min-height: 14px;
+    }
+
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns .btn { flex: 1; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea {
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.86rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 6px rgba(170,0,255,0.25);
+    }
+
+    #add-panel {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #090909;
+      border: 1px solid var(--purple);
+      box-shadow: 0 0 24px rgba(170,0,255,0.15);
+      padding: 20px;
+      width: min(300px, 90vw);
+      flex-direction: column;
+      gap: 10px;
+      z-index: 90;
+    }
+
+    #add-panel h3 {
+      color: var(--purple);
+      font-size: 0.82rem;
+      letter-spacing: 0.35em;
+      text-shadow: 0 0 8px var(--purple);
+    }
+
+    #add-panel input[type="text"],
+    #add-panel textarea {
+      width: 100%;
+    }
+
+    #add-panel textarea { min-height: 100px; resize: vertical; }
+
+    .panel-row { display: flex; gap: 8px; }
+    .panel-row .btn { flex: 1; font-size: 0.75rem; }
+
+    .panel-status {
+      font-size: 0.73rem;
+      color: var(--cyan);
+      min-height: 12px;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <nav>
+    <a href="/home.html" style="color:#444;">home</a>
+    <a href="/beings.html" style="color:var(--purple);text-shadow:0 0 8px var(--purple);">beautiful beings</a>
+  </nav>
+
+  <header class="site-header">
+    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
+    <div class="glitch-wrap">
+      <h1 class="glitch-title" data-text="beautiful beings">beautiful beings</h1>
+    </div>
+    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
+  </header>
+
+  <section class="wrap">
+    <div class="section-label">people worth knowing</div>
+    <div class="beings-grid" id="beings"></div>
+  </section>
+
+  <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="login-modal" style="display:none">
+    <div class="modal-box">
+      <h3>login</h3>
+      <input type="email"    id="email-in" placeholder="email"    autocomplete="email">
+      <input type="password" id="pass-in"  placeholder="password" autocomplete="current-password">
+      <div class="modal-err" id="login-err"></div>
+      <div class="modal-btns">
+        <button class="btn btn-f" id="do-login">login</button>
+        <button class="btn btn-p" id="close-modal">cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD PANEL -->
+  <div id="add-panel" style="display:none">
+    <h3>add a being</h3>
+    <input type="text" id="being-name" placeholder="their name">
+    <textarea id="being-body" placeholder="write about them..."></textarea>
+    <div class="panel-status" id="panel-status"></div>
+    <div class="panel-row">
+      <button class="btn btn-p" id="do-add">add</button>
+      <button class="btn btn-c" id="do-logout">logout</button>
+    </div>
+  </div>
+
+  <!-- BG ASCII -->
+  <script>
+    (function() {
+      const cv  = document.getElementById('bg-canvas');
+      const cx  = cv.getContext('2d');
+      const FS  = 12, LH = 17, RAD = 90, MAX_BRIGHT = 0.6;
+      const CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const PALETTE = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
+
+      let cols, rows, cells, cellColors, charW;
+      let mx = -9999, my = -9999;
+
+      function setup() {
+        cv.width  = window.innerWidth;
+        cv.height = window.innerHeight;
+        cx.font   = `${FS}px monospace`;
+        charW = cx.measureText('M').width;
+        cols  = Math.floor(cv.width  / charW);
+        rows  = Math.floor(cv.height / LH);
+        cells = [];
+        cellColors = [];
+        for (let i = 0; i < cols * rows; i++) {
+          cells.push(CHARS[Math.floor(Math.random() * CHARS.length)]);
+          cellColors.push(PALETTE[Math.floor(Math.random() * 4)]);
+        }
+      }
+
+      function draw() {
+        cx.clearRect(0, 0, cv.width, cv.height);
+        cx.font = `${FS}px monospace`;
+        const cMin = Math.max(0, Math.floor((mx - RAD) / charW));
+        const cMax = Math.min(cols - 1, Math.ceil((mx + RAD) / charW));
+        const rMin = Math.max(0, Math.floor((my - RAD) / LH));
+        const rMax = Math.min(rows - 1, Math.ceil((my + RAD) / LH));
+        for (let r = rMin; r <= rMax; r++) {
+          for (let c = cMin; c <= cMax; c++) {
+            const x  = c * charW;
+            const y  = r * LH + FS;
+            const dx = (x + charW / 2) - mx;
+            const dy = (r * LH + LH / 2) - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < RAD) {
+              const t = (1 - dist / RAD) * (1 - dist / RAD);
+              cx.globalAlpha = t * MAX_BRIGHT;
+              cx.fillStyle   = cellColors[r * cols + c];
+              cx.fillText(cells[r * cols + c], x, y);
+            }
+          }
+        }
+        cx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      window.addEventListener('resize', setup);
+      setup();
+      draw();
+    })();
+  </script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <script>
+    firebase.initializeApp({
+      apiKey:            "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE",
+      authDomain:        "my-website-529cc.firebaseapp.com",
+      projectId:         "my-website-529cc",
+      storageBucket:     "my-website-529cc.firebasestorage.app",
+      messagingSenderId: "698883805148",
+      appId:             "1:698883805148:web:3519bc8f1775a381830919"
+    });
+
+    const db   = firebase.firestore();
+    const auth = firebase.auth();
+
+    const esc = s => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    const COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
+    const beingsEl = document.getElementById('beings');
+    let loggedIn = false;
+
+    // ── BEINGS ───────────────────────────────────────────
+    db.collection('beings')
+      .orderBy('timestamp', 'desc')
+      .onSnapshot(snap => {
+        beingsEl.innerHTML = '';
+        if (snap.empty) {
+          beingsEl.innerHTML = '<div class="no-beings">. . . no one added yet . . .</div>';
+          return;
+        }
+        let i = 0;
+        snap.forEach(doc => {
+          const { name, body, timestamp } = doc.data();
+          const color = COLORS[i % 4];
+          const rot   = ((Math.random() * 2) - 1).toFixed(2);
+          const card  = document.createElement('div');
+          card.className = 'being-card';
+          card.style.borderColor = color;
+          card.style.boxShadow   = `0 0 14px ${color}22`;
+          card.style.transform   = `rotate(${rot}deg)`;
+          card.innerHTML =
+            `<button class="btn-delete" data-id="${doc.id}">✕</button>` +
+            `<div class="being-name" style="color:${color}">${esc(name || '')}</div>` +
+            `<div class="being-body">${esc(body || '')}</div>` +
+            `<div class="being-footer">${timestamp ? timestamp.toDate().toLocaleDateString() : ''}</div>`;
+
+          const del = card.querySelector('.btn-delete');
+          del.style.display = loggedIn ? 'block' : 'none';
+          del.addEventListener('click', () => {
+            if (confirm('remove this being?')) db.collection('beings').doc(doc.id).delete();
+          });
+
+          beingsEl.appendChild(card);
+          i++;
+        });
+      });
+
+    // ── AUTH ─────────────────────────────────────────────
+    const loginBtn   = document.getElementById('login-btn');
+    const loginModal = document.getElementById('login-modal');
+    const addPanel   = document.getElementById('add-panel');
+
+    auth.onAuthStateChanged(user => {
+      loggedIn = !!user;
+      loginBtn.style.display  = user ? 'none'  : 'block';
+      addPanel.style.display  = user ? 'flex'  : 'none';
+      document.querySelectorAll('.btn-delete').forEach(b => {
+        b.style.display = user ? 'block' : 'none';
+      });
+    });
+
+    loginBtn.addEventListener('click', () => {
+      loginModal.style.display = 'flex';
+      document.getElementById('login-err').textContent = '';
+    });
+
+    document.getElementById('close-modal').addEventListener('click', () => {
+      loginModal.style.display = 'none';
+    });
+
+    document.getElementById('do-login').addEventListener('click', async () => {
+      const email = document.getElementById('email-in').value.trim();
+      const pass  = document.getElementById('pass-in').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        loginModal.style.display = 'none';
+      } catch {
+        document.getElementById('login-err').textContent = 'nope. try again.';
+      }
+    });
+
+    document.getElementById('pass-in').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('do-login').click();
+    });
+
+    document.getElementById('do-logout').addEventListener('click', () => auth.signOut());
+
+    // ── ADD BEING ─────────────────────────────────────────
+    document.getElementById('do-add').addEventListener('click', async () => {
+      const name   = document.getElementById('being-name').value.trim();
+      const body   = document.getElementById('being-body').value.trim();
+      const status = document.getElementById('panel-status');
+      const btn    = document.getElementById('do-add');
+
+      if (!name && !body) return;
+
+      btn.disabled = true;
+      status.textContent = 'adding...';
+
+      await db.collection('beings').add({
+        name, body,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      document.getElementById('being-name').value = '';
+      document.getElementById('being-body').value = '';
+      status.textContent = 'added.';
+      setTimeout(() => status.textContent = '', 2500);
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>
