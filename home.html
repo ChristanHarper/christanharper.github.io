@@ -395,18 +395,18 @@
   <header class="site-header">
     <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
     <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="you found it.">you found it.</h1>
+      <h1 class="glitch-title" data-text="christan harper">christan harper</h1>
     </div>
     <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
   </header>
 
   <!-- CHAT -->
   <section class="chat-section wrap">
-    <div class="section-label label-cyan">▓ the void speaks ▓</div>
+    <div class="section-label label-cyan">chat</div>
     <div class="messages-box" id="messages"></div>
     <div class="chat-inputs">
-      <input type="text" id="chat-name" placeholder="who are you?" maxlength="30">
-      <input type="text" id="chat-msg"  placeholder="say something weird..." maxlength="500">
+      <input type="text" id="chat-name" placeholder="name" maxlength="30">
+      <input type="text" id="chat-msg"  placeholder="message..." maxlength="500">
       <button class="btn btn-c" id="send-btn">send →</button>
     </div>
   </section>
@@ -414,13 +414,12 @@
   <!-- DIVIDER -->
   <div class="divider">
     <span class="divider-line">✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦</span>
-    <span class="divider-text">we're all mad here</span>
     <span class="divider-line">◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈</span>
   </div>
 
   <!-- BLOG -->
   <section class="blog-section wrap">
-    <div class="section-label label-fuchsia">◆ transmissions from elsewhere ◆</div>
+    <div class="section-label label-fuchsia">blog</div>
     <div class="posts-grid" id="posts"></div>
   </section>
 
@@ -430,26 +429,26 @@
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
     <div class="modal-box">
-      <h3>prove it.</h3>
+      <h3>login</h3>
       <input type="email"    id="email-in" placeholder="email"    autocomplete="email">
       <input type="password" id="pass-in"  placeholder="password" autocomplete="current-password">
       <div class="modal-err" id="login-err"></div>
       <div class="modal-btns">
-        <button class="btn btn-f" id="do-login">enter</button>
-        <button class="btn btn-p" id="close-modal">nope</button>
+        <button class="btn btn-f" id="do-login">login</button>
+        <button class="btn btn-p" id="close-modal">cancel</button>
       </div>
     </div>
   </div>
 
   <!-- POST PANEL -->
   <div id="post-panel" style="display:none">
-    <h3>◈ dispatch something</h3>
+    <h3>new post</h3>
     <input type="text" id="post-title"   placeholder="title">
-    <textarea          id="post-content" placeholder="what do you want to say..."></textarea>
+    <textarea          id="post-content" placeholder="content..."></textarea>
     <div class="upload-status" id="up-status"></div>
     <div class="panel-row">
-      <button class="btn btn-f" id="do-post">transmit</button>
-      <button class="btn btn-c" id="do-logout">exit</button>
+      <button class="btn btn-f" id="do-post">post</button>
+      <button class="btn btn-c" id="do-logout">logout</button>
     </div>
   </div>
 
@@ -633,7 +632,7 @@
 
       document.getElementById('post-title').value   = '';
       document.getElementById('post-content').value = '';
-      status.textContent = 'transmitted.';
+      status.textContent = 'done.';
       setTimeout(() => status.textContent = '', 2500);
       btn.disabled = false;
     });
