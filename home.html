@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ you found it ◈</title>
+  <style>
+    :root {
+      --fuchsia: #FF00C8;
+      --cyan:    #00F0FF;
+      --blue:    #2850FF;
+      --purple:  #AA00FF;
+      --bg:      #060606;
+      --surface: #0b0b0b;
+      --text:    #cccccc;
+      --dim:     #444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--fuchsia); }
+
+    /* ── HEADER ── */
+    .site-header {
+      text-align: center;
+      padding: 48px 20px 24px;
+    }
+
+    .deco-row {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.6em;
+      color: var(--dim);
+      user-select: none;
+      margin: 6px 0;
+    }
+
+    .glitch-wrap {
+      position: relative;
+      display: inline-block;
+      margin: 10px 0;
+    }
+
+    .glitch-title {
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      letter-spacing: 0.25em;
+      font-weight: normal;
+      text-transform: lowercase;
+      animation: colorShift 10s infinite;
+    }
+
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+
+    .glitch-title::before {
+      color: var(--cyan);
+      animation: glitch-a 4s infinite;
+      clip-path: polygon(0 0, 100% 0, 100% 42%, 0 42%);
+      opacity: 0;
+    }
+
+    .glitch-title::after {
+      color: var(--fuchsia);
+      animation: glitch-b 4s infinite;
+      clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+      opacity: 0;
+    }
+
+    @keyframes glitch-a {
+      0%, 88%, 100% { transform: none; opacity: 0; }
+      90%  { transform: translate(-3px, -1px); opacity: 0.85; }
+      92%  { transform: translate(2px, 1px);  opacity: 0; }
+      94%  { transform: translate(-2px, 0);   opacity: 0.85; }
+    }
+    @keyframes glitch-b {
+      0%, 89%, 100% { transform: none; opacity: 0; }
+      91%  { transform: translate(3px, 1px);  opacity: 0.85; }
+      93%  { transform: translate(-2px, -1px); opacity: 0; }
+      95%  { transform: translate(2px, 0);    opacity: 0.85; }
+    }
+    @keyframes colorShift {
+      0%   { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+      25%  { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
+      50%  { color: var(--blue);    text-shadow: 0 0 18px var(--blue); }
+      75%  { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      100% { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+    }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid;
+      user-select: none;
+    }
+    .label-cyan    { color: var(--cyan);    border-color: var(--cyan);    text-shadow: 0 0 8px var(--cyan); }
+    .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); transform: rotate(-0.4deg); display: inline-block; }
+
+    /* ── CHAT ── */
+    .chat-section { margin: 20px auto 0; }
+
+    .messages-box {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px dashed var(--cyan);
+      background: #030d0e;
+      box-shadow: 0 0 14px rgba(0,240,255,0.08), inset 0 0 30px rgba(0,0,0,0.6);
+      padding: 12px 14px;
+    }
+
+    .msg {
+      padding: 4px 0;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      border-bottom: 1px solid #0f0f0f;
+    }
+    .msg:last-child { border-bottom: none; }
+
+    .msg-name { font-weight: bold; margin-right: 6px; }
+    .msg-time { font-size: 0.68rem; color: var(--dim); margin-left: 6px; }
+
+    .chat-inputs {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea {
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.86rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 6px rgba(0,240,255,0.25);
+    }
+
+    #chat-name { width: 130px; flex-shrink: 0; }
+    #chat-msg  { flex: 1; min-width: 140px; }
+
+    /* ── WEIRD DIVIDER ── */
+    .divider {
+      text-align: center;
+      margin: 40px auto;
+      max-width: 920px;
+      padding: 0 20px;
+    }
+    .divider-line {
+      color: var(--dim);
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      display: block;
+      user-select: none;
+    }
+    .divider-text {
+      display: inline-block;
+      margin: 6px 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.4em;
+      animation: colorShift 14s infinite reverse;
+      font-style: italic;
+    }
+
+    /* ── BLOG ── */
+    .blog-section { margin: 0 auto; }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 22px;
+    }
+
+    .post-card {
+      background: var(--surface);
+      border: 1px solid;
+      padding: 16px;
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+
+    .post-card:hover {
+      box-shadow: 0 0 20px rgba(255,255,255,0.06);
+    }
+
+    .post-card img {
+      width: 100%;
+      max-height: 210px;
+      object-fit: cover;
+      display: block;
+      margin-bottom: 12px;
+      filter: saturate(1.1);
+    }
+
+    .post-title {
+      font-size: 0.92rem;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .post-body {
+      font-size: 0.82rem;
+      color: #999;
+      white-space: pre-wrap;
+      line-height: 1.65;
+    }
+
+    .post-footer {
+      margin-top: 10px;
+      font-size: 0.68rem;
+      color: var(--dim);
+    }
+
+    .btn-delete {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: none;
+      border: 1px solid #222;
+      color: #444;
+      font-family: inherit;
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      cursor: pointer;
+      display: none;
+      transition: all 0.15s;
+    }
+    .btn-delete:hover { color: var(--fuchsia); border-color: var(--fuchsia); }
+
+    .no-posts {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--dim);
+      letter-spacing: 0.4em;
+      font-size: 0.8rem;
+      padding: 50px 0;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      background: transparent;
+      border: 1px solid;
+      font-family: inherit;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      padding: 8px 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .btn-c  { color: var(--cyan);    border-color: var(--cyan); }
+    .btn-f  { color: var(--fuchsia); border-color: var(--fuchsia); }
+    .btn-p  { color: var(--purple);  border-color: var(--purple); }
+
+    .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+    .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
+    .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
+
+    /* ── LOGIN BTN (fixed) ── */
+    #login-btn {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      border-style: dashed;
+      z-index: 90;
+      font-size: 0.78rem;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal-box {
+      background: #090909;
+      border: 1px solid var(--purple);
+      box-shadow: 0 0 40px rgba(170,0,255,0.2);
+      padding: 36px;
+      width: min(340px, 90vw);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-box h3 {
+      color: var(--purple);
+      font-size: 1rem;
+      letter-spacing: 0.4em;
+      text-shadow: 0 0 12px var(--purple);
+    }
+
+    .modal-box input { width: 100%; }
+
+    .modal-err {
+      font-size: 0.78rem;
+      color: var(--fuchsia);
+      letter-spacing: 0.1em;
+      min-height: 14px;
+    }
+
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-btns .btn { flex: 1; }
+
+    /* ── POST PANEL (when logged in) ── */
+    #post-panel {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #090909;
+      border: 1px solid var(--fuchsia);
+      box-shadow: 0 0 24px rgba(255,0,200,0.15);
+      padding: 20px;
+      width: min(300px, 90vw);
+      flex-direction: column;
+      gap: 10px;
+      z-index: 90;
+    }
+
+    #post-panel h3 {
+      color: var(--fuchsia);
+      font-size: 0.82rem;
+      letter-spacing: 0.35em;
+      text-shadow: 0 0 8px var(--fuchsia);
+    }
+
+    #post-panel textarea {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    #post-panel input[type="text"] { width: 100%; }
+
+    #post-panel input[type="file"] {
+      font-size: 0.75rem;
+      color: var(--dim);
+      border: none;
+      padding: 0;
+      background: none;
+    }
+
+    .panel-row { display: flex; gap: 8px; }
+    .panel-row .btn { flex: 1; font-size: 0.75rem; }
+
+    .upload-status {
+      font-size: 0.73rem;
+      color: var(--cyan);
+      min-height: 12px;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
+    <div class="glitch-wrap">
+      <h1 class="glitch-title" data-text="you found it.">you found it.</h1>
+    </div>
+    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
+  </header>
+
+  <!-- CHAT -->
+  <section class="chat-section wrap">
+    <div class="section-label label-cyan">▓ the void speaks ▓</div>
+    <div class="messages-box" id="messages"></div>
+    <div class="chat-inputs">
+      <input type="text" id="chat-name" placeholder="who are you?" maxlength="30">
+      <input type="text" id="chat-msg"  placeholder="say something weird..." maxlength="500">
+      <button class="btn btn-c" id="send-btn">send →</button>
+    </div>
+  </section>
+
+  <!-- DIVIDER -->
+  <div class="divider">
+    <span class="divider-line">✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦</span>
+    <span class="divider-text">we're all mad here</span>
+    <span class="divider-line">◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈</span>
+  </div>
+
+  <!-- BLOG -->
+  <section class="blog-section wrap">
+    <div class="section-label label-fuchsia">◆ transmissions from elsewhere ◆</div>
+    <div class="posts-grid" id="posts"></div>
+  </section>
+
+  <!-- LOGIN BUTTON -->
+  <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="login-modal" style="display:none">
+    <div class="modal-box">
+      <h3>prove it.</h3>
+      <input type="email"    id="email-in" placeholder="email"    autocomplete="email">
+      <input type="password" id="pass-in"  placeholder="password" autocomplete="current-password">
+      <div class="modal-err" id="login-err"></div>
+      <div class="modal-btns">
+        <button class="btn btn-f" id="do-login">enter</button>
+        <button class="btn btn-p" id="close-modal">nope</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST PANEL -->
+  <div id="post-panel" style="display:none">
+    <h3>◈ dispatch something</h3>
+    <input type="text" id="post-title"   placeholder="title">
+    <textarea          id="post-content" placeholder="what do you want to say..."></textarea>
+    <input type="file" id="post-img"     accept="image/*">
+    <div class="upload-status" id="up-status"></div>
+    <div class="panel-row">
+      <button class="btn btn-f" id="do-post">transmit</button>
+      <button class="btn btn-c" id="do-logout">exit</button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+  <script>
+    firebase.initializeApp({
+      apiKey:            "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE",
+      authDomain:        "my-website-529cc.firebaseapp.com",
+      projectId:         "my-website-529cc",
+      storageBucket:     "my-website-529cc.firebasestorage.app",
+      messagingSenderId: "698883805148",
+      appId:             "1:698883805148:web:3519bc8f1775a381830919"
+    });
+
+    const db      = firebase.firestore();
+    const auth    = firebase.auth();
+    const storage = firebase.storage();
+
+    // ── UTILS ────────────────────────────────────────────
+    const esc = s => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    const COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
+    const nameColors = {};
+    function colorFor(name) {
+      if (!nameColors[name]) nameColors[name] = COLORS[Object.keys(nameColors).length % 4];
+      return nameColors[name];
+    }
+
+    function fmtTime(ts) {
+      if (!ts) return '';
+      return ts.toDate().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    }
+
+    // ── CHAT ─────────────────────────────────────────────
+    const msgBox = document.getElementById('messages');
+
+    db.collection('messages')
+      .orderBy('timestamp')
+      .limitToLast(200)
+      .onSnapshot(snap => {
+        msgBox.innerHTML = '';
+        snap.forEach(doc => {
+          const { username, text, timestamp } = doc.data();
+          const name  = username || 'anonymous';
+          const color = colorFor(name);
+          const div   = document.createElement('div');
+          div.className = 'msg';
+          div.innerHTML  = `<span class="msg-name" style="color:${color}">${esc(name)}</span>`;
+          div.innerHTML += `<span>${esc(text)}</span>`;
+          div.innerHTML += `<span class="msg-time">${fmtTime(timestamp)}</span>`;
+          msgBox.appendChild(div);
+        });
+        msgBox.scrollTop = msgBox.scrollHeight;
+      });
+
+    function sendMsg() {
+      const name = document.getElementById('chat-name').value.trim() || 'anonymous';
+      const text = document.getElementById('chat-msg').value.trim();
+      if (!text) return;
+      db.collection('messages').add({
+        username: name,
+        text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('chat-msg').value = '';
+    }
+
+    document.getElementById('send-btn').addEventListener('click', sendMsg);
+    document.getElementById('chat-msg').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+
+    // ── BLOG ─────────────────────────────────────────────
+    const postsEl = document.getElementById('posts');
+    let loggedIn  = false;
+
+    db.collection('posts')
+      .orderBy('timestamp','desc')
+      .onSnapshot(snap => {
+        postsEl.innerHTML = '';
+        if (snap.empty) {
+          postsEl.innerHTML = '<div class="no-posts">. . . nothing here yet . . .</div>';
+          return;
+        }
+        let i = 0;
+        snap.forEach(doc => {
+          const { title, content, imageUrl, timestamp } = doc.data();
+          const color = COLORS[i % 4];
+          const rot   = ((Math.random() * 2) - 1).toFixed(2);
+          const card  = document.createElement('div');
+          card.className = 'post-card';
+          card.style.borderColor = color;
+          card.style.boxShadow   = `0 0 12px ${color}22`;
+          card.style.transform   = `rotate(${rot}deg)`;
+
+          card.innerHTML =
+            `<button class="btn-delete" data-id="${doc.id}">✕</button>` +
+            (imageUrl ? `<img src="${esc(imageUrl)}" alt="">` : '') +
+            `<div class="post-title" style="color:${color}">${esc(title || '')}</div>` +
+            `<div class="post-body">${esc(content || '')}</div>` +
+            `<div class="post-footer">${timestamp ? timestamp.toDate().toLocaleDateString() : ''}</div>`;
+
+          const del = card.querySelector('.btn-delete');
+          del.style.display = loggedIn ? 'block' : 'none';
+          del.addEventListener('click', () => {
+            if (confirm('delete this?')) db.collection('posts').doc(doc.id).delete();
+          });
+
+          postsEl.appendChild(card);
+          i++;
+        });
+      });
+
+    // ── AUTH ─────────────────────────────────────────────
+    const loginBtn   = document.getElementById('login-btn');
+    const loginModal = document.getElementById('login-modal');
+    const postPanel  = document.getElementById('post-panel');
+
+    auth.onAuthStateChanged(user => {
+      loggedIn = !!user;
+      loginBtn.style.display  = user ? 'none'  : 'block';
+      postPanel.style.display = user ? 'flex'  : 'none';
+      document.querySelectorAll('.btn-delete').forEach(b => {
+        b.style.display = user ? 'block' : 'none';
+      });
+    });
+
+    loginBtn.addEventListener('click', () => {
+      loginModal.style.display = 'flex';
+      document.getElementById('login-err').textContent = '';
+    });
+
+    document.getElementById('close-modal').addEventListener('click', () => {
+      loginModal.style.display = 'none';
+    });
+
+    document.getElementById('do-login').addEventListener('click', async () => {
+      const email = document.getElementById('email-in').value.trim();
+      const pass  = document.getElementById('pass-in').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        loginModal.style.display = 'none';
+      } catch {
+        document.getElementById('login-err').textContent = 'nope. try again.';
+      }
+    });
+
+    document.getElementById('pass-in').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('do-login').click();
+    });
+
+    document.getElementById('do-logout').addEventListener('click', () => auth.signOut());
+
+    // ── POST CREATION ─────────────────────────────────────
+    document.getElementById('do-post').addEventListener('click', async () => {
+      const title   = document.getElementById('post-title').value.trim();
+      const content = document.getElementById('post-content').value.trim();
+      const file    = document.getElementById('post-img').files[0];
+      const status  = document.getElementById('up-status');
+      const btn     = document.getElementById('do-post');
+
+      if (!title && !content && !file) return;
+
+      btn.disabled   = true;
+      status.textContent = 'transmitting...';
+
+      let imageUrl = null;
+      if (file) {
+        const ref = storage.ref(`posts/${Date.now()}_${file.name}`);
+        await ref.put(file);
+        imageUrl = await ref.getDownloadURL();
+      }
+
+      await db.collection('posts').add({
+        title, content, imageUrl,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      document.getElementById('post-title').value   = '';
+      document.getElementById('post-content').value = '';
+      document.getElementById('post-img').value     = '';
+      status.textContent = 'transmitted.';
+      setTimeout(() => status.textContent = '', 2500);
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>

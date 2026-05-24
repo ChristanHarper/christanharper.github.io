@@ -140,7 +140,7 @@
     canvas.addEventListener('click', e => {
       const overEnter = e.clientX >= enterX && e.clientX <= enterX + enterW
         && e.clientY >= enterY && e.clientY <= enterY + ENTER_SIZE * 1.2;
-      if (overEnter) window.location.href = '/home';
+      if (overEnter) window.location.href = '/home.html';
     });
 
     window.addEventListener('resize', setup);
