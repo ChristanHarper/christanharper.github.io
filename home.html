@@ -18,6 +18,14 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -107,6 +115,13 @@
       max-width: 920px;
       margin: 0 auto;
       padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header, .divider, .login-btn, .modal-overlay, #post-panel {
+      position: relative;
+      z-index: 1;
     }
 
     /* ── SECTION HEADERS ── */
@@ -391,6 +406,8 @@
 </head>
 <body>
 
+  <canvas id="bg-canvas"></canvas>
+
   <!-- HEADER -->
   <header class="site-header">
     <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
@@ -451,6 +468,72 @@
       <button class="btn btn-c" id="do-logout">logout</button>
     </div>
   </div>
+
+  <!-- BG ASCII -->
+  <script>
+    (function() {
+      const cv  = document.getElementById('bg-canvas');
+      const cx  = cv.getContext('2d');
+      const FS  = 12;
+      const LH  = 17;
+      const RAD = 65;
+      const MAX_BRIGHT = 0.18;
+      const CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const COLS_COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
+
+      let cw, cols, rows, cells, cellColors, charW;
+      let mx = -9999, my = -9999;
+
+      function setup() {
+        cv.width  = window.innerWidth;
+        cv.height = window.innerHeight;
+        cx.font   = `${FS}px monospace`;
+        charW = cx.measureText('M').width;
+        cols  = Math.floor(cv.width  / charW);
+        rows  = Math.floor(cv.height / LH);
+        cells = [];
+        cellColors = [];
+        for (let i = 0; i < cols * rows; i++) {
+          cells.push(CHARS[Math.floor(Math.random() * CHARS.length)]);
+          cellColors.push(COLS_COLORS[Math.floor(Math.random() * 4)]);
+        }
+      }
+
+      function draw() {
+        cx.clearRect(0, 0, cv.width, cv.height);
+        cx.font = `${FS}px monospace`;
+
+        const cMin = Math.max(0, Math.floor((mx - RAD) / charW));
+        const cMax = Math.min(cols - 1, Math.ceil((mx + RAD) / charW));
+        const rMin = Math.max(0, Math.floor((my - RAD) / LH));
+        const rMax = Math.min(rows - 1, Math.ceil((my + RAD) / LH));
+
+        for (let r = rMin; r <= rMax; r++) {
+          for (let c = cMin; c <= cMax; c++) {
+            const x  = c * charW;
+            const y  = r * LH + FS;
+            const dx = (x + charW / 2) - mx;
+            const dy = (r * LH + LH / 2) - my;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < RAD) {
+              const t = (1 - dist / RAD) * (1 - dist / RAD);
+              const color = cellColors[r * cols + c];
+              cx.globalAlpha = t * MAX_BRIGHT;
+              cx.fillStyle   = color;
+              cx.fillText(cells[r * cols + c], x, y);
+            }
+          }
+        }
+        cx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      window.addEventListener('resize', setup);
+      setup();
+      draw();
+    })();
+  </script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
