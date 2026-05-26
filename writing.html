@@ -167,8 +167,15 @@
       font-size: 0.88rem;
       font-weight: bold;
       letter-spacing: 0.2em;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
       text-transform: lowercase;
+    }
+
+    .writing-author {
+      font-size: 0.72rem;
+      color: var(--dim);
+      letter-spacing: 0.25em;
+      margin-bottom: 18px;
     }
 
     .writing-body {
@@ -348,11 +355,12 @@
     <div class="glitch-wrap">
       <h1 class="glitch-title" data-text="writing">writing</h1>
     </div>
+    <span class="deco-row" style="font-style:italic;letter-spacing:0.3em;margin-top:10px;">words that found me</span>
     <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
   </header>
 
   <section class="wrap">
-    <div class="section-label">pieces</div>
+    <div class="section-label">favorites</div>
     <div class="writing-list" id="entries"></div>
   </section>
 
@@ -375,8 +383,9 @@
   <!-- ADD/EDIT PANEL -->
   <div id="add-panel" style="display:none">
     <h3 id="panel-title">add a piece</h3>
+    <input type="text" id="entry-author" placeholder="author">
     <input type="text" id="entry-title" placeholder="title (optional)">
-    <textarea id="entry-body" placeholder="write..."></textarea>
+    <textarea id="entry-body" placeholder="the writing..."></textarea>
     <div class="panel-status" id="panel-status"></div>
     <div class="panel-row">
       <button class="btn btn-c" id="do-add">add</button>
@@ -480,7 +489,7 @@
         }
         let i = 0;
         snap.forEach(doc => {
-          const { title, body } = doc.data();
+          const { title, author, body } = doc.data();
           const color = COLORS[i % 4];
           const rot   = ((Math.random() * 1.2) - 0.6).toFixed(2);
           const card  = document.createElement('div');
@@ -493,7 +502,8 @@
                <button class="btn-edit">edit</button>
                <button class="btn-delete">✕</button>
              </div>` +
-            (title ? `<div class="writing-title" style="color:${color}">${esc(title)}</div>` : '') +
+            (title  ? `<div class="writing-title" style="color:${color}">${esc(title)}</div>` : '') +
+            (author ? `<div class="writing-author">— ${esc(author)}</div>` : '') +
             `<div class="writing-body">${esc(body || '')}</div>`;
 
           const actions = card.querySelector('.card-actions');
@@ -505,11 +515,12 @@
 
           card.querySelector('.btn-edit').addEventListener('click', () => {
             editingId = doc.id;
-            document.getElementById('entry-title').value = title || '';
-            document.getElementById('entry-body').value  = body  || '';
+            document.getElementById('entry-author').value = author || '';
+            document.getElementById('entry-title').value  = title  || '';
+            document.getElementById('entry-body').value   = body   || '';
             document.getElementById('panel-title').textContent = 'edit piece';
             document.getElementById('do-add').textContent = 'save';
-            document.getElementById('entry-title').focus();
+            document.getElementById('entry-author').focus();
           });
 
           entriesEl.appendChild(card);
@@ -558,13 +569,15 @@
 
     function resetPanel() {
       editingId = null;
-      document.getElementById('entry-title').value = '';
-      document.getElementById('entry-body').value  = '';
+      document.getElementById('entry-author').value = '';
+      document.getElementById('entry-title').value  = '';
+      document.getElementById('entry-body').value   = '';
       document.getElementById('panel-title').textContent = 'add a piece';
       document.getElementById('do-add').textContent = 'add';
     }
 
     document.getElementById('do-add').addEventListener('click', async () => {
+      const author = document.getElementById('entry-author').value.trim();
       const title  = document.getElementById('entry-title').value.trim();
       const body   = document.getElementById('entry-body').value.trim();
       const status = document.getElementById('panel-status');
@@ -576,11 +589,11 @@
       status.textContent = editingId ? 'saving...' : 'adding...';
 
       if (editingId) {
-        await db.collection('writing').doc(editingId).update({ title, body });
+        await db.collection('writing').doc(editingId).update({ author, title, body });
         status.textContent = 'saved.';
       } else {
         await db.collection('writing').add({
-          title, body,
+          author, title, body,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         status.textContent = 'added.';
