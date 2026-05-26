@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>beautiful beings</title>
+  <title>now</title>
   <style>
     :root {
       --fuchsia: #FF00C8;
@@ -29,7 +29,7 @@
 
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
-    ::-webkit-scrollbar-thumb { background: var(--purple); }
+    ::-webkit-scrollbar-thumb { background: var(--blue); }
 
     #bg-canvas {
       position: fixed;
@@ -100,7 +100,7 @@
     }
 
     .glitch-title::after {
-      color: var(--fuchsia);
+      color: var(--purple);
       animation: glitch-b 4s infinite;
       clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
       opacity: 0;
@@ -119,18 +119,22 @@
       95%  { transform: translate(2px, 0);     opacity: 0.85; }
     }
     @keyframes colorShift {
-      0%   { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      0%   { color: var(--blue);    text-shadow: 0 0 18px var(--blue); }
       33%  { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
       66%  { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
-      100% { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      100% { color: var(--blue);    text-shadow: 0 0 18px var(--blue); }
     }
 
     .wrap {
-      max-width: 920px;
+      max-width: 640px;
       margin: 0 auto;
       padding: 0 20px;
       position: relative;
       z-index: 1;
+    }
+
+    .now-section {
+      margin-bottom: 52px;
     }
 
     .section-label {
@@ -138,99 +142,88 @@
       letter-spacing: 0.5em;
       text-transform: uppercase;
       padding-bottom: 10px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--purple);
-      color: var(--purple);
-      text-shadow: 0 0 8px var(--purple);
+      margin-bottom: 20px;
+      border-bottom: 1px solid;
       user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .beings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 28px;
-    }
-
-    .being-card {
-      background: var(--surface);
-      border: 1px solid;
-      padding: 24px;
-      position: relative;
-      transition: box-shadow 0.2s;
-    }
-
-    .being-card:hover {
-      box-shadow: 0 0 24px rgba(170,0,255,0.1);
-    }
-
-    .being-name {
-      font-size: 1.1rem;
-      font-weight: bold;
-      letter-spacing: 0.15em;
-      margin-bottom: 12px;
-    }
-
-    .being-body {
-      font-size: 0.84rem;
-      color: #aaa;
+    .now-text {
+      font-size: 0.9rem;
+      color: #bbb;
       white-space: pre-wrap;
-      line-height: 1.75;
+      line-height: 1.9;
     }
 
-    .being-footer {
-      margin-top: 14px;
-      font-size: 0.68rem;
+    .now-text.empty {
       color: var(--dim);
     }
 
-    .card-actions {
-      position: absolute;
-      top: 10px; right: 10px;
-      display: none;
-      gap: 6px;
-    }
-
-    .btn-delete, .btn-edit {
+    .btn-edit-section {
       background: none;
-      border: 1px solid #222;
-      color: #444;
+      border: 1px solid #1e1e1e;
+      color: #2a2a2a;
       font-family: inherit;
-      font-size: 0.68rem;
-      padding: 2px 7px;
+      font-size: 0.65rem;
+      padding: 2px 8px;
       cursor: pointer;
+      letter-spacing: 0.15em;
       transition: all 0.15s;
+      display: none;
     }
-    .btn-delete:hover { color: var(--fuchsia); border-color: var(--fuchsia); }
-    .btn-edit:hover   { color: var(--cyan);    border-color: var(--cyan); }
+    .btn-edit-section:hover { color: var(--cyan); border-color: var(--cyan); }
 
-    .no-beings {
-      grid-column: 1 / -1;
-      text-align: center;
-      color: var(--dim);
-      letter-spacing: 0.4em;
-      font-size: 0.8rem;
-      padding: 60px 0;
+    .inline-edit {
+      margin-top: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
     }
+
+    .inline-edit textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.86rem;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .inline-edit textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 6px rgba(40,80,255,0.2);
+    }
+
+    .inline-edit-btns { display: flex; gap: 8px; }
 
     .btn {
       background: transparent;
       border: 1px solid;
       font-family: inherit;
-      font-size: 0.82rem;
+      font-size: 0.75rem;
       letter-spacing: 0.18em;
-      padding: 8px 16px;
+      padding: 6px 14px;
       cursor: pointer;
       text-transform: uppercase;
       transition: all 0.2s;
     }
 
-    .btn-p { color: var(--purple);  border-color: var(--purple); }
-    .btn-f { color: var(--fuchsia); border-color: var(--fuchsia); }
-    .btn-c { color: var(--cyan);    border-color: var(--cyan); }
+    .btn-b { color: var(--blue);   border-color: var(--blue); }
+    .btn-p { color: var(--purple); border-color: var(--purple); }
+    .btn-f { color: var(--fuchsia);border-color: var(--fuchsia); }
+    .btn-c { color: var(--cyan);   border-color: var(--cyan); }
 
-    .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
-    .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
-    .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+    .btn-b:hover { background: rgba(40,80,255,0.08);  box-shadow: 0 0 12px rgba(40,80,255,0.3); }
+    .btn-p:hover { background: rgba(170,0,255,0.08);  box-shadow: 0 0 12px rgba(170,0,255,0.3); }
+    .btn-f:hover { background: rgba(255,0,200,0.08);  box-shadow: 0 0 12px rgba(255,0,200,0.3); }
+    .btn-c:hover { background: rgba(0,240,255,0.08);  box-shadow: 0 0 12px rgba(0,240,255,0.3); }
 
     #login-btn {
       position: fixed;
@@ -239,6 +232,16 @@
       border-style: dashed;
       z-index: 90;
       font-size: 0.78rem;
+    }
+
+    #logout-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      border-style: dashed;
+      z-index: 90;
+      font-size: 0.78rem;
+      display: none;
     }
 
     .modal-overlay {
@@ -280,10 +283,8 @@
     .modal-btns { display: flex; gap: 10px; }
     .modal-btns .btn { flex: 1; }
 
-    input[type="text"],
     input[type="email"],
-    input[type="password"],
-    textarea {
+    input[type="password"] {
       background: #0a0a0a;
       border: 1px solid #222;
       color: var(--text);
@@ -294,47 +295,9 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    input:focus, textarea:focus {
+    input:focus {
       border-color: var(--purple);
       box-shadow: 0 0 6px rgba(170,0,255,0.25);
-    }
-
-    #add-panel {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #090909;
-      border: 1px solid var(--purple);
-      box-shadow: 0 0 24px rgba(170,0,255,0.15);
-      padding: 20px;
-      width: min(300px, 90vw);
-      flex-direction: column;
-      gap: 10px;
-      z-index: 90;
-    }
-
-    #add-panel h3 {
-      color: var(--purple);
-      font-size: 0.82rem;
-      letter-spacing: 0.35em;
-      text-shadow: 0 0 8px var(--purple);
-    }
-
-    #add-panel input[type="text"],
-    #add-panel textarea {
-      width: 100%;
-    }
-
-    #add-panel textarea { min-height: 100px; resize: vertical; }
-
-    .panel-row { display: flex; gap: 8px; }
-    .panel-row .btn { flex: 1; font-size: 0.75rem; }
-
-    .panel-status {
-      font-size: 0.73rem;
-      color: var(--cyan);
-      min-height: 12px;
-      letter-spacing: 0.1em;
     }
   </style>
 </head>
@@ -345,23 +308,22 @@
   <nav>
     <a href="/home.html" style="color:#444;">home</a>
     <a href="/writing.html" style="color:#444;">writing</a>
-    <a href="/beings.html" style="color:var(--purple);text-shadow:0 0 8px var(--purple);">beautiful beings</a>
-    <a href="/now.html" style="color:#444;">now</a>
+    <a href="/beings.html" style="color:#444;">beautiful beings</a>
+    <a href="/now.html" style="color:var(--blue);text-shadow:0 0 8px var(--blue);">now</a>
   </nav>
 
   <header class="site-header">
     <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
     <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="beautiful beings">beautiful beings</h1>
+      <h1 class="glitch-title" data-text="now">now</h1>
     </div>
     <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
   </header>
 
-  <section class="wrap">
-    <div class="beings-grid" id="beings"></div>
-  </section>
+  <div class="wrap" id="now-sections"></div>
 
   <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+  <button class="btn btn-c" id="logout-btn">logout</button>
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
@@ -374,18 +336,6 @@
         <button class="btn btn-f" id="do-login">login</button>
         <button class="btn btn-p" id="close-modal">cancel</button>
       </div>
-    </div>
-  </div>
-
-  <!-- ADD/EDIT PANEL -->
-  <div id="add-panel" style="display:none">
-    <h3 id="panel-title">add a being</h3>
-    <input type="text" id="being-name" placeholder="their name">
-    <textarea id="being-body" placeholder="write about them..."></textarea>
-    <div class="panel-status" id="panel-status"></div>
-    <div class="panel-row">
-      <button class="btn btn-p" id="do-add">add</button>
-      <button class="btn btn-c" id="do-logout">logout</button>
     </div>
   </div>
 
@@ -467,74 +417,78 @@
     const db   = firebase.firestore();
     const auth = firebase.auth();
 
-    const esc = s => String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const SECTIONS = [
+      { id: 'listening',  label: 'listening',     color: '#00F0FF' },
+      { id: 'reading',    label: 'reading',        color: '#AA00FF' },
+      { id: 'thinking',   label: 'thinking about', color: '#FF00C8' },
+    ];
 
-    const COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
-    const beingsEl = document.getElementById('beings');
-    let loggedIn = false;
-    let editingId = null;
+    const nowEl = document.getElementById('now-sections');
 
-    // ── BEINGS ───────────────────────────────────────────
-    db.collection('beings')
-      .orderBy('timestamp', 'desc')
-      .onSnapshot(snap => {
-        beingsEl.innerHTML = '';
-        if (snap.empty) {
-          beingsEl.innerHTML = '<div class="no-beings">. . . no one added yet . . .</div>';
-          return;
-        }
-        let i = 0;
-        snap.forEach(doc => {
-          const { name, body } = doc.data();
-          const color = COLORS[i % 4];
-          const rot   = ((Math.random() * 2) - 1).toFixed(2);
-          const card  = document.createElement('div');
-          card.className = 'being-card';
-          card.style.borderColor = color;
-          card.style.boxShadow   = `0 0 14px ${color}22`;
-          card.style.transform   = `rotate(${rot}deg)`;
-          card.innerHTML =
-            `<div class="card-actions">
-               <button class="btn-edit">edit</button>
-               <button class="btn-delete">✕</button>
-             </div>` +
-            `<div class="being-name" style="color:${color}">${esc(name || '')}</div>` +
-            `<div class="being-body">${esc(body || '')}</div>`;
+    SECTIONS.forEach(({ id, label, color }) => {
+      const section = document.createElement('div');
+      section.className = 'now-section';
+      section.innerHTML = `
+        <div class="section-label" style="color:${color};border-color:${color};text-shadow:0 0 8px ${color}40">
+          <span>${label}</span>
+          <button class="btn-edit-section" id="edit-btn-${id}">edit</button>
+        </div>
+        <div class="now-text empty" id="text-${id}">. . .</div>
+        <div class="inline-edit" id="edit-${id}">
+          <textarea id="ta-${id}" placeholder="${label}..."></textarea>
+          <div class="inline-edit-btns">
+            <button class="btn btn-b" id="save-${id}">save</button>
+            <button class="btn btn-p" id="cancel-${id}">cancel</button>
+          </div>
+        </div>`;
+      nowEl.appendChild(section);
 
-          const actions = card.querySelector('.card-actions');
-          actions.style.display = loggedIn ? 'flex' : 'none';
-
-          card.querySelector('.btn-delete').addEventListener('click', () => {
-            if (confirm('remove this being?')) db.collection('beings').doc(doc.id).delete();
-          });
-
-          card.querySelector('.btn-edit').addEventListener('click', () => {
-            editingId = doc.id;
-            document.getElementById('being-name').value = name || '';
-            document.getElementById('being-body').value = body || '';
-            document.getElementById('panel-title').textContent = 'edit being';
-            document.getElementById('do-add').textContent = 'save';
-            document.getElementById('being-name').focus();
-          });
-
-          beingsEl.appendChild(card);
-          i++;
-        });
+      document.getElementById(`edit-btn-${id}`).addEventListener('click', () => {
+        const textEl = document.getElementById(`text-${id}`);
+        document.getElementById(`ta-${id}`).value = textEl.dataset.raw || '';
+        document.getElementById(`edit-${id}`).style.display = 'flex';
+        document.getElementById(`ta-${id}`).focus();
       });
 
-    // ── AUTH ─────────────────────────────────────────────
+      document.getElementById(`save-${id}`).addEventListener('click', async () => {
+        const text = document.getElementById(`ta-${id}`).value.trim();
+        await db.collection('now').doc(id).set({ text }, { merge: true });
+        document.getElementById(`edit-${id}`).style.display = 'none';
+      });
+
+      document.getElementById(`cancel-${id}`).addEventListener('click', () => {
+        document.getElementById(`edit-${id}`).style.display = 'none';
+      });
+
+      db.collection('now').doc(id).onSnapshot(doc => {
+        const text   = doc.exists ? (doc.data().text || '') : '';
+        const textEl = document.getElementById(`text-${id}`);
+        textEl.dataset.raw = text;
+        if (text) {
+          textEl.textContent = text;
+          textEl.classList.remove('empty');
+        } else {
+          textEl.textContent = '. . .';
+          textEl.classList.add('empty');
+        }
+      });
+    });
+
     const loginBtn   = document.getElementById('login-btn');
     const loginModal = document.getElementById('login-modal');
-    const addPanel   = document.getElementById('add-panel');
+    const logoutBtn  = document.getElementById('logout-btn');
 
     auth.onAuthStateChanged(user => {
-      loggedIn = !!user;
       loginBtn.style.display  = user ? 'none'  : 'block';
-      addPanel.style.display  = user ? 'flex'  : 'none';
-      document.querySelectorAll('.card-actions').forEach(b => {
-        b.style.display = user ? 'flex' : 'none';
+      logoutBtn.style.display = user ? 'block' : 'none';
+      document.querySelectorAll('.btn-edit-section').forEach(b => {
+        b.style.display = user ? 'inline' : 'none';
       });
+      if (!user) {
+        document.querySelectorAll('.inline-edit').forEach(d => {
+          d.style.display = 'none';
+        });
+      }
     });
 
     loginBtn.addEventListener('click', () => {
@@ -561,43 +515,7 @@
       if (e.key === 'Enter') document.getElementById('do-login').click();
     });
 
-    document.getElementById('do-logout').addEventListener('click', () => auth.signOut());
-
-    // ── ADD / EDIT BEING ──────────────────────────────────
-    function resetPanel() {
-      editingId = null;
-      document.getElementById('being-name').value = '';
-      document.getElementById('being-body').value = '';
-      document.getElementById('panel-title').textContent = 'add a being';
-      document.getElementById('do-add').textContent = 'add';
-    }
-
-    document.getElementById('do-add').addEventListener('click', async () => {
-      const name   = document.getElementById('being-name').value.trim();
-      const body   = document.getElementById('being-body').value.trim();
-      const status = document.getElementById('panel-status');
-      const btn    = document.getElementById('do-add');
-
-      if (!name && !body) return;
-
-      btn.disabled = true;
-      status.textContent = editingId ? 'saving...' : 'adding...';
-
-      if (editingId) {
-        await db.collection('beings').doc(editingId).update({ name, body });
-        status.textContent = 'saved.';
-      } else {
-        await db.collection('beings').add({
-          name, body,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        status.textContent = 'added.';
-      }
-
-      resetPanel();
-      setTimeout(() => status.textContent = '', 2500);
-      btn.disabled = false;
-    });
+    logoutBtn.addEventListener('click', () => auth.signOut());
   </script>
 </body>
 </html>
