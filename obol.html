@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ obol ◈</title>
+  <style>
+    :root {
+      --fuchsia: #FF00C8;
+      --cyan:    #00F0FF;
+      --blue:    #2850FF;
+      --purple:  #AA00FF;
+      --bg:      #060606;
+      --surface: #0b0b0b;
+      --text:    #cccccc;
+      --dim:     #444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      padding-bottom: 90px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--fuchsia); }
+
+    a { color: var(--cyan); }
+
+    /* ── NAV ── */
+    nav {
+      text-align: right;
+      padding: 16px 20px 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+    }
+    nav a { text-decoration: none; margin-left: 18px; }
+
+    /* ── HEADER ── */
+    .site-header { text-align: center; padding: 34px 20px 18px; }
+
+    .deco-row {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.6em;
+      color: var(--dim);
+      user-select: none;
+      margin: 6px 0;
+    }
+
+    .glitch-wrap { position: relative; display: inline-block; margin: 10px 0; }
+
+    .glitch-title {
+      font-size: clamp(2rem, 8vw, 3.4rem);
+      letter-spacing: 0.25em;
+      font-weight: normal;
+      text-transform: lowercase;
+      animation: colorShift 10s infinite;
+    }
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+    .glitch-title::before {
+      color: var(--cyan);
+      animation: glitch-a 4s infinite;
+      clip-path: polygon(0 0, 100% 0, 100% 42%, 0 42%);
+      opacity: 0;
+    }
+    .glitch-title::after {
+      color: var(--fuchsia);
+      animation: glitch-b 4s infinite;
+      clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+      opacity: 0;
+    }
+    @keyframes glitch-a {
+      0%, 88%, 100% { transform: none; opacity: 0; }
+      90%  { transform: translate(-3px, -1px); opacity: 0.85; }
+      92%  { transform: translate(2px, 1px);  opacity: 0; }
+      94%  { transform: translate(-2px, 0);   opacity: 0.85; }
+    }
+    @keyframes glitch-b {
+      0%, 89%, 100% { transform: none; opacity: 0; }
+      91%  { transform: translate(3px, 1px);  opacity: 0.85; }
+      93%  { transform: translate(-2px, -1px); opacity: 0; }
+      95%  { transform: translate(2px, 0);    opacity: 0.85; }
+    }
+    @keyframes colorShift {
+      0%   { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+      25%  { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
+      50%  { color: var(--blue);    text-shadow: 0 0 18px var(--blue); }
+      75%  { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      100% { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+    }
+
+    .tagline {
+      color: var(--dim);
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+    }
+
+    /* ── LAYOUT ── */
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+
+    .section-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid;
+      user-select: none;
+    }
+    .label-cyan    { color: var(--cyan);    border-color: var(--cyan);    text-shadow: 0 0 8px var(--cyan); }
+    .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
+    .label-purple  { color: var(--purple);  border-color: var(--purple);  text-shadow: 0 0 8px var(--purple); }
+    .label-blue    { color: #6a88ff;        border-color: var(--blue);    text-shadow: 0 0 8px var(--blue); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid #1a1a1a;
+      padding: 16px 14px;
+      margin-bottom: 22px;
+    }
+
+    .grid { display: block; }
+    .col > .panel { margin-bottom: 22px; }
+    @media (min-width: 900px) {
+      .grid { display: grid; grid-template-columns: 1.15fr 0.95fr; gap: 22px; align-items: start; }
+      .panel { padding: 18px; }
+    }
+
+    .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    /* ── INPUTS ── */
+    input, select {
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;          /* 16px stops iOS zoom-on-focus */
+      padding: 12px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: 0;
+    }
+    select { appearance: none; }
+    input:focus, select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 6px rgba(0,240,255,0.25);
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+    }
+    .field-row { display: flex; gap: 10px; }
+    .field-row .field { flex: 1; }
+
+    /* ── BUTTONS ── */
+    button {
+      background: transparent;
+      border: 1px solid;
+      font-family: inherit;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      padding: 10px 16px;
+      min-height: 44px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      color: var(--text);
+      border-color: var(--dim);
+    }
+    .btn-c { color: var(--cyan);    border-color: var(--cyan); }
+    .btn-f { color: var(--fuchsia); border-color: var(--fuchsia); }
+    .btn-p { color: var(--purple);  border-color: var(--purple); }
+    .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+    .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
+    .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
+
+    /* ── SAFE-TO-SPEND HERO ── */
+    .wl-safe {
+      font-size: clamp(2.4rem, 11vw, 3.6rem);
+      line-height: 1.1;
+      margin: 4px 0 8px;
+    }
+    .wl-safe.ok   { color: var(--cyan);    text-shadow: 0 0 22px var(--cyan); }
+    .wl-safe.warn { color: var(--purple);  text-shadow: 0 0 22px var(--purple); }
+    .wl-safe.bad  { color: var(--fuchsia); text-shadow: 0 0 22px var(--fuchsia); }
+    .wl-sub { color: #888; font-size: 0.8rem; line-height: 1.6; margin-bottom: 14px; }
+
+    .wl-bar {
+      height: 34px;
+      border: 1px solid #222;
+      display: flex;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+    .wl-seg { height: 100%; min-width: 0; transition: width 0.5s ease; }
+    @media (prefers-reduced-motion: reduce) { .wl-seg { transition: none; } }
+    .seg-committed { background: var(--fuchsia); box-shadow: 0 0 14px rgba(255,0,200,0.5); }
+    .seg-buffer    { background: var(--purple);  box-shadow: 0 0 14px rgba(170,0,255,0.5); }
+    .seg-safe      { background: var(--cyan);    box-shadow: 0 0 14px rgba(0,240,255,0.5); }
+    .seg-reserved  { background: var(--blue);    box-shadow: 0 0 14px rgba(40,80,255,0.5); }
+
+    .wl-legend {
+      display: flex;
+      gap: 8px 18px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 0.74rem;
+      color: #888;
+      letter-spacing: 0.05em;
+    }
+    .wl-legend .dot {
+      display: inline-block;
+      width: 9px; height: 9px;
+      margin-right: 6px;
+    }
+    .wl-legend .money { color: var(--text); }
+
+    .shortfall {
+      margin-top: 14px;
+      border: 1px dashed var(--fuchsia);
+      background: rgba(255,0,200,0.05);
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+    .shortfall.amber { border-color: var(--purple); background: rgba(170,0,255,0.05); }
+
+    /* ── FEED ── */
+    .day-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 12px 2px 6px;
+      border-bottom: 1px solid #191919;
+    }
+    .day-date { font-size: 0.82rem; font-weight: bold; letter-spacing: 0.1em; color: var(--text); }
+    .day-rel  { font-size: 0.72rem; color: var(--dim); letter-spacing: 0.1em; }
+    .day-rel.overdue { color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
+    .day-rel.today   { color: var(--cyan);    text-shadow: 0 0 8px var(--cyan); }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      padding: 12px 2px;
+      border-bottom: 1px dashed #191919;
+    }
+    .fi-main { flex: 1 1 150px; min-width: 0; }
+    .fi-name { font-size: 0.9rem; }
+    .fi-meta { font-size: 0.72rem; color: var(--dim); margin-top: 2px; }
+    .fi-amt  { font-size: 0.9rem; font-weight: bold; }
+    .mark-paid { padding: 8px 14px; font-size: 0.72rem; }
+
+    .chip {
+      font-size: 0.62rem;
+      padding: 2px 7px;
+      border: 1px solid #2a2a2a;
+      color: #777;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .chip.card { border-color: var(--blue);   color: #6a88ff; }
+    .chip.auto { border-color: #144e52;       color: #3aa9b0; }
+
+    .paid-confirm { display: flex; gap: 6px; align-items: center; }
+    .paid-confirm input { width: 110px; padding: 8px; }
+
+    .empty { color: var(--dim); font-size: 0.82rem; padding: 12px 2px; line-height: 1.7; }
+
+    .total-liquid {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-top: 1px solid #222;
+      padding-top: 12px;
+      letter-spacing: 0.1em;
+      font-size: 0.8rem;
+      color: #888;
+      text-transform: uppercase;
+    }
+    .total-liquid .money { font-size: 1.25rem; color: var(--cyan); text-shadow: 0 0 10px rgba(0,240,255,0.4); }
+
+    /* ── CHART ── */
+    #projchart { width: 100%; height: auto; display: block; margin-top: 4px; background: #080808; border: 1px solid #1a1a1a; }
+    .proj-note { font-size: 0.72rem; color: var(--dim); margin-top: 10px; line-height: 1.7; }
+    .proj-note .money { color: var(--text); }
+
+    /* ── ADVISOR ── */
+    .card-row {
+      border: 1px solid #222;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #0a0a0a;
+    }
+    .card-row.target { border-color: var(--fuchsia); box-shadow: 0 0 12px rgba(255,0,200,0.15); }
+    .cr-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+    .cr-name { font-weight: bold; font-size: 0.88rem; }
+    .cr-apr  { font-size: 0.78rem; color: var(--fuchsia); }
+    .cr-meta { font-size: 0.72rem; color: var(--dim); margin-top: 4px; }
+    .target-tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--fuchsia);
+      text-shadow: 0 0 8px var(--fuchsia);
+    }
+    .slider-row { display: flex; align-items: center; gap: 12px; margin: 14px 0 8px; }
+    .slider-row label { font-size: 0.68rem; color: var(--dim); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.15em; }
+    input[type=range] { accent-color: var(--cyan); width: 100%; padding: 0; border: none; background: transparent; box-shadow: none; }
+    .advice {
+      border-left: 2px solid var(--cyan);
+      padding: 10px 12px;
+      background: rgba(0,240,255,0.04);
+      font-size: 0.8rem;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; font-size: 0.78rem; }
+    .compare > div { border: 1px solid #222; padding: 10px 12px; }
+    .compare .lbl { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+    .savings { color: var(--cyan); text-shadow: 0 0 8px rgba(0,240,255,0.5); }
+
+    /* ── MANAGE (desktop territory) ── */
+    details {
+      border: 1px solid #1a1a1a;
+      background: var(--surface);
+      margin-bottom: 14px;
+    }
+    details > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px;
+      font-size: 0.78rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    details > summary::after { content: "+"; color: var(--dim); }
+    details[open] > summary { color: var(--purple); text-shadow: 0 0 8px var(--purple); }
+    details[open] > summary::after { content: "–"; }
+    details .inner { padding: 0 16px 16px; }
+
+    .mng-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px dashed #191919;
+      font-size: 0.8rem;
+    }
+    .mng-item .grow { flex: 1; line-height: 1.6; }
+    .mng-item .money { color: #888; }
+    .mng-list { margin-bottom: 16px; }
+    .del {
+      border: none;
+      color: var(--dim);
+      font-size: 1rem;
+      padding: 6px 10px;
+      min-height: 0;
+      letter-spacing: 0;
+    }
+    .del:hover { color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .add-form .field { margin-bottom: 0; }
+
+    .io-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .io-row button { flex: 1; }
+
+    .footnote {
+      color: var(--dim);
+      font-size: 0.72rem;
+      margin-top: 10px;
+      line-height: 1.8;
+      letter-spacing: 0.03em;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/home.html" style="color:#444;">home</a>
+    <a href="/writing.html" style="color:#444;">writing</a>
+    <a href="/beings.html" style="color:#444;">beautiful beings</a>
+    <a href="/obol.html" style="color:#2850FF;text-shadow:0 0 8px #2850FF;">obol</a>
+  </nav>
+
+  <header class="site-header">
+    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
+    <div class="glitch-wrap">
+      <h1 class="glitch-title" data-text="obol">obol</h1>
+    </div>
+    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
+    <div class="tagline">a coin for the ferryman · what's committed · what's yours</div>
+  </header>
+
+  <div class="wrap">
+
+  <!-- ===== SYNC ===== -->
+  <div class="io-row" id="syncBar" style="align-items:center;">
+    <span class="tagline" id="syncStatus" style="flex:1;text-align:left;">☁ signed out — local only</span>
+    <button class="btn-p" id="btnSignIn">sign in to sync</button>
+    <button class="btn-c hidden" id="btnSignOut">sign out</button>
+  </div>
+
+  <!-- ===== LOGIN MODAL ===== -->
+  <div class="hidden" id="loginModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:200;">
+    <div style="background:#090909;border:1px solid var(--purple);box-shadow:0 0 40px rgba(170,0,255,0.2);padding:28px;width:min(320px,90vw);display:flex;flex-direction:column;gap:14px;">
+      <h3 style="color:var(--purple);font-size:1rem;letter-spacing:0.3em;text-shadow:0 0 12px var(--purple);">sign in</h3>
+      <input type="email" id="loginEmail" placeholder="email" autocomplete="email">
+      <input type="password" id="loginPass" placeholder="password" autocomplete="current-password">
+      <div id="loginErr" style="font-size:0.78rem;color:var(--fuchsia);min-height:14px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-f" id="doLogin" style="flex:1;">sign in</button>
+        <button class="btn-p" id="closeLoginModal" style="flex:1;">cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SAFE TO SPEND ===== -->
+  <section class="panel" id="waterline">
+    <div class="section-label label-cyan">safe to spend</div>
+    <div class="wl-safe money" id="safeAmt">$0.00</div>
+    <div class="wl-sub" id="safeExplain"></div>
+    <div class="wl-bar" id="wlBar" role="img" aria-label="Allocation of liquid funds"></div>
+    <div class="wl-legend" id="wlLegend"></div>
+    <div id="shortfallBox" class="hidden"></div>
+  </section>
+
+  <div class="grid">
+    <!-- ===== LEFT ===== -->
+    <div class="col">
+      <section class="panel">
+        <div class="section-label label-fuchsia">upcoming · 60 days</div>
+        <div id="feed"></div>
+      </section>
+    </div>
+
+    <!-- ===== RIGHT ===== -->
+    <div class="col">
+      <section class="panel">
+        <div class="section-label label-purple">money on hand</div>
+        <div class="field"><label for="bank">bank balance</label><input id="bank" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label for="cash">cash</label><input id="cash" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label for="buffer">never-touch buffer</label><input id="buffer" type="number" step="10" min="0" inputmode="decimal"></div>
+        <div class="total-liquid"><span>total liquid</span><span class="money" id="liquidTotal">$0.00</span></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-label label-blue">paychecks</div>
+        <div class="field-row">
+          <div class="field"><label for="payFreq">cadence</label>
+            <select id="payFreq">
+              <option value="none">no income set</option>
+              <option value="weekly">weekly</option>
+              <option value="biweekly">every 2 weeks</option>
+              <option value="semimonthly">1st &amp; 15th</option>
+              <option value="monthly">monthly</option>
+            </select>
+          </div>
+          <div class="field"><label for="payAmt">net per check</label><input id="payAmt" type="number" min="0" step="0.01" inputmode="decimal"></div>
+        </div>
+        <div class="field"><label for="payNext">next payday</label><input id="payNext" type="date"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-label label-cyan">60-day forecast</div>
+        <svg id="projchart" viewBox="0 0 340 120" preserveAspectRatio="none" aria-label="Projected balance over the next 60 days"></svg>
+        <div class="proj-note" id="projNote"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-label label-fuchsia">debt payoff plan</div>
+        <div id="advisor"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===== MANAGE (best on desktop) ===== -->
+  <div class="io-row">
+    <button class="btn-c" id="btnExport">↓ export backup</button>
+    <button class="btn-p" id="btnImport">↑ import</button>
+    <input type="file" id="importFile" accept="application/json" class="hidden">
+  </div>
+
+  <details>
+    <summary>manage bills</summary>
+    <div class="inner">
+      <div class="mng-list" id="billList"></div>
+      <div class="add-form">
+        <div class="field"><label for="bName">name</label><input id="bName" placeholder="Rent"></div>
+        <div class="field"><label for="bAmt">amount</label><input id="bAmt" type="number" min="0" step="0.01" inputmode="decimal" placeholder="750"></div>
+        <div class="field"><label for="bFreq">repeats</label>
+          <select id="bFreq"><option value="monthly">monthly</option><option value="once">one-time</option></select>
+        </div>
+        <div class="field" id="bDayWrap"><label for="bDay">due day of month</label><input id="bDay" type="number" min="1" max="31" inputmode="numeric" placeholder="1"></div>
+        <div class="field hidden" id="bDateWrap"><label for="bDate">due date</label><input id="bDate" type="date"></div>
+        <div class="field"><label for="bAuto">autopay</label>
+          <select id="bAuto"><option value="no">no</option><option value="yes">yes</option></select>
+        </div>
+        <button class="btn-f" id="addBill">add bill</button>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>manage debts · cards + loans</summary>
+    <div class="inner">
+      <div class="mng-list" id="cardList"></div>
+      <div class="add-form">
+        <div class="field"><label for="cName">name</label><input id="cName" placeholder="Capital One"></div>
+        <div class="field"><label for="cType">type</label>
+          <select id="cType"><option value="card">credit card</option><option value="loan">loan</option></select>
+        </div>
+        <div class="field"><label for="cBal">balance</label><input id="cBal" type="number" min="0" step="0.01" inputmode="decimal" placeholder="2400"></div>
+        <div class="field"><label for="cLimit">limit (cards)</label><input id="cLimit" type="number" min="0" step="0.01" inputmode="decimal" placeholder="3000"></div>
+        <div class="field"><label for="cApr">apr %</label><input id="cApr" type="number" min="0" step="0.01" inputmode="decimal" placeholder="26.99"></div>
+        <div class="field"><label for="cMin">min payment</label><input id="cMin" type="number" min="0" step="0.01" inputmode="decimal" placeholder="42"></div>
+        <div class="field"><label for="cDay">due day</label><input id="cDay" type="number" min="1" max="31" inputmode="numeric" placeholder="7"></div>
+        <button class="btn-f" id="addCard">add debt</button>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>payment history</summary>
+    <div class="inner"><div class="mng-list" id="historyList"></div></div>
+  </details>
+
+  <p class="footnote">
+    ◈ sign in above to sync across phone and desktop — data is stored in a private Firestore document tied to your account, not on the page itself. signed out, everything still works from this browser's local storage only.
+    safe-to-spend = the lowest point of the 60-day forecast minus the buffer. spending it today never puts a future bill underwater, assuming the bills and paychecks here are complete. planning tool, not financial advice.
+  </p>
+  </div>
+
+<script>
+"use strict";
+/* ============ storage ============ */
+const KEY = "obol.v1";
+const defaultState = () => ({
+  bank: 0, cash: 0, buffer: 200,
+  pay: { freq: "none", amount: 0, next: "" },
+  bills: [],     // {id,name,amount,freq:'monthly'|'once',dueDay,dueDate,autopay,paidOnce}
+  cards: [],     // {id,name,type:'card'|'loan',balance,limit,apr,minPay,dueDay}
+  payments: []   // {id,kind:'bill'|'card',refId,name,period,date,amount}
+});
+let S = load();
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw) return Object.assign(defaultState(), JSON.parse(raw)); }
+  catch(e){ console.error("load failed", e); }
+  return defaultState();
+}
+let cloudSaveTimer = null;
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(S));
+  scheduleCloudSave();
+}
+const uid = () => Math.random().toString(36).slice(2,10);
+
+/* ============ dates ============ */
+const DAY = 86400000;
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
+const iso = d => d.toISOString().slice(0,10);
+const fromISO = s => { const [y,m,dd]=s.split("-").map(Number); return new Date(y, m-1, dd); };
+const clampDay = (y,m,day) => new Date(y, m, Math.min(day, new Date(y, m+1, 0).getDate()));
+const periodOf = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+const fmtDate = d => d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+const fmt = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const relDays = d => Math.round((d - today())/DAY);
+
+/* ============ instances & paydays ============ */
+function isPaid(kind, refId, period){
+  return S.payments.some(p => p.kind===kind && p.refId===refId && p.period===period);
+}
+// All due instances from 45 days back (to catch overdue) to `horizon` days forward. Unpaid only.
+function dueInstances(horizonDays){
+  const t = today(), start = new Date(t - 45*DAY), end = new Date(t.getTime() + horizonDays*DAY);
+  const out = [];
+  for(const b of S.bills){
+    if(b.freq === "once"){
+      if(b.paidOnce || !b.dueDate) continue;
+      const d = fromISO(b.dueDate);
+      if(d >= start && d <= end) out.push({kind:"bill", ref:b, date:d, amount:b.amount, period:"once"});
+    } else {
+      for(let mo=-2; mo<=3; mo++){
+        const d = clampDay(t.getFullYear(), t.getMonth()+mo, b.dueDay);
+        if(d < start || d > end) continue;
+        const per = periodOf(d);
+        if(!isPaid("bill", b.id, per)) out.push({kind:"bill", ref:b, date:d, amount:b.amount, period:per});
+      }
+    }
+  }
+  for(const c of S.cards){
+    if(c.balance <= 0) continue;
+    for(let mo=-2; mo<=3; mo++){
+      const d = clampDay(t.getFullYear(), t.getMonth()+mo, c.dueDay);
+      if(d < start || d > end) continue;
+      const per = periodOf(d);
+      if(!isPaid("card", c.id, per)) out.push({kind:"card", ref:c, date:d, amount:Math.min(c.minPay, c.balance), period:per});
+    }
+  }
+  out.sort((a,b)=> a.date - b.date || a.ref.name.localeCompare(b.ref.name));
+  return out;
+}
+function paydates(horizonDays){
+  const p = S.pay, t = today(), end = new Date(t.getTime()+horizonDays*DAY), out=[];
+  if(p.freq==="none" || !p.amount) return out;
+  if(p.freq==="semimonthly"){
+    for(let mo=0; mo<=3; mo++){
+      for(const dd of [1,15]){
+        const d = clampDay(t.getFullYear(), t.getMonth()+mo, dd);
+        if(d >= t && d <= end) out.push(d);
+      }
+    }
+  } else {
+    if(!p.next) return out;
+    let d = fromISO(p.next);
+    const step = p.freq==="weekly" ? 7 : p.freq==="biweekly" ? 14 : 0;
+    if(p.freq==="monthly"){
+      while(d < t) d = clampDay(d.getFullYear(), d.getMonth()+1, d.getDate());
+      while(d <= end){ out.push(new Date(d)); d = clampDay(d.getFullYear(), d.getMonth()+1, fromISO(p.next).getDate()); }
+    } else {
+      while(d < t) d = new Date(d.getTime()+step*DAY);
+      while(d <= end){ out.push(new Date(d)); d = new Date(d.getTime()+step*DAY); }
+    }
+  }
+  out.sort((a,b)=>a-b);
+  return out;
+}
+
+/* ============ the engine ============ */
+function analyze(){
+  const H = 60;
+  const liquid = (+S.bank||0) + (+S.cash||0);
+  const inst = dueInstances(H);
+  const pays = paydates(H);
+  const nextPay = pays.length ? pays[0] : null;
+
+  // committed = unpaid bills due before next payday (or whole horizon if no income)
+  const commitCutoff = nextPay || new Date(today().getTime()+H*DAY);
+  const committed = inst.filter(i => i.date <= commitCutoff).reduce((s,i)=>s+i.amount,0);
+
+  // day-by-day projection
+  const t = today();
+  const byDay = new Map();
+  for(const i of inst){ const k = iso(i.date < t ? t : i.date); byDay.set(k,(byDay.get(k)||0) - i.amount); } // overdue hits today
+  for(const p of pays){ const k = iso(p); byDay.set(k,(byDay.get(k)||0) + (+S.pay.amount||0)); }
+  let bal = liquid, minBal = liquid, minDate = t;
+  const series = [{d:t, v:bal}];
+  for(let n=0; n<=H; n++){
+    const d = new Date(t.getTime()+n*DAY), k = iso(d);
+    if(byDay.has(k)) bal += byDay.get(k);
+    if(bal < minBal){ minBal = bal; minDate = d; }
+    series.push({d, v:bal});
+  }
+  const buffer = +S.buffer||0;
+  const safe = minBal - buffer; // can be negative = shortfall
+  return {liquid, committed, buffer, safe, minBal, minDate, nextPay, series, inst, pays};
+}
+function payoffSim(balance, apr, payment){
+  const r = apr/100/12;
+  if(payment <= balance*r) return null;
+  let b=balance, months=0, interest=0;
+  while(b > 0.005 && months < 600){ const i=b*r; interest+=i; b=b+i-payment; months++; }
+  return {months, interest};
+}
+
+/* ============ render ============ */
+const $ = id => document.getElementById(id);
+
+function renderWaterline(A){
+  const safeEl = $("safeAmt");
+  safeEl.textContent = fmt(Math.max(0, A.safe));
+  safeEl.className = "wl-safe money " + (A.safe > 0 ? "ok" : A.safe > -50 ? "warn" : "bad");
+  $("safeExplain").textContent = A.nextPay
+    ? "lowest forecast balance is " + fmt(A.minBal) + " on " + fmtDate(A.minDate) + ". safe-to-spend keeps you above your " + fmt(A.buffer) + " buffer at that low point."
+    : "no income entered, so this assumes zero money coming in for 60 days. set paychecks for a real number.";
+
+  // bar segments over liquid
+  const L = Math.max(A.liquid, 1);
+  const committed = Math.min(A.committed, A.liquid);
+  const buffer = Math.min(A.buffer, Math.max(0, A.liquid - committed));
+  const safe = Math.max(0, Math.min(A.safe, A.liquid - committed - buffer));
+  const reserved = Math.max(0, A.liquid - committed - buffer - safe);
+  const segs = [
+    ["seg-committed","committed before payday",committed],
+    ["seg-buffer","buffer",buffer],
+    ["seg-safe","safe",safe],
+    ["seg-reserved","reserved for later bills",reserved],
+  ];
+  $("wlBar").innerHTML = segs.filter(s=>s[2]>0).map(s=>
+    '<div class="wl-seg '+s[0]+'" style="width:'+(s[2]/L*100)+'%" title="'+s[1]+': '+fmt(s[2])+'"></div>'
+  ).join("") || '<div style="padding:8px 12px;color:var(--dim);font-size:0.78rem">enter your bank balance to see the bar.</div>';
+  const dots = {"seg-committed":"var(--fuchsia)","seg-buffer":"var(--purple)","seg-safe":"var(--cyan)","seg-reserved":"var(--blue)"};
+  $("wlLegend").innerHTML = segs.map(s=>
+    '<span><span class="dot" style="background:'+dots[s[0]]+'"></span>'+s[1]+' <span class="money">'+fmt(s[2])+'</span></span>'
+  ).join("");
+
+  const box = $("shortfallBox");
+  if(A.safe < 0 && A.minBal < 0){
+    box.className = "shortfall";
+    box.innerHTML = "⚠ projected to go <strong>negative by "+fmt(-A.minBal)+"</strong> around <strong>"+fmtDate(A.minDate)+"</strong>. cover it: delay a flexible bill, move cash in, or trim spending now.";
+  } else if(A.safe < 0){
+    box.className = "shortfall amber";
+    box.innerHTML = "you stay above zero, but dip <strong>"+fmt(A.buffer - A.minBal)+" into your buffer</strong> around "+fmtDate(A.minDate)+". treat spending as frozen until then.";
+  } else { box.className = "hidden"; box.innerHTML=""; }
+}
+
+function renderFeed(A){
+  const feed = $("feed");
+  if(!A.inst.length){ feed.innerHTML = '<div class="empty">nothing due in the next 60 days. add bills under "manage bills" below.</div>'; return; }
+  // group by date
+  const groups = new Map();
+  for(const i of A.inst){ const k = iso(i.date); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(i); }
+  let html = "";
+  for(const [k, items] of groups){
+    const d = fromISO(k), r = relDays(d);
+    const rel = r < 0 ? '<span class="day-rel overdue">'+(-r)+'d overdue</span>'
+              : r === 0 ? '<span class="day-rel today">due today</span>'
+              : '<span class="day-rel">in '+r+'d</span>';
+    html += '<div class="day-group"><div class="day-head"><span class="day-date">'+fmtDate(d)+'</span>'+rel+'</div>';
+    for(const i of items){
+      const chips = (i.kind==="card" ? '<span class="chip card">'+(i.ref.type==="loan"?"loan":"card min")+'</span>' : '') +
+                    (i.ref.autopay ? '<span class="chip auto">autopay</span>' : '');
+      html += '<div class="feed-item" data-kind="'+i.kind+'" data-ref="'+i.ref.id+'" data-period="'+i.period+'" data-amt="'+i.amount+'">'
+        + '<div class="fi-main"><div class="fi-name">'+esc(i.ref.name)+' '+chips+'</div>'
+        + (i.kind==="card" ? '<div class="fi-meta">balance '+fmt(i.ref.balance)+' · '+i.ref.apr+'% APR</div>' : '')
+        + '</div><span class="fi-amt money">'+fmt(i.amount)+'</span>'
+        + '<button class="btn-c mark-paid">paid ✓</button></div>';
+    }
+    html += '</div>';
+  }
+  feed.innerHTML = html;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function setValIfNotFocused(id, val){
+  const el = $(id);
+  if(document.activeElement !== el) el.value = val;
+}
+function renderInputs(){
+  setValIfNotFocused("bank", S.bank || "");
+  setValIfNotFocused("cash", S.cash || "");
+  setValIfNotFocused("buffer", S.buffer);
+  setValIfNotFocused("payFreq", S.pay.freq);
+  setValIfNotFocused("payAmt", S.pay.amount || "");
+  setValIfNotFocused("payNext", S.pay.next || "");
+  $("liquidTotal").textContent = fmt((+S.bank||0)+(+S.cash||0));
+}
+
+function renderChart(A){
+  const svg = $("projchart"); const W=340, H=120, P=6;
+  const vals = A.series.map(p=>p.v);
+  const max = Math.max(...vals, A.buffer, 1), min = Math.min(...vals, 0);
+  const x = i => P + i/(A.series.length-1)*(W-2*P);
+  const y = v => P + (max - v)/(max - min || 1)*(H-2*P);
+  const line = A.series.map((p,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(p.v).toFixed(1)).join("");
+  const zero = y(0), buf = y(A.buffer);
+  let payTicks = A.pays.map(p=>{ const n=Math.round((p-today())/DAY); return n>=0&&n<=60 ? '<line x1="'+x(n+1).toFixed(1)+'" y1="'+(H-P)+'" x2="'+x(n+1).toFixed(1)+'" y2="'+(H-P-7)+'" stroke="#00F0FF" stroke-width="2"/>' : ""; }).join("");
+  svg.innerHTML =
+    '<line x1="0" y1="'+buf+'" x2="'+W+'" y2="'+buf+'" stroke="#AA00FF" stroke-dasharray="3 4" stroke-width="1" opacity=".8"/>' +
+    '<line x1="0" y1="'+zero+'" x2="'+W+'" y2="'+zero+'" stroke="#FF00C8" stroke-width="1" opacity=".9"/>' +
+    '<path d="'+line+'" fill="none" stroke="#cccccc" stroke-width="2"/>' + payTicks;
+  $("projNote").innerHTML = 'fuchsia line = $0 · dashed purple = buffer · cyan ticks = paydays. low point: <span class="money">'+fmt(A.minBal)+'</span> on '+fmtDate(A.minDate)+'.';
+}
+
+let extraSlider = null; // persist slider value across re-renders
+function renderAdvisor(A){
+  const el = $("advisor");
+  const cards = S.cards.filter(c=>c.balance>0).sort((a,b)=>b.apr-a.apr);
+  if(!cards.length){ el.innerHTML = '<div class="empty">no debts with a balance. add cards or loans under "manage debts" and the plan builds itself.</div>'; return; }
+  const target = cards[0];
+  const maxExtra = Math.max(0, Math.floor(Math.max(A.safe,0)/10)*10);
+  if(extraSlider===null) extraSlider = Math.min(Math.round(maxExtra*0.5/10)*10, maxExtra);
+  extraSlider = Math.min(extraSlider, maxExtra);
+
+  let html = cards.map((c,i)=>{
+    const mi = c.balance * c.apr/100/12;
+    const over = c.limit > 0 && c.balance > c.limit;
+    return '<div class="card-row'+(i===0?' target':'')+'">'
+      + '<div class="cr-top"><span class="cr-name">'+esc(c.name)
+      + (i===0?' <span class="target-tag">pay this first</span>':'')
+      + (over?' <span class="target-tag">⚠ over limit</span>':'')
+      + '</span><span class="cr-apr money">'+c.apr+'% APR</span></div>'
+      + '<div class="cr-meta money">'+fmt(c.balance)
+      + (c.limit>0 ? ' / '+fmt(c.limit)+' limit' : ' balance')
+      + ' · min '+fmt(c.minPay)+' · costs ~'+fmt(mi)+'/mo in interest</div></div>';
+  }).join("");
+
+  const overs = cards.filter(c=>c.limit>0 && c.balance>c.limit);
+  if(overs.length){
+    html += '<div class="advice" style="border-left-color:var(--fuchsia);background:rgba(255,0,200,0.04)">⚠ '
+      + overs.map(c=>'<strong>'+esc(c.name)+'</strong> is '+fmt(c.balance-c.limit)+' over its limit').join(", ")
+      + '. getting under the limit lifts your credit score fastest — worth prioritizing even over the avalanche order.</div>';
+  }
+
+  html += '<div class="slider-row"><label for="extraRange">extra / month</label>'
+       + '<input type="range" id="extraRange" min="0" max="'+maxExtra+'" step="10" value="'+extraSlider+'">'
+       + '<span class="money" id="extraVal" style="min-width:70px;text-align:right">'+fmt(extraSlider)+'</span></div>';
+
+  const base = payoffSim(target.balance, target.apr, target.minPay);
+  const boosted = payoffSim(target.balance, target.apr, target.minPay + extraSlider);
+  if(!base){
+    html += '<div class="advice">⚠ '+esc(target.name)+"'s minimum ("+fmt(target.minPay)+") doesn't cover its monthly interest — the balance grows forever at minimums. any extra you can send matters here.</div>";
+  } else {
+    html += '<div class="compare"><div><div class="lbl">minimums only</div><div>'+base.months+' mo · <span class="money">'+fmt(base.interest)+'</span> interest</div></div>'
+         + '<div><div class="lbl">min + extra</div><div>'+(boosted?boosted.months+' mo · <span class="money">'+fmt(boosted.interest)+'</span> interest':'—')+'</div></div></div>';
+    if(boosted && extraSlider>0){
+      html += '<div class="advice">send an extra <span class="money">'+fmt(extraSlider)+'</span>/mo to <strong>'+esc(target.name)+'</strong>: debt-free <strong>'+(base.months-boosted.months)+' months sooner</strong>, saving <span class="savings">'+fmt(base.interest-boosted.interest)+'</span> in interest. keep minimums on every other card until this one hits zero, then roll the whole payment to the next-highest APR.</div>';
+    } else {
+      html += '<div class="advice">drag the slider — it\'s capped at your safe-to-spend so the plan never touches bill or buffer money.</div>';
+    }
+  }
+  el.innerHTML = html;
+  $("extraRange").addEventListener("input", e => { extraSlider = +e.target.value; renderAdvisor(analyze()); });
+}
+
+function renderManage(){
+  $("billList").innerHTML = S.bills.map(b =>
+    '<div class="mng-item"><span class="grow">'+esc(b.name)+' <span class="money">'+fmt(b.amount)+'</span> · '
+    + (b.freq==="once" ? "one-time "+(b.dueDate||"") + (b.paidOnce?" · paid":"") : "monthly, day "+b.dueDay)
+    + (b.autopay?' · autopay':'') + '</span><button class="del" data-del-bill="'+b.id+'" aria-label="Delete '+esc(b.name)+'">✕</button></div>'
+  ).join("") || '<div class="empty">nothing here yet.</div>';
+  $("cardList").innerHTML = S.cards.map(c =>
+    '<div class="mng-item"><span class="grow">'+esc(c.name)+' <span class="money">'+fmt(c.balance)+'</span> · '
+    + (c.type==="loan"?"loan":"card"+(c.limit>0?", limit "+fmt(c.limit):"")) + ' · '+c.apr+'% · min '+fmt(c.minPay)+' · day '+c.dueDay
+    + '</span><button class="del" data-del-card="'+c.id+'" aria-label="Delete '+esc(c.name)+'">✕</button></div>'
+  ).join("") || '<div class="empty">nothing here yet.</div>';
+  $("historyList").innerHTML = S.payments.slice().reverse().map(p =>
+    '<div class="mng-item"><span class="grow">'+p.date+' — '+esc(p.name)+' <span class="money">'+fmt(p.amount)+'</span></span>'
+    + '<button class="del" data-undo="'+p.id+'" title="Undo this payment" aria-label="Undo payment">↩</button></div>'
+  ).join("") || '<div class="empty">payments you mark show up here. undo restores them to the feed.</div>';
+}
+
+function renderAll(){
+  const A = analyze();
+  renderInputs(); renderWaterline(A); renderFeed(A); renderChart(A); renderAdvisor(A); renderManage();
+}
+
+/* ============ events ============ */
+function bindNum(id, fn){ $(id).addEventListener("input", e => { fn(+e.target.value||0); save(); renderAllExceptInputs(); }); }
+function renderAllExceptInputs(){
+  const A = analyze();
+  $("liquidTotal").textContent = fmt((+S.bank||0)+(+S.cash||0));
+  renderWaterline(A); renderFeed(A); renderChart(A); renderAdvisor(A);
+}
+bindNum("bank", v => S.bank = v);
+bindNum("cash", v => S.cash = v);
+bindNum("buffer", v => S.buffer = v);
+bindNum("payAmt", v => S.pay.amount = v);
+$("payFreq").addEventListener("change", e => { S.pay.freq = e.target.value; save(); renderAllExceptInputs(); });
+$("payNext").addEventListener("change", e => { S.pay.next = e.target.value; save(); renderAllExceptInputs(); });
+
+$("bFreq").addEventListener("change", e => {
+  const once = e.target.value === "once";
+  $("bDayWrap").classList.toggle("hidden", once);
+  $("bDateWrap").classList.toggle("hidden", !once);
+});
+$("addBill").addEventListener("click", () => {
+  const name = $("bName").value.trim(), amount = +$("bAmt").value, freq = $("bFreq").value;
+  if(!name || !(amount>0)) return alert("Bill needs a name and an amount.");
+  const bill = { id: uid(), name, amount, freq, autopay: $("bAuto").value==="yes", paidOnce:false };
+  if(freq === "once"){ if(!$("bDate").value) return alert("Pick a due date."); bill.dueDate = $("bDate").value; }
+  else { const d = +$("bDay").value; if(!(d>=1 && d<=31)) return alert("Due day must be 1–31."); bill.dueDay = d; }
+  S.bills.push(bill); save();
+  ["bName","bAmt","bDay","bDate"].forEach(i=>$(i).value="");
+  renderAll();
+});
+$("addCard").addEventListener("click", () => {
+  const name = $("cName").value.trim();
+  const c = { id: uid(), name, type:$("cType").value, balance:+$("cBal").value, limit:+$("cLimit").value||0, apr:+$("cApr").value, minPay:+$("cMin").value, dueDay:+$("cDay").value };
+  if(!name || !(c.balance>=0) || !(c.apr>=0) || !(c.minPay>0) || !(c.dueDay>=1 && c.dueDay<=31))
+    return alert("Debt needs a name, balance, APR, minimum payment, and due day (1–31).");
+  S.cards.push(c); save();
+  ["cName","cBal","cLimit","cApr","cMin","cDay"].forEach(i=>$(i).value="");
+  renderAll();
+});
+
+// feed: mark paid (cards get an inline amount confirm)
+$("feed").addEventListener("click", e => {
+  const btn = e.target.closest(".mark-paid"); if(!btn) return;
+  const item = btn.closest(".feed-item");
+  const kind = item.dataset.kind, refId = item.dataset.ref, period = item.dataset.period, amt = +item.dataset.amt;
+  if(kind === "card" && !btn.dataset.confirming){
+    btn.dataset.confirming = "1";
+    const wrap = document.createElement("span");
+    wrap.className = "paid-confirm";
+    wrap.innerHTML = '<input type="number" step="0.01" min="0" inputmode="decimal" value="'+amt.toFixed(2)+'" aria-label="Amount paid"><button class="btn-c confirm-card">ok</button>';
+    btn.replaceWith(wrap);
+    wrap.querySelector("input").focus();
+    return;
+  }
+  recordPayment(kind, refId, period, amt);
+});
+$("feed").addEventListener("click", e => {
+  const ok = e.target.closest(".confirm-card"); if(!ok) return;
+  const item = ok.closest(".feed-item");
+  const amt = +item.querySelector(".paid-confirm input").value || 0;
+  recordPayment("card", item.dataset.ref, item.dataset.period, amt);
+});
+function recordPayment(kind, refId, period, amount){
+  const ref = (kind==="bill" ? S.bills : S.cards).find(x=>x.id===refId); if(!ref) return;
+  S.payments.push({ id: uid(), kind, refId, name: ref.name, period, date: iso(today()), amount });
+  if(kind==="card") ref.balance = Math.max(0, ref.balance - amount);
+  if(kind==="bill" && ref.freq==="once") ref.paidOnce = true;
+  save(); renderAll();
+}
+
+// manage deletes + history undo
+document.addEventListener("click", e => {
+  const db = e.target.closest("[data-del-bill]"), dc = e.target.closest("[data-del-card]"), un = e.target.closest("[data-undo]");
+  if(db && confirm("Delete this bill? Its payment history stays.")){ S.bills = S.bills.filter(b=>b.id!==db.dataset.delBill); save(); renderAll(); }
+  if(dc && confirm("Delete this card? Its payment history stays.")){ S.cards = S.cards.filter(c=>c.id!==dc.dataset.delCard); save(); renderAll(); }
+  if(un){
+    const p = S.payments.find(x=>x.id===un.dataset.undo); if(!p) return;
+    if(p.kind==="card"){ const c = S.cards.find(c=>c.id===p.refId); if(c) c.balance += p.amount; }
+    if(p.kind==="bill"){ const b = S.bills.find(b=>b.id===p.refId); if(b && b.freq==="once") b.paidOnce = false; }
+    S.payments = S.payments.filter(x=>x.id!==p.id); save(); renderAll();
+  }
+});
+
+// export / import
+$("btnExport").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "obol-backup-"+iso(today())+".json";
+  a.click(); URL.revokeObjectURL(a.href);
+});
+$("btnImport").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{ const data = JSON.parse(r.result);
+      if(!data.bills || !data.payments) throw new Error("Not an obol backup.");
+      S = Object.assign(defaultState(), data); save(); extraSlider = null; renderAll();
+    } catch(err){ alert("Couldn't import: " + err.message); }
+  };
+  r.readAsText(f);
+  e.target.value = "";
+});
+
+renderAll();
+</script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script>
+"use strict";
+firebase.initializeApp({
+  apiKey:            "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE",
+  authDomain:        "my-website-529cc.firebaseapp.com",
+  projectId:         "my-website-529cc",
+  storageBucket:     "my-website-529cc.firebasestorage.app",
+  messagingSenderId: "698883805148",
+  appId:             "1:698883805148:web:3519bc8f1775a381830919"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+const financeDoc = db.collection("finance").doc("main");
+
+let unsubFinance = null;
+let applyingRemote = false;
+
+function setSyncStatus(text){ document.getElementById("syncStatus").textContent = text; }
+
+// called from save() in the main script above, via the global it defines
+function scheduleCloudSave(){
+  if(!auth.currentUser || applyingRemote) return;
+  setSyncStatus("☁ saving…");
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => {
+    financeDoc.set(S).then(() => {
+      setSyncStatus("☁ synced " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}));
+    }).catch(err => {
+      console.error("cloud save failed", err);
+      setSyncStatus("⚠ sync failed — check connection");
+    });
+  }, 700);
+}
+
+auth.onAuthStateChanged(user => {
+  document.getElementById("btnSignIn").classList.toggle("hidden", !!user);
+  document.getElementById("btnSignOut").classList.toggle("hidden", !user);
+  if(unsubFinance){ unsubFinance(); unsubFinance = null; }
+
+  if(user){
+    setSyncStatus("☁ connecting…");
+    unsubFinance = financeDoc.onSnapshot(doc => {
+      if(doc.exists){
+        applyingRemote = true;
+        S = Object.assign(defaultState(), doc.data());
+        localStorage.setItem(KEY, JSON.stringify(S));
+        renderAll();
+        applyingRemote = false;
+        setSyncStatus("☁ synced " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}));
+      } else {
+        // first sign-in on this account: push whatever's already local up as the seed
+        scheduleCloudSave();
+      }
+    }, err => {
+      console.error("finance listener failed", err);
+      setSyncStatus("⚠ sync error — working from local copy");
+    });
+  } else {
+    setSyncStatus("☁ signed out — local only");
+  }
+});
+
+document.getElementById("btnSignIn").addEventListener("click", () => {
+  document.getElementById("loginModal").classList.remove("hidden");
+  document.getElementById("loginErr").textContent = "";
+});
+document.getElementById("closeLoginModal").addEventListener("click", () => {
+  document.getElementById("loginModal").classList.add("hidden");
+});
+document.getElementById("doLogin").addEventListener("click", async () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    document.getElementById("loginModal").classList.add("hidden");
+    document.getElementById("loginEmail").value = "";
+    document.getElementById("loginPass").value = "";
+  } catch {
+    document.getElementById("loginErr").textContent = "nope. try again.";
+  }
+});
+document.getElementById("loginPass").addEventListener("keydown", e => {
+  if(e.key === "Enter") document.getElementById("doLogin").click();
+});
+document.getElementById("btnSignOut").addEventListener("click", () => auth.signOut());
+</script>
+</body>
+</html>
