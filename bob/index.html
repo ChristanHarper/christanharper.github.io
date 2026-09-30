@@ -24,6 +24,9 @@
       font-family: 'Courier New', Courier, monospace;
     }
     #app { padding-bottom: 80px; }
+    /* ASCII venom background, same as the home page; content sits above it */
+    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block; }
+    .login-screen, #app { position: relative; z-index: 1; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
     ::-webkit-scrollbar-thumb { background: var(--fuchsia); }
@@ -186,6 +189,88 @@
   </style>
 </head>
 <body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<script>
+/* Same effect as christanharper.com's landing page: random neon characters that only
+   show inside a wobbling "venom" blob with tendrils that follows the pointer. */
+(() => {
+  const canvas = document.getElementById("bg");
+  const ctx = canvas.getContext("2d");
+  const FONT_SIZE = 13, LINE_HEIGHT = 19;
+  const ALL_CHARS = "!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const COLORS = [[255, 0, 200], [0, 240, 255], [40, 80, 255], [170, 0, 255]];
+  let charWidth = 8, cols = 0, rows = 0, cells = [], cellColors = [];
+  let mouseX = -9999, mouseY = -9999;
+  const startTime = performance.now();
+
+  function setup() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.font = `${FONT_SIZE}px monospace`;
+    charWidth = ctx.measureText("M").width;
+    cols = Math.floor(canvas.width / charWidth);
+    rows = Math.floor(canvas.height / LINE_HEIGHT);
+    cells = []; cellColors = [];
+    for (let i = 0; i < cols * rows; i++) {
+      cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
+      cellColors.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
+    }
+  }
+
+  function venomShape(dx, dy, t) {
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
+    const blob = 52 + 18 * Math.sin(angle * 2 + t * 0.5) + 11 * Math.sin(angle * 5 - t * 0.9) + 7 * Math.cos(angle * 8 + t * 0.4);
+    let tendril = 0;
+    const count = 7;
+    for (let i = 0; i < count; i++) {
+      const ta = (i / count) * Math.PI * 2 + t * 0.18 + i * 0.93;
+      const diff = Math.abs(((angle - ta + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      const width = 0.10 + 0.04 * Math.sin(t * 0.7 + i * 2.1);
+      if (diff < width) {
+        const s = 1 - diff / width;
+        tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i)));
+      }
+    }
+    const totalR = blob + tendril;
+    return { inside: dist < totalR, dist, blob, totalR };
+  }
+
+  function draw() {
+    const t = (performance.now() - startTime) / 1000;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const maxR = 220;
+    const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth));
+    const cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
+    const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT));
+    const rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
+    ctx.font = `${FONT_SIZE}px monospace`;
+    for (let row = rMin; row <= rMax; row++) {
+      for (let col = cMin; col <= cMax; col++) {
+        const x = col * charWidth, y = row * LINE_HEIGHT + FONT_SIZE;
+        const cx = x + charWidth / 2, cy = row * LINE_HEIGHT + LINE_HEIGHT / 2;
+        const { inside, dist, blob, totalR } = venomShape(cx - mouseX, cy - mouseY, t);
+        if (!inside) continue;
+        const coreEdge = blob * 0.65;
+        const brightness = dist < coreEdge ? 1 : 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
+        const [cr, cg, cb] = cellColors[row * cols + col];
+        ctx.fillStyle = `rgb(${Math.round(cr * brightness)},${Math.round(cg * brightness)},${Math.round(cb * brightness)})`;
+        ctx.fillText(cells[row * cols + col], x, y);
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  const follow = (x, y) => { mouseX = x; mouseY = y; };
+  window.addEventListener("mousemove", e => follow(e.clientX, e.clientY));
+  window.addEventListener("touchstart", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
+  window.addEventListener("touchmove", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
+  document.addEventListener("mouseleave", () => follow(-9999, -9999));
+  window.addEventListener("resize", setup);
+  setup();
+  draw();
+})();
+</script>
 
 <!-- ===================== LOGIN ===================== -->
 <section class="login-screen hidden" id="loginScreen">
