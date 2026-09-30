@@ -303,7 +303,7 @@
       <div class="field">
         <label for="token">OANDA API token</label>
         <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="paste your token">
-        <div class="hint" id="tokenHint">Encrypted in your browser before it's saved. Only the server can unlock it.</div>
+        <div class="hint" id="tokenHint">Encrypted in your browser before it's saved. Only a key locked in Google's key vault can unlock it; it's never stored on the server.</div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -558,7 +558,7 @@ function renderSetup() {
   $("token").placeholder = b.token_enc && keyOk ? `saved on server ✓ (…${b.token_hint || ""}) · leave blank to keep` : "paste your token";
   $("tokenHint").textContent = b.token_enc && !keyOk && S.server
     ? "The server's key changed, so your saved token can't be read. Paste it again."
-    : "Encrypted in your browser before it's saved. Only the server can unlock it.";
+    : "Encrypted in your browser before it's saved. Only a key locked in Google's key vault can unlock it; it's never stored on the server.";
   $("tokenHint").style.color = b.token_enc && !keyOk && S.server ? "var(--fuchsia)" : "";
   for (const btn of $("envSeg").querySelectorAll("button")) {
     const on = btn.dataset.env === S.form.environment;
