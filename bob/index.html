@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>◈ bob ◈</title>
+  <style>
+    :root {
+      --fuchsia: #FF00C8;
+      --cyan:    #00F0FF;
+      --blue:    #2850FF;
+      --purple:  #AA00FF;
+      --bg:      #060606;
+      --surface: #0b0b0b;
+      --text:    #cccccc;
+      --dim:     #444;
+      --mid:     #888;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+    }
+    #app { padding-bottom: 80px; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--fuchsia); }
+    a { color: var(--cyan); }
+    .hidden { display: none !important; }
+
+    /* ── HEADER ── */
+    .site-header { text-align: center; padding: 30px 16px 18px; }
+    .deco-row { display: block; font-size: 0.75rem; letter-spacing: 0.6em; color: var(--dim); user-select: none; margin: 6px 0; }
+    .glitch-wrap { position: relative; display: inline-block; margin: 10px 0; }
+    .glitch-title {
+      font-size: clamp(2.4rem, 10vw, 3.6rem);
+      letter-spacing: 0.3em;
+      font-weight: normal;
+      text-transform: lowercase;
+      animation: colorShift 10s infinite;
+    }
+    .glitch-title::before, .glitch-title::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; }
+    .glitch-title::before { color: var(--cyan); animation: glitch-a 4s infinite; clip-path: polygon(0 0,100% 0,100% 42%,0 42%); opacity: 0; }
+    .glitch-title::after  { color: var(--fuchsia); animation: glitch-b 4s infinite; clip-path: polygon(0 58%,100% 58%,100% 100%,0 100%); opacity: 0; }
+    @keyframes glitch-a { 0%,88%,100% { transform:none; opacity:0 } 90% { transform:translate(-3px,-1px); opacity:.85 } 92% { transform:translate(2px,1px); opacity:0 } 94% { transform:translate(-2px,0); opacity:.85 } }
+    @keyframes glitch-b { 0%,89%,100% { transform:none; opacity:0 } 91% { transform:translate(3px,1px); opacity:.85 } 93% { transform:translate(-2px,-1px); opacity:0 } 95% { transform:translate(2px,0); opacity:.85 } }
+    @keyframes colorShift {
+      0%   { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+      25%  { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
+      50%  { color: var(--blue);    text-shadow: 0 0 18px var(--blue); }
+      75%  { color: var(--purple);  text-shadow: 0 0 18px var(--purple); }
+      100% { color: var(--fuchsia); text-shadow: 0 0 18px var(--fuchsia); }
+    }
+    @media (prefers-reduced-motion: reduce) { .glitch-title, .glitch-title::before, .glitch-title::after, .pulse { animation: none !important; } }
+    .tagline { color: var(--dim); font-size: 0.78rem; letter-spacing: 0.2em; }
+
+    /* ── LOGIN ── */
+    .login-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
+    .login-box {
+      background: #090909; border: 1px solid var(--purple); box-shadow: 0 0 40px rgba(170,0,255,0.18);
+      padding: 26px 22px; width: min(340px, 100%); display: flex; flex-direction: column; gap: 14px; margin-top: 18px;
+    }
+    .login-box h3 { color: var(--purple); font-size: 0.9rem; letter-spacing: 0.35em; font-weight: normal; text-shadow: 0 0 12px var(--purple); }
+    .err { font-size: 0.78rem; color: var(--fuchsia); min-height: 14px; line-height: 1.5; }
+
+    /* ── LAYOUT ── */
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+    .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 0 4px; font-size: 0.74rem; letter-spacing: 0.12em; }
+    .topbar .who { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #222; padding: 6px 10px; color: var(--mid); white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+    .dot.on  { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .dot.off { background: var(--fuchsia); box-shadow: 0 0 8px var(--fuchsia); }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+
+    .section-label { font-size: 0.74rem; letter-spacing: 0.45em; text-transform: uppercase; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid; user-select: none; }
+    .label-cyan    { color: var(--cyan);    border-color: var(--cyan);    text-shadow: 0 0 8px var(--cyan); }
+    .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
+    .label-purple  { color: var(--purple);  border-color: var(--purple);  text-shadow: 0 0 8px var(--purple); }
+    .label-blue    { color: #6a88ff;        border-color: var(--blue);    text-shadow: 0 0 8px var(--blue); }
+    .panel { background: var(--surface); border: 1px solid #1a1a1a; padding: 16px 14px; margin-top: 18px; }
+    @media (min-width: 900px) { .panel { padding: 20px; } }
+    .grid2 { display: block; }
+    @media (min-width: 900px) { .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; } .grid2 > .panel { margin-top: 18px; } }
+    .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pos { color: var(--cyan); }
+    .neg { color: var(--fuchsia); }
+    .muted { color: var(--mid); }
+    .small { font-size: 0.74rem; line-height: 1.7; color: var(--mid); }
+
+    /* ── HERO ── */
+    .hero-state { font-size: clamp(2rem, 9vw, 3.2rem); line-height: 1.1; letter-spacing: 0.08em; margin: 4px 0 10px; }
+    .hero-state.ok   { color: var(--cyan);    text-shadow: 0 0 22px var(--cyan); }
+    .hero-state.wait { color: var(--purple);  text-shadow: 0 0 22px var(--purple); }
+    .hero-state.bad  { color: var(--fuchsia); text-shadow: 0 0 22px var(--fuchsia); }
+    .hero-state.idle { color: var(--mid); }
+    .safe-banner {
+      border: 1px solid var(--cyan); background: rgba(0,240,255,0.05); box-shadow: 0 0 18px rgba(0,240,255,0.12);
+      padding: 12px 14px; font-size: 0.86rem; line-height: 1.6; margin: 6px 0 14px; color: var(--text);
+    }
+    .safe-banner b { color: var(--cyan); font-weight: normal; letter-spacing: 0.1em; }
+    .warn-box { border: 1px dashed var(--fuchsia); background: rgba(255,0,200,0.05); padding: 12px 14px; font-size: 0.8rem; line-height: 1.6; margin: 6px 0 14px; word-break: break-word; }
+    .hero-sub { color: var(--mid); font-size: 0.8rem; line-height: 1.6; margin-bottom: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .actions button { flex: 1 1 140px; }
+
+    /* ── TILES ── */
+    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    @media (min-width: 640px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    .tile { border: 1px solid #1c1c1c; background: #080808; padding: 10px 12px; min-width: 0; }
+    .tile .k { font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+    .tile .v { font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tile .s { font-size: 0.68rem; color: var(--mid); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar { height: 8px; border: 1px solid #222; background: #0a0a0a; margin-top: 8px; position: relative; overflow: hidden; }
+    .bar i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .bar i.neg { background: var(--fuchsia); box-shadow: 0 0 10px var(--fuchsia); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th { text-align: left; font-weight: normal; color: var(--dim); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 6px 6px; border-bottom: 1px solid #1c1c1c; }
+    td { padding: 8px 6px; border-bottom: 1px dashed #191919; }
+    td.r, th.r { text-align: right; }
+    .table-wrap { overflow-x: auto; }
+    .log { max-height: 280px; overflow-y: auto; font-size: 0.72rem; line-height: 1.6; background: #070707; border: 1px solid #1a1a1a; padding: 10px; }
+    .log div { border-bottom: 1px dashed #151515; padding: 3px 0; word-break: break-word; }
+    .log time { color: var(--dim); margin-right: 8px; }
+
+    /* ── INPUTS / BUTTONS ── */
+    input, select {
+      background: #0a0a0a; border: 1px solid #222; color: var(--text); font-family: inherit; font-size: 16px;
+      padding: 11px 12px; width: 100%; outline: none; border-radius: 0; transition: border-color .2s, box-shadow .2s;
+    }
+    select { appearance: none; }
+    input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 6px rgba(0,240,255,0.25); }
+    input:disabled, select:disabled { color: var(--dim); }
+    .field { margin-bottom: 14px; min-width: 0; }
+    .field label { display: block; font-size: 0.66rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+    .field .hint { font-size: 0.68rem; color: var(--mid); margin-top: 5px; line-height: 1.5; }
+    .field-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .field-row .field { flex: 1 1 120px; }
+    button {
+      background: transparent; border: 1px solid var(--dim); color: var(--text); font-family: inherit; font-size: 0.8rem;
+      letter-spacing: 0.18em; padding: 10px 16px; min-height: 44px; cursor: pointer; text-transform: uppercase; transition: all .2s;
+    }
+    button:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none !important; background: transparent !important; }
+    .btn-c { color: var(--cyan);    border-color: var(--cyan); }
+    .btn-f { color: var(--fuchsia); border-color: var(--fuchsia); }
+    .btn-p { color: var(--purple);  border-color: var(--purple); }
+    .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+    .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
+    .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
+    .btn-sm { min-height: 34px; padding: 6px 12px; font-size: 0.7rem; }
+    .seg { display: flex; border: 1px solid #222; }
+    .seg button { flex: 1; border: 0; min-height: 40px; color: var(--mid); }
+    .seg button.on { color: var(--cyan); background: rgba(0,240,255,0.07); text-shadow: 0 0 8px var(--cyan); }
+    .seg button.on.live { color: var(--fuchsia); background: rgba(255,0,200,0.08); text-shadow: 0 0 8px var(--fuchsia); }
+    details summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mid); padding: 8px 0; list-style: none; }
+    details summary::before { content: "▸ "; }
+    details[open] summary::before { content: "▾ "; }
+
+    /* ── BOT PICKER ── */
+    .bots { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 720px) { .bots { grid-template-columns: 1fr 1fr; } }
+    .bot-card { border: 1px solid #222; background: #080808; padding: 14px; cursor: pointer; text-align: left; letter-spacing: normal; text-transform: none; font-size: inherit; min-height: 0; width: 100%; display: block; }
+    .bot-card:hover { border-color: #444; }
+    .bot-card.on { border-color: var(--cyan); box-shadow: 0 0 16px rgba(0,240,255,0.15); }
+    .bot-card:disabled { opacity: 1; cursor: default; }
+    .bot-card .name { font-size: 0.95rem; letter-spacing: 0.12em; color: var(--text); display: flex; justify-content: space-between; gap: 8px; }
+    .bot-card.on .name { color: var(--cyan); }
+    .bot-card .desc { font-size: 0.72rem; color: var(--mid); line-height: 1.6; margin: 6px 0 10px; }
+    .chart { width: 100%; height: 110px; display: block; }
+    .bt-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 8px; }
+    .bt-stats div { font-size: 0.66rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .bt-stats b { display: block; font-weight: normal; font-size: 0.9rem; color: var(--text); letter-spacing: 0; text-transform: none; margin-top: 2px; }
+    .chip { font-size: 0.6rem; padding: 2px 7px; border: 1px solid #2a2a2a; color: #777; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+    .chip.c { border-color: var(--cyan); color: var(--cyan); }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+    .modal-box { background: #090909; border: 1px solid var(--fuchsia); box-shadow: 0 0 40px rgba(255,0,200,0.2); padding: 24px 20px; width: min(420px, 100%); display: flex; flex-direction: column; gap: 14px; }
+    .modal-box h3 { color: var(--fuchsia); font-weight: normal; letter-spacing: 0.3em; font-size: 0.9rem; text-shadow: 0 0 12px var(--fuchsia); }
+    .modal-box p { font-size: 0.82rem; line-height: 1.7; }
+    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: #0a0a0a; border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 16px; font-size: 0.78rem; letter-spacing: 0.1em; z-index: 300; max-width: calc(100% - 32px); }
+    .toast.bad { border-color: var(--fuchsia); color: var(--fuchsia); }
+  </style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<section class="login-screen hidden" id="loginScreen">
+  <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
+  <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
+  <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
+  <div class="tagline">bots that keep working after you log off</div>
+  <form class="login-box" id="loginForm">
+    <h3>sign in</h3>
+    <input type="email" id="loginEmail" placeholder="email" autocomplete="email" required>
+    <input type="password" id="loginPass" placeholder="password" autocomplete="current-password" required>
+    <div class="err" id="loginErr"></div>
+    <button class="btn-f" type="submit" id="loginBtn">sign in</button>
+    <button class="btn-sm" type="button" id="forgotBtn" style="border:0;color:var(--dim);">forgot password</button>
+  </form>
+</section>
+
+<!-- ===================== NOT ALLOWED ===================== -->
+<section class="login-screen hidden" id="deniedScreen">
+  <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
+  <div class="login-box" style="border-color:var(--fuchsia);">
+    <h3 style="color:var(--fuchsia);text-shadow:0 0 12px var(--fuchsia);">not on the list</h3>
+    <p class="small" id="deniedMsg">This account isn't set up for bob yet. Ask Chris to add you.</p>
+    <button class="btn-p" id="deniedSignOut">sign out</button>
+  </div>
+</section>
+
+<!-- ===================== LOADING ===================== -->
+<section class="login-screen" id="loadingScreen">
+  <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
+  <div class="tagline pulse">connecting…</div>
+</section>
+
+<!-- ===================== APP ===================== -->
+<div class="hidden" id="app">
+  <header class="site-header" style="padding-bottom:6px;">
+    <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
+    <div class="tagline">bots that keep working after you log off</div>
+  </header>
+
+  <div class="wrap">
+    <div class="topbar">
+      <span class="who" id="whoAmI"></span>
+      <span class="pill" id="serverPill"><span class="dot" id="serverDot"></span><span id="serverText">server…</span></span>
+      <button class="btn-p btn-sm" id="signOutBtn">sign out</button>
+    </div>
+
+    <!-- ===== STATUS HERO ===== -->
+    <section class="panel">
+      <div class="section-label label-cyan">your bot</div>
+      <div class="hero-state idle" id="heroState">—</div>
+      <div class="safe-banner hidden" id="safeBanner"><b>✓ safe to turn off your computer.</b> The bot is running on the server, not on this device. Close this page, shut down, come back whenever to check on it.</div>
+      <div class="warn-box hidden" id="warnBox"></div>
+      <div class="hero-sub" id="heroSub"></div>
+      <div class="actions">
+        <button class="btn-c" id="startBtn">start bot</button>
+        <button class="btn-p" id="stopBtn">stop bot</button>
+        <button class="btn-f" id="closeBtn">close basket</button>
+      </div>
+    </section>
+
+    <!-- ===== BREAKDOWN ===== -->
+    <section class="panel hidden" id="breakdown">
+      <div class="section-label label-fuchsia">breakdown</div>
+      <div class="tiles" id="tiles"></div>
+      <div id="tradesWrap" style="margin-top:18px;">
+        <div class="section-label label-blue" style="margin-bottom:8px;">open trades</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>opened</th><th class="r">units</th><th class="r">entry</th><th class="r">pips</th></tr></thead>
+          <tbody id="tradesBody"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <div class="grid2">
+      <section class="panel hidden" id="sessionPanel">
+        <div class="section-label label-purple">this session</div>
+        <div class="tiles" id="sessionTiles" style="grid-template-columns:repeat(2,minmax(0,1fr));"></div>
+      </section>
+      <section class="panel hidden" id="logPanel">
+        <div class="section-label label-purple">bot log</div>
+        <div class="log" id="log"></div>
+      </section>
+    </div>
+
+    <!-- ===== SETUP ===== -->
+    <section class="panel" id="setup">
+      <div class="section-label label-cyan">setup</div>
+      <div class="warn-box hidden" id="lockedNote" style="border-color:var(--purple);background:rgba(170,0,255,0.05);">Settings are locked while the bot runs. Stop it to change anything.</div>
+
+      <div class="field">
+        <label>pick a bot · backtest on</label>
+        <div class="seg" style="max-width:260px;margin-bottom:12px;" id="btPairSeg">
+          <button type="button" data-pair="EUR_USD" class="on">EUR/USD</button>
+          <button type="button" data-pair="GBP_USD">GBP/USD</button>
+        </div>
+        <div class="bots" id="botCards"></div>
+        <div class="hint" id="btNote"></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" style="flex-basis:220px;">
+          <label>account type</label>
+          <div class="seg" id="envSeg">
+            <button type="button" data-env="PRACTICE" class="on">practice</button>
+            <button type="button" data-env="LIVE">live</button>
+          </div>
+          <div class="hint" id="envHint">Practice uses OANDA's demo money.</div>
+        </div>
+        <div class="field">
+          <label for="acct">OANDA account number</label>
+          <input id="acct" placeholder="101-001-1234567-001" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="field">
+        <label for="token">OANDA API token</label>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="paste your token">
+        <div class="hint" id="tokenHint">Encrypted in your browser before it's saved. Only the server can unlock it.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="instrument">pair</label>
+          <select id="instrument">
+            <option value="EUR_USD">EUR/USD</option><option value="GBP_USD">GBP/USD</option>
+            <option value="USD_JPY">USD/JPY</option><option value="AUD_USD">AUD/USD</option>
+            <option value="USD_CAD">USD/CAD</option><option value="USD_CHF">USD/CHF</option>
+            <option value="NZD_USD">NZD/USD</option><option value="EUR_GBP">EUR/GBP</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="s_first_units">first trade units</label>
+          <input id="s_first_units" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="s_max_trades">max trades</label>
+          <input id="s_max_trades" inputmode="numeric">
+        </div>
+      </div>
+      <details id="advanced">
+        <summary>advanced</summary>
+        <div class="field-row" style="margin-top:8px;">
+          <div class="field"><label for="s_unit_increment">units added per trade</label><input id="s_unit_increment" inputmode="numeric"></div>
+          <div class="field"><label for="s_negative_pips">add trade at −pips</label><input id="s_negative_pips" inputmode="decimal"></div>
+          <div class="field"><label for="s_basket_target_pips">close basket at +pips</label><input id="s_basket_target_pips" inputmode="decimal"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="s_fast_ma">fast MA</label><input id="s_fast_ma" inputmode="numeric"></div>
+          <div class="field"><label for="s_slow_ma">slow MA</label><input id="s_slow_ma" inputmode="numeric"></div>
+          <div class="field"><label for="s_granularity">candles</label>
+            <select id="s_granularity"><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option></select></div>
+          <div class="field" id="slipField"><label for="s_max_entry_slippage_pips">max slippage pips</label><input id="s_max_entry_slippage_pips" inputmode="decimal"></div>
+        </div>
+        <button type="button" class="btn-sm" id="resetDefaults">reset to this bot's defaults</button>
+      </details>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn-c" id="saveBtn">save settings</button>
+      </div>
+      <div class="err" id="setupErr" style="margin-top:10px;"></div>
+    </section>
+
+    <p class="small" style="margin-top:18px;text-align:center;">
+      Stopping the bot leaves any open trades on OANDA as they are. Close the basket first if you want out.<br>
+      Backtests are 2 years of M5 data at default settings with a 1.8-pip spread. Past results don't predict the next trade.
+    </p>
+  </div>
+</div>
+
+<!-- ===================== CONFIRM MODAL ===================== -->
+<div class="modal hidden" id="modal">
+  <form class="modal-box" id="modalForm">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <input id="modalInput" class="hidden" autocomplete="off" spellcheck="false">
+    <div class="err" id="modalErr"></div>
+    <div class="actions">
+      <button class="btn-f" type="submit" id="modalOk">confirm</button>
+      <button class="btn-p" type="button" id="modalCancel">cancel</button>
+    </div>
+  </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" integrity="sha384-yuGdyIzzYtOBlBG6JOWn+Ey9kpq7HocusNuxEGyyohr1eEyXpeEyehIIXC/hznw4" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" integrity="sha384-nwX2Qpkhc2sv6L0ZPkLefLGguao67toSowvePuQvGF6cG+8MUphGI2uI94Ls3JF7" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" integrity="sha384-lI+CxEx/bCvWP1b0OK13j5HTrTZP7yf1xle8TVOFq2smz6KC1RChTarRV/RHP5PP" crossorigin="anonymous"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const DEMO = new URLSearchParams(location.search).has("demo");
+
+const BOTS = {
+  v2: { label: "Bob Sell Only v2", desc: "Bob's sell strategy with fixes: it only enters on a finished candle, caps slippage, and tags every trade so it never touches anything else.",
+        defaults: { first_units: "1000", unit_increment: "100" } },
+  v1: { label: "Original Sell Bot", desc: "Bob's original robot, unchanged. Same strategy, but it can enter on a mid-candle cross that reverses before the candle closes.",
+        defaults: { first_units: "100", unit_increment: "10" } },
+};
+const COMMON = { granularity: "M5", max_trades: "10", negative_pips: "10", basket_target_pips: "20", fast_ma: "100", slow_ma: "200", max_entry_slippage_pips: "5" };
+const SETTING_KEYS = ["first_units","unit_increment","max_trades","negative_pips","basket_target_pips","fast_ma","slow_ma","granularity","max_entry_slippage_pips"];
+const ONLINE_WITHIN_MS = 150000;
+
+let S = { user: null, bot: {}, status: null, server: null, heartbeat: null, backtests: null, btPair: "EUR_USD",
+          form: { bot: "v2", environment: "PRACTICE" }, formDirty: false };
+let db, auth, unsubs = [];
+
+/* ── helpers ── */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtMoney = (v, cur) => v == null || v === "" || isNaN(+v) ? "—" : (+v < 0 ? "−" : "") + (cur === "USD" || !cur ? "$" : "") + Math.abs(+v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + (cur && cur !== "USD" ? " " + cur : "");
+const signCls = v => +v > 0 ? "pos" : +v < 0 ? "neg" : "";
+const fmtPips = v => v == null || v === "" || isNaN(+v) ? "—" : (+v > 0 ? "+" : "") + (+v).toFixed(1);
+const nonce = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const toDate = t => !t ? null : t.toDate ? t.toDate() : new Date(t);
+function ago(d) {
+  if (!d) return "never";
+  const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
+  if (s < 60) return Math.round(s) + "s ago";
+  if (s < 3600) return Math.round(s / 60) + "m ago";
+  if (s < 86400) return Math.round(s / 3600) + "h ago";
+  return Math.round(s / 86400) + "d ago";
+}
+function dur(sec) {
+  sec = +sec || 0;
+  const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`;
+}
+function toast(msg, bad) {
+  const t = document.createElement("div");
+  t.className = "toast" + (bad ? " bad" : "");
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+function show(screen) {
+  for (const id of ["loadingScreen", "loginScreen", "deniedScreen", "app"]) $(id).classList.toggle("hidden", id !== screen);
+}
+function confirmBox({ title, text, typeWord, okLabel }) {
+  return new Promise(resolve => {
+    $("modalTitle").textContent = title;
+    $("modalText").innerHTML = text;
+    $("modalErr").textContent = "";
+    $("modalOk").textContent = okLabel || "confirm";
+    const inp = $("modalInput");
+    inp.value = "";
+    inp.placeholder = typeWord ? `type ${typeWord}` : "";
+    inp.classList.toggle("hidden", !typeWord);
+    $("modal").classList.remove("hidden");
+    if (typeWord) setTimeout(() => inp.focus(), 50);
+    const done = ok => { $("modal").classList.add("hidden"); $("modalForm").onsubmit = null; $("modalCancel").onclick = null; resolve(ok); };
+    $("modalForm").onsubmit = e => {
+      e.preventDefault();
+      if (typeWord && inp.value.trim().toUpperCase() !== typeWord) { $("modalErr").textContent = `type ${typeWord} to confirm`; return; }
+      done(true);
+    };
+    $("modalCancel").onclick = () => done(false);
+  });
+}
+
+/* ── derived state ── */
+function serverOnline() {
+  const at = toDate(S.heartbeat && S.heartbeat.at);
+  return !!at && Date.now() - at.getTime() < ONLINE_WITHIN_MS;
+}
+function phase() {
+  const b = S.bot || {}, st = S.status || {};
+  const wantRun = b.desired === "running";
+  const acked = !!b.start_request && st.handled_start === b.start_request;
+  if (wantRun && !acked) return "starting";
+  if (wantRun && st.running) return "running";
+  if (wantRun && !st.running && st.error) return "error";
+  if (wantRun && !st.running) return st.started_at ? "error" : "starting";
+  if (!wantRun && st.running) return "stopping";
+  return "stopped";
+}
+const isLocked = () => ["starting", "running", "stopping"].includes(phase());
+
+/* ── render: hero + breakdown ── */
+function renderStatus() {
+  const b = S.bot || {}, st = S.status || {}, live = st.live || {}, cfg = st.config || {};
+  const online = serverOnline(), ph = phase();
+  const hb = toDate(S.heartbeat && S.heartbeat.at);
+
+  $("serverDot").className = "dot " + (online ? "on" : "off");
+  $("serverText").textContent = online ? `server online · ${S.heartbeat.host || "mac mini"}` : `server offline · seen ${ago(hb)}`;
+
+  const hero = $("heroState");
+  const set = (text, cls) => { hero.textContent = text; hero.className = "hero-state " + cls; };
+  let sub = "", warn = "";
+  if (ph === "running") { set(online ? "running" : "running?", online ? "ok" : "wait"); sub = `${esc(st.bot_label || "")} · ${esc((cfg.instrument || "").replace("_", "/"))} · ${esc((cfg.environment || "").toLowerCase())} · since ${st.started_at ? new Date(st.started_at).toLocaleString() : "—"}`; }
+  else if (ph === "starting") { set("starting…", "wait"); sub = online ? "The server is picking it up. This takes a few seconds." : "Waiting for the server to come online. It'll start as soon as it's back."; }
+  else if (ph === "stopping") { set("stopping…", "wait"); sub = "Waiting for the server to confirm."; }
+  else if (ph === "error") { set("stopped", "bad"); sub = "The bot stopped itself. Fix the problem below and press start again."; }
+  else { set("stopped", "idle"); sub = b.token_enc ? "Ready. Press start and it runs on the server." : "Fill in setup below, then press start."; }
+  if (st.error && ph !== "running") warn = st.error;
+  if (!online && ph === "running") warn = "The server hasn't checked in for a while (power or internet at the server?). The bot resumes by itself when it's back; open trades stay on OANDA meanwhile.";
+  $("heroSub").innerHTML = sub;
+  $("warnBox").textContent = warn;
+  $("warnBox").classList.toggle("hidden", !warn);
+  $("safeBanner").classList.toggle("hidden", !(ph === "running" && online));
+
+  $("startBtn").disabled = ["starting", "running", "stopping"].includes(ph);
+  $("startBtn").textContent = ph === "error" ? "start again" : "start bot";
+  $("stopBtn").disabled = !(ph === "running" || ph === "starting" || (ph === "error" && b.desired === "running"));
+  $("closeBtn").disabled = !(ph === "running" && (st.open_trades || []).length);
+
+  // breakdown
+  const running = ph === "running" || ph === "stopping";
+  $("breakdown").classList.toggle("hidden", !running && !(st.open_trades || []).length && !st.account?.balance);
+  const acc = st.account || {}, cur = acc.currency;
+  const trades = +live.trades || 0, maxT = +cfg.max_trades || 0;
+  const cum = live.cumulative_pips, target = +cfg.basket_target_pips || 20;
+  const cumPct = Math.max(0, Math.min(100, Math.abs(+cum || 0) / target * 100));
+  const tile = (k, v, s = "", cls = "", extra = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}${extra}</div>`;
+  const maTxt = live.fast === "DISABLED" ? "paused while basket open" : live.fast ? `${(+live.fast).toFixed(5)} / ${(+live.slow).toFixed(5)}` : "—";
+  $("tiles").innerHTML = [
+    tile("state", esc((live.state || (running ? "connecting" : "stopped")).toLowerCase()), esc(`${(cfg.instrument || "").replace("_", "/")} · ${(cfg.environment || "").toLowerCase()}`)),
+    tile("price (bid)", live.price ? (+live.price).toFixed(5) : "—", `MA${cfg.fast_ma || ""}/${cfg.slow_ma || ""}: ${esc(maTxt)}`),
+    tile("open trades", `${trades}${maxT ? " / " + maxT : ""}`, trades ? `newest ${fmtPips(live.latest_pips)} pips` : "no basket open", trades >= maxT && maxT ? "neg" : "",
+         maxT ? `<div class="bar"><i class="${trades >= maxT * 0.7 ? "neg" : ""}" style="width:${Math.min(100, trades / maxT * 100)}%"></i></div>` : ""),
+    tile("basket pips", fmtPips(cum), `closes at +${target}`, signCls(cum),
+         `<div class="bar"><i class="${+cum < 0 ? "neg" : ""}" style="width:${cumPct}%"></i></div>`),
+    tile("balance", fmtMoney(acc.balance, cur), "account"),
+    tile("equity (NAV)", fmtMoney(acc.NAV, cur), "balance + open P/L"),
+    tile("open P/L", fmtMoney(acc.unrealizedPL, cur), "all open trades on the account", signCls(acc.unrealizedPL)),
+    tile("margin used", fmtMoney(acc.marginUsed, cur), `free ${fmtMoney(acc.marginAvailable, cur)}`),
+  ].join("");
+  const rows = (st.open_trades || []).map((t, i) => `<tr><td>${i + 1}</td><td>${esc(new Date(t.opened).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</td>
+      <td class="r num">${(+t.units).toLocaleString()}</td><td class="r num">${esc(t.price)}</td><td class="r num ${signCls(t.pips)}">${fmtPips(t.pips)}</td></tr>`);
+  $("tradesBody").innerHTML = rows.join("") || `<tr><td colspan="5" class="muted">no open trades. Waiting for the next sell signal.</td></tr>`;
+
+  // session
+  const ss = st.session;
+  $("sessionPanel").classList.toggle("hidden", !ss);
+  if (ss) {
+    const w = +ss.winning_baskets || 0, l = +ss.losing_baskets || 0;
+    $("sessionTiles").innerHTML = [
+      tile("baskets closed", ss.baskets ?? 0, `${w} won · ${l} lost`),
+      tile("net result", fmtMoney(ss.true_net_pl, cur), "after financing", signCls(ss.true_net_pl)),
+      tile("price P/L", fmtMoney(ss.gross_price_pl, cur), `financing ${fmtMoney(ss.total_financing, cur)}`, signCls(ss.gross_price_pl)),
+      tile("most trades at once", ss.max_simultaneous_trades ?? 0, ss.baskets ? `avg basket ${dur((+ss.total_duration || 0) / ss.baskets)}` : ""),
+    ].join("");
+  }
+
+  // log
+  const logs = st.logs || [];
+  $("logPanel").classList.toggle("hidden", !logs.length);
+  $("log").innerHTML = logs.slice().reverse().map(l => `<div><time>${esc(new Date(l.t).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}))}</time>${esc(l.m)}</div>`).join("");
+
+  renderLock();
+}
+
+/* ── render: setup ── */
+function currentSettings() {
+  const out = {};
+  for (const k of SETTING_KEYS) out[k] = $("s_" + k).value.trim();
+  return out;
+}
+function fillForm() {
+  const b = S.bot || {};
+  S.form.bot = b.bot || S.form.bot || "v2";
+  S.form.environment = b.environment || "PRACTICE";
+  const s = { ...COMMON, ...BOTS[S.form.bot].defaults, ...(b.settings || {}) };
+  for (const k of SETTING_KEYS) $("s_" + k).value = s[k] ?? "";
+  $("instrument").value = (b.settings && b.settings.instrument) || "EUR_USD";
+  $("acct").value = b.account_id || "";
+  $("token").value = "";
+  S.formDirty = false;
+  renderSetup();
+}
+function renderSetup() {
+  const b = S.bot || {};
+  const keyOk = S.server && b.key_id === S.server.key_id;
+  $("token").placeholder = b.token_enc && keyOk ? `saved on server ✓ (…${b.token_hint || ""}) · leave blank to keep` : "paste your token";
+  $("tokenHint").textContent = b.token_enc && !keyOk && S.server
+    ? "The server's key changed, so your saved token can't be read. Paste it again."
+    : "Encrypted in your browser before it's saved. Only the server can unlock it.";
+  $("tokenHint").style.color = b.token_enc && !keyOk && S.server ? "var(--fuchsia)" : "";
+  for (const btn of $("envSeg").querySelectorAll("button")) {
+    const on = btn.dataset.env === S.form.environment;
+    btn.classList.toggle("on", on);
+    btn.classList.toggle("live", on && btn.dataset.env === "LIVE");
+  }
+  $("envHint").textContent = S.form.environment === "LIVE" ? "LIVE: real money. You'll be asked to confirm before it starts." : "Practice uses OANDA's demo money.";
+  $("envHint").style.color = S.form.environment === "LIVE" ? "var(--fuchsia)" : "";
+  $("slipField").classList.toggle("hidden", S.form.bot !== "v2");
+  renderBotCards();
+  renderLock();
+}
+function renderLock() {
+  const locked = isLocked();
+  $("lockedNote").classList.toggle("hidden", !locked);
+  for (const el of $("setup").querySelectorAll("input, select, button")) el.disabled = locked && !el.closest("#btPairSeg");
+}
+
+function chartSvg(eq) {
+  if (!eq || !eq.length) return "";
+  const W = 300, H = 110, P = 4;
+  const vals = eq.map(p => p[1]);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals), span = hi - lo || 1;
+  const x = i => P + i / (eq.length - 1) * (W - 2 * P), y = v => H - P - (v - lo) / span * (H - 2 * P);
+  const pts = eq.map((p, i) => `${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+  const last = vals[vals.length - 1], color = last >= 0 ? "var(--cyan)" : "var(--fuchsia)";
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="2-year backtest equity, ending ${fmtMoney(last)}">
+    <line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#333" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/></svg>`;
+}
+function renderBotCards() {
+  const bt = S.backtests;
+  $("botCards").innerHTML = Object.entries(BOTS).map(([id, meta]) => {
+    const r = bt && bt.runs[`${id}:${S.btPair}`];
+    const stats = r ? `
+      ${chartSvg(r.equity)}
+      <div class="bt-stats">
+        <div>2y P/L<b class="num ${signCls(r.pnl)}">${fmtMoney(r.pnl)}</b></div>
+        <div>worst dip<b class="num neg">${fmtMoney(r.max_drawdown)}</b></div>
+        <div>baskets<b class="num">${r.baskets}</b></div>
+        <div>win rate<b class="num">${r.win_rate}%</b></div>
+        <div>hit max<b class="num">${r.capped}×</b></div>
+        <div>stuck now<b class="num ${r.stuck_since ? "neg" : ""}">${r.stuck_since ? fmtMoney(r.stuck_pnl) : "none"}</b></div>
+      </div>
+      <div class="small" style="margin-top:6px;">${r.start} → ${r.end} · ${(+r.first_units).toLocaleString()} units +${r.unit_increment}/trade · $5k account</div>` :
+      `<div class="small">${bt ? "no backtest for this pair" : "loading backtest…"}</div>`;
+    return `<button type="button" class="bot-card ${S.form.bot === id ? "on" : ""}" data-bot="${id}">
+      <div class="name"><span>${meta.label}</span>${S.form.bot === id ? '<span class="chip c">selected</span>' : ""}</div>
+      <div class="desc">${meta.desc}</div>${stats}</button>`;
+  }).join("");
+  for (const c of $("botCards").querySelectorAll(".bot-card")) {
+    c.disabled = isLocked();
+    c.onclick = () => {
+      if (isLocked() || S.form.bot === c.dataset.bot) return;
+      const prevDefaults = BOTS[S.form.bot].defaults;
+      S.form.bot = c.dataset.bot;
+      // carry sizing over only if it was customised; otherwise switch to the new bot's defaults
+      for (const k of Object.keys(prevDefaults)) if ($("s_" + k).value === prevDefaults[k]) $("s_" + k).value = BOTS[S.form.bot].defaults[k];
+      S.formDirty = true;
+      renderSetup();
+    };
+  }
+  $("btNote").textContent = bt ? `Both bots trade the same MA${bt.fast_ma}/${bt.slow_ma} sell strategy, so their backtests differ only by trade size. Every closed basket is a win by design; the risk is a basket that maxes out and stays open ("stuck now").` : "";
+}
+
+/* ── actions ── */
+async function encryptToken(tok) {
+  if (DEMO) return { token_enc: "demo", key_id: "demo" };
+  if (!S.server || !S.server.public_key_spki) throw new Error("The server hasn't published its key yet. Is it running?");
+  const der = Uint8Array.from(atob(S.server.public_key_spki), c => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey("spki", der, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, new TextEncoder().encode(tok)));
+  let bin = ""; ct.forEach(b => bin += String.fromCharCode(b));
+  return { token_enc: btoa(bin), key_id: S.server.key_id };
+}
+function validate(s) {
+  const pos = k => +s[k] > 0 && isFinite(+s[k]);
+  if (!$("acct").value.trim()) return "Enter your OANDA account number.";
+  if (!pos("first_units") || !(+s.unit_increment >= 0)) return "Units must be positive numbers.";
+  if (!Number.isInteger(+s.max_trades) || +s.max_trades < 1 || +s.max_trades > 50) return "Max trades must be a whole number from 1 to 50.";
+  if (!pos("negative_pips") || !pos("basket_target_pips")) return "Pip settings must be positive.";
+  if (!Number.isInteger(+s.fast_ma) || !Number.isInteger(+s.slow_ma) || +s.fast_ma < 2 || +s.slow_ma < 2 || +s.fast_ma === +s.slow_ma) return "MAs must be whole numbers ≥ 2 and different.";
+  return "";
+}
+async function saveSettings(extra = {}) {
+  $("setupErr").textContent = "";
+  const s = currentSettings();
+  const err = validate(s);
+  if (err) { $("setupErr").textContent = err; throw new Error(err); }
+  const data = {
+    bot: S.form.bot, environment: S.form.environment, account_id: $("acct").value.trim(),
+    settings: { ...s, instrument: $("instrument").value }, ...extra,
+  };
+  if (data.environment !== "LIVE") data.live_ack = false;
+  const tok = $("token").value.trim();
+  if (tok) Object.assign(data, await encryptToken(tok), { token_hint: tok.slice(-4) });
+  else if (!S.bot.token_enc) { $("setupErr").textContent = "Paste your OANDA API token."; throw new Error("no token"); }
+  data.updated_at = DEMO ? new Date() : firebase.firestore.FieldValue.serverTimestamp();
+  if (DEMO) { S.bot = { ...S.bot, ...data }; onBot(); return; }
+  await db.collection("bob_bots").doc(S.user.uid).set(data, { merge: true });
+  $("token").value = "";
+  S.formDirty = false;
+}
+
+$("saveBtn").onclick = async () => { try { await saveSettings(); toast("settings saved"); } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; } };
+$("startBtn").onclick = async () => {
+  const live = S.form.environment === "LIVE";
+  if (live && !(await confirmBox({ title: "live money", okLabel: "start live",
+      text: "This bot will place <b>real</b> orders on your live OANDA account and keep adding sells as price rises, up to your max trades, with no stop-loss. Only do this with money you're fine losing.",
+      typeWord: "LIVE" }))) return;
+  try {
+    await saveSettings({ desired: "running", start_request: nonce(), live_ack: live });
+    if (!serverOnline()) toast("saved, and it'll start when the server is back online", true);
+  } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; $("setup").scrollIntoView({ behavior: "smooth" }); }
+};
+$("stopBtn").onclick = async () => {
+  const n = (S.status && S.status.open_trades || []).length;
+  if (!(await confirmBox({ title: "stop bot", okLabel: "stop",
+      text: n ? `There ${n === 1 ? "is 1 open trade" : `are ${n} open trades`}. Stopping leaves ${n === 1 ? "it" : "them"} open on OANDA with <b>nobody managing ${n === 1 ? "it" : "them"}</b> until you start again. To get out, use close basket instead.` : "No trades are open. The bot stops watching for signals." }))) return;
+  await update({ desired: "stopped" });
+};
+$("closeBtn").onclick = async () => {
+  if (!(await confirmBox({ title: "close basket", okLabel: "close all",
+      text: "Closes every trade this bot has open, right now, at market price, win or lose. The bot keeps running and waits for the next signal.", typeWord: "CLOSE" }))) return;
+  await update({ close_request: nonce() });
+  toast("close sent to server");
+};
+async function update(data) {
+  if (DEMO) { S.bot = { ...S.bot, ...data }; onBot(); return; }
+  try { await db.collection("bob_bots").doc(S.user.uid).set(data, { merge: true }); }
+  catch (e) { toast("couldn't reach the database: " + e.message, true); }
+}
+for (const btn of $("envSeg").querySelectorAll("button")) btn.onclick = () => { S.form.environment = btn.dataset.env; S.formDirty = true; renderSetup(); };
+for (const btn of $("btPairSeg").querySelectorAll("button")) btn.onclick = () => {
+  S.btPair = btn.dataset.pair;
+  for (const b of $("btPairSeg").querySelectorAll("button")) b.classList.toggle("on", b === btn);
+  renderBotCards();
+};
+$("resetDefaults").onclick = () => { const d = { ...COMMON, ...BOTS[S.form.bot].defaults }; for (const k of SETTING_KEYS) $("s_" + k).value = d[k]; S.formDirty = true; };
+$("setup").addEventListener("input", () => { S.formDirty = true; });
+
+/* ── data wiring ── */
+function onBot() {
+  if (!S.formDirty) fillForm(); else renderSetup();
+  renderStatus();
+}
+fetch("backtests.json").then(r => r.json()).then(j => { S.backtests = j; renderBotCards(); }).catch(() => {});
+setInterval(() => { if (!$("app").classList.contains("hidden")) renderStatus(); }, 15000);
+
+function startApp(user) {
+  $("whoAmI").textContent = user.email;
+  show("app");
+  const uid = user.uid;
+  unsubs.push(db.collection("bob_bots").doc(uid).onSnapshot(d => { S.bot = d.exists ? d.data() : {}; onBot(); }, e => toast("database: " + e.message, true)));
+  unsubs.push(db.collection("bob_status").doc(uid).onSnapshot(d => { S.status = d.exists ? d.data() : null; renderStatus(); }));
+  unsubs.push(db.collection("bob_server").doc("heartbeat").onSnapshot(d => { S.heartbeat = d.exists ? d.data() : null; renderStatus(); }));
+  unsubs.push(db.collection("bob_server").doc("config").onSnapshot(d => { S.server = d.exists ? d.data() : null; renderSetup(); }));
+}
+
+if (DEMO) {
+  const now = Date.now();
+  S.user = { email: "demo@bob" };
+  S.heartbeat = { at: new Date(now - 20000), host: "mac-mini" };
+  S.server = { key_id: "demo" };
+  S.bot = { bot: "v2", environment: "PRACTICE", account_id: "101-001-1234567-001", token_enc: "x", key_id: "demo", token_hint: "7f2b",
+            desired: "running", start_request: "a", settings: { instrument: "EUR_USD" } };
+  S.status = { running: true, bot: "v2", bot_label: "Bob Sell Only v2", handled_start: "a", started_at: new Date(now - 3.6e6 * 30).toISOString(),
+    config: { instrument: "EUR_USD", environment: "PRACTICE", max_trades: 10, basket_target_pips: "20", fast_ma: 100, slow_ma: 200 },
+    live: { state: "MANAGING SELL BASKET", price: "1.16842", fast: "DISABLED", slow: "DISABLED", trades: 3, cumulative_pips: "-14.6", latest_pips: "-2.4" },
+    open_trades: [ { opened: new Date(now - 9e6).toISOString(), units: "1000", price: "1.16611", pips: -24.9 },
+                   { opened: new Date(now - 6e6).toISOString(), units: "1100", price: "1.16712", pips: -14.8 },
+                   { opened: new Date(now - 2e6).toISOString(), units: "1200", price: "1.16820", pips: -4.0 } ],
+    account: { currency: "USD", balance: "100231.44", NAV: "100226.10", unrealizedPL: "-5.34", marginUsed: "77.10", marginAvailable: "100149.00" },
+    session: { baskets: 6, winning_baskets: 6, losing_baskets: 0, true_net_pl: "18.42", gross_price_pl: "18.97", total_financing: "-0.55", total_duration: 86400, max_simultaneous_trades: 5 },
+    logs: [ { t: new Date(now - 9e6).toISOString(), m: "TRUE bearish MA100/MA200 cross on completed M5 candle. Opening first SELL." },
+            { t: new Date(now - 6e6).toISOString(), m: "Newest trade at -10.0 pips. Opening SELL #2 with 1100 units." },
+            { t: new Date(now - 2e6).toISOString(), m: "Newest trade at -10.1 pips. Opening SELL #3 with 1200 units." } ] };
+  $("whoAmI").textContent = "demo@bob · demo data";
+  show("app");
+  onBot();
+} else {
+  firebase.initializeApp({
+    apiKey:            "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE",
+    authDomain:        "my-website-529cc.firebaseapp.com",
+    projectId:         "my-website-529cc",
+    storageBucket:     "my-website-529cc.firebasestorage.app",
+    messagingSenderId: "698883805148",
+    appId:             "1:698883805148:web:3519bc8f1775a381830919"
+  });
+  db = firebase.firestore();
+  auth = firebase.auth();
+
+  auth.onAuthStateChanged(async user => {
+    unsubs.forEach(u => u()); unsubs = [];
+    S = { ...S, user, bot: {}, status: null, heartbeat: null, server: null, formDirty: false };
+    if (!user) { show("loginScreen"); setTimeout(() => $("loginEmail").focus(), 50); return; }
+    show("loadingScreen");
+    try {
+      const me = await db.collection("bob_users").doc(user.uid).get();
+      if (!me.exists) { $("deniedMsg").textContent = `${user.email} isn't set up for bob yet. Ask Chris to add you.`; show("deniedScreen"); return; }
+    } catch (e) {
+      $("deniedMsg").textContent = "Couldn't reach the database (" + e.code + "). If you're Chris: the Firestore rules for bob aren't published yet.";
+      show("deniedScreen"); return;
+    }
+    startApp(user);
+  });
+
+  $("loginForm").onsubmit = async e => {
+    e.preventDefault();
+    $("loginErr").textContent = "";
+    $("loginBtn").disabled = true;
+    try { await auth.signInWithEmailAndPassword($("loginEmail").value.trim(), $("loginPass").value); $("loginPass").value = ""; }
+    catch { $("loginErr").textContent = "nope. try again."; }
+    finally { $("loginBtn").disabled = false; }
+  };
+  $("forgotBtn").onclick = async () => {
+    const email = $("loginEmail").value.trim();
+    if (!email) { $("loginErr").textContent = "type your email first."; return; }
+    try { await auth.sendPasswordResetEmail(email); } catch {}
+    $("loginErr").textContent = "if that account exists, a reset link is on its way.";
+  };
+  $("signOutBtn").onclick = () => auth.signOut();
+  $("deniedSignOut").onclick = () => auth.signOut();
+}
+</script>
+</body>
+</html>
