@@ -237,7 +237,7 @@
     <section class="panel">
       <div class="section-label label-cyan">your bot</div>
       <div class="hero-state idle" id="heroState">—</div>
-      <div class="safe-banner hidden" id="safeBanner"><b>✓ safe to turn off your computer.</b> The bot is running on the server, not on this device. Close this page, shut down, come back whenever to check on it.</div>
+      <div class="safe-banner hidden" id="safeBanner"><b>✓ safe to turn off your computer.</b> The bot is running on the server, not on this device. Close this page, shut down, come back whenever to check on it. (If the server itself ever restarts, the bot pauses until you sign in here again.)</div>
       <div class="warn-box hidden" id="warnBox"></div>
       <div class="hero-sub" id="heroSub"></div>
       <div class="actions">
@@ -452,12 +452,13 @@ function phase() {
   const acked = !!b.start_request && st.handled_start === b.start_request;
   if (wantRun && !acked) return "starting";
   if (wantRun && st.running) return "running";
+  if (wantRun && st.locked) return "paused";
   if (wantRun && !st.running && st.error) return "error";
   if (wantRun && !st.running) return st.started_at ? "error" : "starting";
   if (!wantRun && st.running) return "stopping";
   return "stopped";
 }
-const isLocked = () => ["starting", "running", "stopping"].includes(phase());
+const isLocked = () => ["starting", "running", "stopping", "paused"].includes(phase());
 
 /* ── render: hero + breakdown ── */
 function renderStatus() {
@@ -474,8 +475,9 @@ function renderStatus() {
   if (ph === "running") { set(online ? "running" : "running?", online ? "ok" : "wait"); sub = `${esc(st.bot_label || "")} · ${esc((cfg.instrument || "").replace("_", "/"))} · ${esc((cfg.environment || "").toLowerCase())} · since ${st.started_at ? new Date(st.started_at).toLocaleString() : "—"}`; }
   else if (ph === "starting") { set("starting…", "wait"); sub = online ? "The server is picking it up. This takes a few seconds." : "Waiting for the server to come online. It'll start as soon as it's back."; }
   else if (ph === "stopping") { set("stopping…", "wait"); sub = "Waiting for the server to confirm."; }
+  else if (ph === "paused") { set("paused", "wait"); sub = online ? "The server restarted, so your bot is waiting for you to unlock it. Any open trades are still on OANDA, unmanaged until you do." : "Waiting for the server to come back online."; }
   else if (ph === "error") { set("stopped", "bad"); sub = "The bot stopped itself. Fix the problem below and press start again."; }
-  else { set("stopped", "idle"); sub = b.token_enc ? "Ready. Press start and it runs on the server." : "Fill in setup below, then press start."; }
+  else { set("stopped", "idle"); sub = b.vault ? "Ready. Press start and it runs on the server." : "Fill in setup below, then press start."; }
   if (st.error && ph !== "running") warn = st.error;
   if (!online && ph === "running") warn = "The server hasn't checked in for a while (power or internet at the server?). The bot resumes by itself when it's back; open trades stay on OANDA meanwhile.";
   $("heroSub").innerHTML = sub;
@@ -483,9 +485,9 @@ function renderStatus() {
   $("warnBox").classList.toggle("hidden", !warn);
   $("safeBanner").classList.toggle("hidden", !(ph === "running" && online));
 
-  $("startBtn").disabled = ["starting", "running", "stopping"].includes(ph);
-  $("startBtn").textContent = ph === "error" ? "start again" : "start bot";
-  $("stopBtn").disabled = !(ph === "running" || ph === "starting" || (ph === "error" && b.desired === "running"));
+  $("startBtn").disabled = ["starting", "running", "stopping"].includes(ph) || (ph === "paused" && !online);
+  $("startBtn").textContent = ph === "error" ? "start again" : ph === "paused" ? "unlock & resume" : "start bot";
+  $("stopBtn").disabled = !(ph === "running" || ph === "starting" || ph === "paused" || (ph === "error" && b.desired === "running"));
   $("closeBtn").disabled = !(ph === "running" && (st.open_trades || []).length);
 
   // breakdown
@@ -554,12 +556,11 @@ function fillForm() {
 }
 function renderSetup() {
   const b = S.bot || {};
-  const keyOk = S.server && b.key_id === S.server.key_id;
-  $("token").placeholder = b.token_enc && keyOk ? `saved on server ✓ (…${b.token_hint || ""}) · leave blank to keep` : "paste your token";
-  $("tokenHint").textContent = b.token_enc && !keyOk && S.server
-    ? "The server's key changed, so your saved token can't be read. Paste it again."
-    : "Encrypted in your browser before it's saved. Only a key locked in Google's key vault can unlock it; it's never stored on the server.";
-  $("tokenHint").style.color = b.token_enc && !keyOk && S.server ? "var(--fuchsia)" : "";
+  $("token").placeholder = b.vault ? `saved & locked ✓ (…${b.token_hint || ""}) · leave blank to keep` : "paste your token";
+  $("tokenHint").textContent = S.vaultBroken
+    ? "Your saved token was locked with an old password, so it can't be opened. Paste it again."
+    : "Locked in your browser with your login password before it's saved. Nobody else can open it: not the server, not the database.";
+  $("tokenHint").style.color = S.vaultBroken ? "var(--fuchsia)" : "";
   for (const btn of $("envSeg").querySelectorAll("button")) {
     const on = btn.dataset.env === S.form.environment;
     btn.classList.toggle("on", on);
@@ -625,14 +626,78 @@ function renderBotCards() {
 }
 
 /* ── actions ── */
-async function encryptToken(tok) {
-  if (DEMO) return { token_enc: "demo", key_id: "demo" };
-  if (!S.server || !S.server.public_key_spki) throw new Error("The server hasn't published its key yet. Is it running?");
-  const der = Uint8Array.from(atob(S.server.public_key_spki), c => c.charCodeAt(0));
-  const key = await crypto.subtle.importKey("spki", der, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
+/* Token security: the OANDA token is stored only as `vault` -- AES-GCM with a key derived
+   (PBKDF2, 600k rounds) from the owner's login password, in this browser. Nothing else can
+   open it. To run the bot, the browser opens the vault and re-encrypts the token to the
+   server's current in-memory key (`session_token_enc`); that copy dies when the server
+   restarts, which is why a restart pauses bots until their owner signs in again. */
+const b64 = u8 => { let s = ""; u8.forEach(b => s += String.fromCharCode(b)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function vaultKey(password, salt) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" }, base,
+                                 { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function getPassword() {
+  if (S.password) return S.password;
+  const pw = await askPassword();
+  if (!pw) throw new Error("Password needed to unlock your token.");
+  const cred = firebase.auth.EmailAuthProvider.credential(S.user.email, pw);
+  try { await auth.currentUser.reauthenticateWithCredential(cred); } catch { throw new Error("That's not your login password."); }
+  S.password = pw;
+  return pw;
+}
+async function lockToken(tok) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await vaultKey(await getPassword(), salt);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(tok)));
+  return { salt: b64(salt), iv: b64(iv), ct: b64(ct), v: 1 };
+}
+async function unlockToken() {
+  const v = S.bot.vault;
+  if (!v) throw new Error("Paste your OANDA API token.");
+  const key = await vaultKey(await getPassword(), unb64(v.salt));
+  try {
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(v.iv) }, key, unb64(v.ct));
+    S.vaultBroken = false;
+    return new TextDecoder().decode(pt);
+  } catch {
+    S.vaultBroken = true; renderSetup();
+    throw new Error("Your saved token was locked with an old password. Paste your OANDA token again.");
+  }
+}
+async function sealForServer(tok) {
+  if (!S.server || !S.server.public_key_spki || !serverOnline()) return {};
+  const key = await crypto.subtle.importKey("spki", unb64(S.server.public_key_spki), { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]);
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, new TextEncoder().encode(tok)));
-  let bin = ""; ct.forEach(b => bin += String.fromCharCode(b));
-  return { token_enc: btoa(bin), key_id: S.server.key_id };
+  return { session_token_enc: b64(ct), session_key_id: S.server.key_id };
+}
+// Signed in with a bot that should be running, but this server run doesn't have the token: hand it over.
+let handedTo = null;
+async function autoResume() {
+  const b = S.bot || {};
+  if (DEMO || !S.password || b.desired !== "running" || !b.vault || !S.server || !serverOnline()) return;
+  if (b.session_key_id === S.server.key_id || handedTo === S.server.key_id) return;
+  handedTo = S.server.key_id;
+  try {
+    const sealed = await sealForServer(await unlockToken());
+    if (sealed.session_token_enc) { await db.collection("bob_bots").doc(S.user.uid).set(sealed, { merge: true }); toast("unlocked, resuming your bot"); }
+  } catch (e) { toast(e.message, true); }
+}
+function askPassword() {
+  return new Promise(resolve => {
+    $("modalTitle").textContent = "unlock";
+    $("modalText").innerHTML = "Enter your login password to unlock your saved OANDA token.";
+    $("modalErr").textContent = "";
+    $("modalOk").textContent = "unlock";
+    const inp = $("modalInput");
+    inp.type = "password"; inp.value = ""; inp.placeholder = "password"; inp.classList.remove("hidden");
+    $("modal").classList.remove("hidden");
+    setTimeout(() => inp.focus(), 50);
+    const done = v => { $("modal").classList.add("hidden"); inp.type = "text"; $("modalForm").onsubmit = null; $("modalCancel").onclick = null; resolve(v); };
+    $("modalForm").onsubmit = e => { e.preventDefault(); done(inp.value); };
+    $("modalCancel").onclick = () => done(null);
+  });
 }
 function validate(s) {
   const pos = k => +s[k] > 0 && isFinite(+s[k]);
@@ -643,7 +708,7 @@ function validate(s) {
   if (!Number.isInteger(+s.fast_ma) || !Number.isInteger(+s.slow_ma) || +s.fast_ma < 2 || +s.slow_ma < 2 || +s.fast_ma === +s.slow_ma) return "MAs must be whole numbers ≥ 2 and different.";
   return "";
 }
-async function saveSettings(extra = {}) {
+async function saveSettings(extra = {}, handOver = false) {
   $("setupErr").textContent = "";
   const s = currentSettings();
   const err = validate(s);
@@ -654,10 +719,14 @@ async function saveSettings(extra = {}) {
   };
   if (data.environment !== "LIVE") data.live_ack = false;
   const tok = $("token").value.trim();
-  if (tok) Object.assign(data, await encryptToken(tok), { token_hint: tok.slice(-4) });
-  else if (!S.bot.token_enc) { $("setupErr").textContent = "Paste your OANDA API token."; throw new Error("no token"); }
-  data.updated_at = DEMO ? new Date() : firebase.firestore.FieldValue.serverTimestamp();
-  if (DEMO) { S.bot = { ...S.bot, ...data }; onBot(); return; }
+  if (!tok && !S.bot.vault) { $("setupErr").textContent = "Paste your OANDA API token."; throw new Error("no token"); }
+  if (DEMO) { S.bot = { ...S.bot, ...data, vault: S.bot.vault || {}, updated_at: new Date() }; $("token").value = ""; onBot(); return; }
+  if (tok) {
+    Object.assign(data, { vault: await lockToken(tok), token_hint: tok.slice(-4) });
+    S.vaultBroken = false;
+  }
+  if (handOver) Object.assign(data, await sealForServer(tok || await unlockToken()));
+  data.updated_at = firebase.firestore.FieldValue.serverTimestamp();
   await db.collection("bob_bots").doc(S.user.uid).set(data, { merge: true });
   $("token").value = "";
   S.formDirty = false;
@@ -665,12 +734,19 @@ async function saveSettings(extra = {}) {
 
 $("saveBtn").onclick = async () => { try { await saveSettings(); toast("settings saved"); } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; } };
 $("startBtn").onclick = async () => {
+  if (phase() === "paused") {
+    try {
+      const sealed = await sealForServer(await unlockToken());
+      if (sealed.session_token_enc) await update(sealed);
+    } catch (e) { toast(e.message, true); }
+    return;
+  }
   const live = S.form.environment === "LIVE";
   if (live && !(await confirmBox({ title: "live money", okLabel: "start live",
       text: "This bot will place <b>real</b> orders on your live OANDA account and keep adding sells as price rises, up to your max trades, with no stop-loss. Only do this with money you're fine losing.",
       typeWord: "LIVE" }))) return;
   try {
-    await saveSettings({ desired: "running", start_request: nonce(), live_ack: live });
+    await saveSettings({ desired: "running", start_request: nonce(), live_ack: live }, true);
     if (!serverOnline()) toast("saved, and it'll start when the server is back online", true);
   } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; $("setup").scrollIntoView({ behavior: "smooth" }); }
 };
@@ -704,6 +780,7 @@ $("setup").addEventListener("input", () => { S.formDirty = true; });
 function onBot() {
   if (!S.formDirty) fillForm(); else renderSetup();
   renderStatus();
+  autoResume();
 }
 fetch("backtests.json").then(r => r.json()).then(j => { S.backtests = j; renderBotCards(); }).catch(() => {});
 setInterval(() => { if (!$("app").classList.contains("hidden")) renderStatus(); }, 15000);
@@ -714,8 +791,8 @@ function startApp(user) {
   const uid = user.uid;
   unsubs.push(db.collection("bob_bots").doc(uid).onSnapshot(d => { S.bot = d.exists ? d.data() : {}; onBot(); }, e => toast("database: " + e.message, true)));
   unsubs.push(db.collection("bob_status").doc(uid).onSnapshot(d => { S.status = d.exists ? d.data() : null; renderStatus(); }));
-  unsubs.push(db.collection("bob_server").doc("heartbeat").onSnapshot(d => { S.heartbeat = d.exists ? d.data() : null; renderStatus(); }));
-  unsubs.push(db.collection("bob_server").doc("config").onSnapshot(d => { S.server = d.exists ? d.data() : null; renderSetup(); }));
+  unsubs.push(db.collection("bob_server").doc("heartbeat").onSnapshot(d => { S.heartbeat = d.exists ? d.data() : null; renderStatus(); autoResume(); }));
+  unsubs.push(db.collection("bob_server").doc("config").onSnapshot(d => { S.server = d.exists ? d.data() : null; renderSetup(); autoResume(); }));
 }
 
 if (DEMO) {
@@ -723,7 +800,7 @@ if (DEMO) {
   S.user = { email: "demo@bob" };
   S.heartbeat = { at: new Date(now - 20000), host: "mac-mini" };
   S.server = { key_id: "demo" };
-  S.bot = { bot: "v2", environment: "PRACTICE", account_id: "101-001-1234567-001", token_enc: "x", key_id: "demo", token_hint: "7f2b",
+  S.bot = { bot: "v2", environment: "PRACTICE", account_id: "101-001-1234567-001", vault: {}, token_hint: "7f2b",
             desired: "running", start_request: "a", settings: { instrument: "EUR_USD" } };
   S.status = { running: true, bot: "v2", bot_label: "Bob Sell Only v2", handled_start: "a", started_at: new Date(now - 3.6e6 * 30).toISOString(),
     config: { instrument: "EUR_USD", environment: "PRACTICE", max_trades: 10, basket_target_pips: "20", fast_ma: 100, slow_ma: 200 },
@@ -750,10 +827,15 @@ if (DEMO) {
   });
   db = firebase.firestore();
   auth = firebase.auth();
+  // Every visit starts at the login screen, and the password (the key to your saved token)
+  // only ever lives in this tab's memory.
+  auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
   auth.onAuthStateChanged(async user => {
     unsubs.forEach(u => u()); unsubs = [];
-    S = { ...S, user, bot: {}, status: null, heartbeat: null, server: null, formDirty: false };
+    handedTo = null;
+    S = { ...S, user, bot: {}, status: null, heartbeat: null, server: null, formDirty: false, vaultBroken: false };
+    if (!user) S.password = null;
     if (!user) { show("loginScreen"); setTimeout(() => $("loginEmail").focus(), 50); return; }
     show("loadingScreen");
     try {
@@ -770,8 +852,9 @@ if (DEMO) {
     e.preventDefault();
     $("loginErr").textContent = "";
     $("loginBtn").disabled = true;
-    try { await auth.signInWithEmailAndPassword($("loginEmail").value.trim(), $("loginPass").value); $("loginPass").value = ""; }
-    catch { $("loginErr").textContent = "nope. try again."; }
+    const pw = $("loginPass").value;
+    try { S.password = pw; await auth.signInWithEmailAndPassword($("loginEmail").value.trim(), pw); $("loginPass").value = ""; }
+    catch { S.password = null; $("loginErr").textContent = "nope. try again."; }
     finally { $("loginBtn").disabled = false; }
   };
   $("forgotBtn").onclick = async () => {
