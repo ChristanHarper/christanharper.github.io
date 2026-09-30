@@ -467,7 +467,7 @@ function renderStatus() {
   const hb = toDate(S.heartbeat && S.heartbeat.at);
 
   $("serverDot").className = "dot " + (online ? "on" : "off");
-  $("serverText").textContent = online ? `server online · ${S.heartbeat.host || "mac mini"}` : `server offline · seen ${ago(hb)}`;
+  $("serverText").textContent = online ? "server online" : `server offline · seen ${ago(hb)}`;
 
   const hero = $("heroState");
   const set = (text, cls) => { hero.textContent = text; hero.className = "hero-state " + cls; };
@@ -798,7 +798,7 @@ function startApp(user) {
 if (DEMO) {
   const now = Date.now();
   S.user = { email: "demo@bob" };
-  S.heartbeat = { at: new Date(now - 20000), host: "mac-mini" };
+  S.heartbeat = { at: new Date(now - 20000) };
   S.server = { key_id: "demo" };
   S.bot = { bot: "v2", environment: "PRACTICE", account_id: "101-001-1234567-001", vault: {}, token_hint: "7f2b",
             desired: "running", start_request: "a", settings: { instrument: "EUR_USD" } };
