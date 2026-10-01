@@ -10,6 +10,7 @@
       --fuchsia: #FF00C8;
       --cyan:    #00F0FF;
       --blue:    #2850FF;
+      --blue2:   #6a88ff;
       --purple:  #AA00FF;
       --bg:      #060606;
       --surface: #0b0b0b;
@@ -18,32 +19,21 @@
       --mid:     #888;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Courier New', Courier, monospace;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace; }
     #app { padding-bottom: 80px; }
-    /* ASCII venom background, same as the home page; content sits above it */
     #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block; }
     .login-screen, #app { position: relative; z-index: 1; }
-    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
     ::-webkit-scrollbar-thumb { background: var(--fuchsia); }
     a { color: var(--cyan); }
     .hidden { display: none !important; }
 
-    /* ── HEADER ── */
-    .site-header { text-align: center; padding: 30px 16px 18px; }
+    /* header */
+    .site-header { text-align: center; padding: 26px 16px 8px; }
     .deco-row { display: block; font-size: 0.75rem; letter-spacing: 0.6em; color: var(--dim); user-select: none; margin: 6px 0; }
-    .glitch-wrap { position: relative; display: inline-block; margin: 10px 0; }
-    .glitch-title {
-      font-size: clamp(2.4rem, 10vw, 3.6rem);
-      letter-spacing: 0.3em;
-      font-weight: normal;
-      text-transform: lowercase;
-      animation: colorShift 10s infinite;
-    }
+    .glitch-wrap { position: relative; display: inline-block; margin: 8px 0; }
+    .glitch-title { font-size: clamp(2.4rem, 10vw, 3.4rem); letter-spacing: 0.3em; font-weight: normal; text-transform: lowercase; animation: colorShift 10s infinite; }
     .glitch-title::before, .glitch-title::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; }
     .glitch-title::before { color: var(--cyan); animation: glitch-a 4s infinite; clip-path: polygon(0 0,100% 0,100% 42%,0 42%); opacity: 0; }
     .glitch-title::after  { color: var(--fuchsia); animation: glitch-b 4s infinite; clip-path: polygon(0 58%,100% 58%,100% 100%,0 100%); opacity: 0; }
@@ -59,133 +49,161 @@
     @media (prefers-reduced-motion: reduce) { .glitch-title, .glitch-title::before, .glitch-title::after, .pulse { animation: none !important; } }
     .tagline { color: var(--dim); font-size: 0.78rem; letter-spacing: 0.2em; }
 
-    /* ── LOGIN ── */
+    /* login */
     .login-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
-    .login-box {
-      background: #090909; border: 1px solid var(--purple); box-shadow: 0 0 40px rgba(170,0,255,0.18);
-      padding: 26px 22px; width: min(340px, 100%); display: flex; flex-direction: column; gap: 14px; margin-top: 18px;
-    }
+    .login-box { background: #090909; border: 1px solid var(--purple); box-shadow: 0 0 40px rgba(170,0,255,0.18); padding: 26px 22px; width: min(340px, 100%); display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
     .login-box h3 { color: var(--purple); font-size: 0.9rem; letter-spacing: 0.35em; font-weight: normal; text-shadow: 0 0 12px var(--purple); }
     .err { font-size: 0.78rem; color: var(--fuchsia); min-height: 14px; line-height: 1.5; }
 
-    /* ── LAYOUT ── */
-    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
-    .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 0 4px; font-size: 0.74rem; letter-spacing: 0.12em; }
+    /* layout */
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+    .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0 4px; font-size: 0.74rem; letter-spacing: 0.12em; }
     .topbar .who { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #222; padding: 6px 10px; color: var(--mid); white-space: nowrap; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #222; padding: 6px 10px; color: var(--mid); white-space: nowrap; background: #080808; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
     .dot.on  { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
     .dot.off { background: var(--fuchsia); box-shadow: 0 0 8px var(--fuchsia); }
+    .dot.wait { background: var(--purple); box-shadow: 0 0 8px var(--purple); }
     .pulse { animation: pulse 2s infinite; }
     @keyframes pulse { 50% { opacity: 0.35; } }
-
-    .section-label { font-size: 0.74rem; letter-spacing: 0.45em; text-transform: uppercase; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid; user-select: none; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid #1c1c1c; margin-top: 12px; align-items: center; }
+    .tabs #newBotBtn { margin-left: auto; }
+    .tabs button { border: 0; border-bottom: 2px solid transparent; min-height: 44px; color: var(--mid); padding: 10px 16px; white-space: nowrap; }
+    .tabs button.on { color: var(--cyan); border-bottom-color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+    .tabs .spacer { flex: 1; }
+    .section-label { font-size: 0.72rem; letter-spacing: 0.4em; text-transform: uppercase; padding-bottom: 9px; margin-bottom: 12px; border-bottom: 1px solid; user-select: none; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
     .label-cyan    { color: var(--cyan);    border-color: var(--cyan);    text-shadow: 0 0 8px var(--cyan); }
     .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
     .label-purple  { color: var(--purple);  border-color: var(--purple);  text-shadow: 0 0 8px var(--purple); }
-    .label-blue    { color: #6a88ff;        border-color: var(--blue);    text-shadow: 0 0 8px var(--blue); }
-    .panel { background: var(--surface); border: 1px solid #1a1a1a; padding: 16px 14px; margin-top: 18px; }
-    @media (min-width: 900px) { .panel { padding: 20px; } }
-    .grid2 { display: block; }
-    @media (min-width: 900px) { .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; } .grid2 > .panel { margin-top: 18px; } }
+    .label-blue    { color: var(--blue2);   border-color: var(--blue);    text-shadow: 0 0 8px var(--blue); }
+    .panel { background: var(--surface); border: 1px solid #1a1a1a; padding: 16px 14px; margin-top: 16px; }
+    @media (min-width: 900px) { .panel { padding: 18px 20px; } }
     .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
     .pos { color: var(--cyan); }
     .neg { color: var(--fuchsia); }
     .muted { color: var(--mid); }
     .small { font-size: 0.74rem; line-height: 1.7; color: var(--mid); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .grow { flex: 1; min-width: 0; }
 
-    /* ── HERO ── */
-    .hero-state { font-size: clamp(2rem, 9vw, 3.2rem); line-height: 1.1; letter-spacing: 0.08em; margin: 4px 0 10px; }
-    .hero-state.ok   { color: var(--cyan);    text-shadow: 0 0 22px var(--cyan); }
-    .hero-state.wait { color: var(--purple);  text-shadow: 0 0 22px var(--purple); }
-    .hero-state.bad  { color: var(--fuchsia); text-shadow: 0 0 22px var(--fuchsia); }
-    .hero-state.idle { color: var(--mid); }
-    .safe-banner {
-      border: 1px solid var(--cyan); background: rgba(0,240,255,0.05); box-shadow: 0 0 18px rgba(0,240,255,0.12);
-      padding: 12px 14px; font-size: 0.86rem; line-height: 1.6; margin: 6px 0 14px; color: var(--text);
-    }
+    /* banners */
+    .safe-banner { border: 1px solid var(--cyan); background: rgba(0,240,255,0.05); box-shadow: 0 0 18px rgba(0,240,255,0.12); padding: 12px 14px; font-size: 0.84rem; line-height: 1.6; margin-top: 16px; }
     .safe-banner b { color: var(--cyan); font-weight: normal; letter-spacing: 0.1em; }
-    .warn-box { border: 1px dashed var(--fuchsia); background: rgba(255,0,200,0.05); padding: 12px 14px; font-size: 0.8rem; line-height: 1.6; margin: 6px 0 14px; word-break: break-word; }
-    .hero-sub { color: var(--mid); font-size: 0.8rem; line-height: 1.6; margin-bottom: 14px; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .actions button { flex: 1 1 140px; }
+    .warn-box { border: 1px dashed var(--fuchsia); background: rgba(255,0,200,0.05); padding: 10px 12px; font-size: 0.78rem; line-height: 1.6; margin: 8px 0; word-break: break-word; }
+    .note-box { border: 1px dashed var(--purple); background: rgba(170,0,255,0.05); padding: 10px 12px; font-size: 0.78rem; line-height: 1.6; margin: 8px 0; }
 
-    /* ── TILES ── */
-    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    @media (min-width: 640px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    .tile { border: 1px solid #1c1c1c; background: #080808; padding: 10px 12px; min-width: 0; }
-    .tile .k { font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
-    .tile .v { font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .tile .s { font-size: 0.68rem; color: var(--mid); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bar { height: 8px; border: 1px solid #222; background: #0a0a0a; margin-top: 8px; position: relative; overflow: hidden; }
+    /* bot cards */
+    .bot { border: 1px solid #1f1f1f; background: #090909; margin-top: 14px; }
+    .bot.run { border-color: rgba(0,240,255,0.45); box-shadow: 0 0 16px rgba(0,240,255,0.08); }
+    .bot.bad { border-color: rgba(255,0,200,0.45); }
+    .bot.wait { border-color: rgba(170,0,255,0.45); }
+    .bot-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 14px; }
+    .bot-name { font-size: 1rem; letter-spacing: 0.08em; }
+    .bot-sub { font-size: 0.7rem; color: var(--mid); margin-top: 4px; letter-spacing: 0.05em; }
+    .state { font-size: 1.35rem; letter-spacing: 0.1em; min-width: 7ch; text-align: right; }
+    .state.ok { color: var(--cyan); text-shadow: 0 0 14px var(--cyan); }
+    .state.wait { color: var(--purple); text-shadow: 0 0 14px var(--purple); }
+    .state.bad { color: var(--fuchsia); text-shadow: 0 0 14px var(--fuchsia); }
+    .state.idle { color: var(--mid); }
+    .bot-body { padding: 0 14px 14px; }
+    .bot-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .bot-actions button { flex: 0 1 auto; }
+    .chip { font-size: 0.6rem; padding: 2px 7px; border: 1px solid #2a2a2a; color: #888; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+    .chip.c { border-color: var(--cyan); color: var(--cyan); }
+    .chip.f { border-color: var(--fuchsia); color: var(--fuchsia); }
+    .chip.p { border-color: var(--purple); color: #c060ff; }
+
+    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    @media (min-width: 700px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    .tiles.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (min-width: 700px) { .tiles.six { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+    .tile { border: 1px solid #1c1c1c; background: #070707; padding: 9px 11px; min-width: 0; }
+    .tile .k { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: #555; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .v { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tile .s { font-size: 0.66rem; color: var(--mid); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar { height: 6px; border: 1px solid #222; background: #0a0a0a; margin-top: 7px; position: relative; overflow: hidden; }
     .bar i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
     .bar i.neg { background: var(--fuchsia); box-shadow: 0 0 10px var(--fuchsia); }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    th { text-align: left; font-weight: normal; color: var(--dim); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 6px 6px; border-bottom: 1px solid #1c1c1c; }
-    td { padding: 8px 6px; border-bottom: 1px dashed #191919; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+    th { text-align: left; font-weight: normal; color: #555; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px; border-bottom: 1px solid #1c1c1c; white-space: nowrap; }
+    td { padding: 7px 6px; border-bottom: 1px dashed #181818; }
     td.r, th.r { text-align: right; }
     .table-wrap { overflow-x: auto; }
-    .log { max-height: 280px; overflow-y: auto; font-size: 0.72rem; line-height: 1.6; background: #070707; border: 1px solid #1a1a1a; padding: 10px; }
-    .log div { border-bottom: 1px dashed #151515; padding: 3px 0; word-break: break-word; }
-    .log time { color: var(--dim); margin-right: 8px; }
+    .log { max-height: 220px; overflow-y: auto; font-size: 0.7rem; line-height: 1.6; background: #060606; border: 1px solid #1a1a1a; padding: 8px 10px; }
+    .log div { border-bottom: 1px dashed #141414; padding: 3px 0; word-break: break-word; }
+    .log time { color: #555; margin-right: 8px; }
+    details > summary { cursor: pointer; font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mid); padding: 10px 0 6px; list-style: none; user-select: none; }
+    details > summary::before { content: "▸ "; }
+    details[open] > summary::before { content: "▾ "; }
 
-    /* ── INPUTS / BUTTONS ── */
-    input, select {
-      background: #0a0a0a; border: 1px solid #222; color: var(--text); font-family: inherit; font-size: 16px;
-      padding: 11px 12px; width: 100%; outline: none; border-radius: 0; transition: border-color .2s, box-shadow .2s;
-    }
-    select { appearance: none; }
+    /* inputs */
+    input, select, textarea { background: #0a0a0a; border: 1px solid #222; color: var(--text); font-family: inherit; font-size: 16px; padding: 10px 11px; width: 100%; outline: none; border-radius: 0; transition: border-color .2s, box-shadow .2s; }
+    select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
     input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 6px rgba(0,240,255,0.25); }
-    input:disabled, select:disabled { color: var(--dim); }
-    .field { margin-bottom: 14px; min-width: 0; }
-    .field label { display: block; font-size: 0.66rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
-    .field .hint { font-size: 0.68rem; color: var(--mid); margin-top: 5px; line-height: 1.5; }
-    .field-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .field-row .field { flex: 1 1 120px; }
-    button {
-      background: transparent; border: 1px solid var(--dim); color: var(--text); font-family: inherit; font-size: 0.8rem;
-      letter-spacing: 0.18em; padding: 10px 16px; min-height: 44px; cursor: pointer; text-transform: uppercase; transition: all .2s;
-    }
+    input:disabled, select:disabled { color: #555; }
+    input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--cyan); padding: 0; }
+    .field { margin-bottom: 12px; min-width: 0; }
+    .field label, .flabel { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: #666; margin-bottom: 6px; }
+    .field .hint { font-size: 0.66rem; color: #6d6d6d; margin-top: 5px; line-height: 1.5; }
+    .fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; }
+    @media (min-width: 700px) { .fgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    .check { display: flex; gap: 8px; align-items: center; font-size: 0.8rem; min-height: 42px; cursor: pointer; }
+    button { background: transparent; border: 1px solid var(--dim); color: var(--text); font-family: inherit; font-size: 0.76rem; letter-spacing: 0.16em; padding: 9px 14px; min-height: 42px; cursor: pointer; text-transform: uppercase; transition: all .2s; }
     button:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none !important; background: transparent !important; }
     .btn-c { color: var(--cyan);    border-color: var(--cyan); }
     .btn-f { color: var(--fuchsia); border-color: var(--fuchsia); }
-    .btn-p { color: var(--purple);  border-color: var(--purple); }
+    .btn-p { color: #c060ff;        border-color: var(--purple); }
+    .btn-b { color: var(--blue2);   border-color: var(--blue); }
     .btn-c:hover { background: rgba(0,240,255,0.08); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
     .btn-f:hover { background: rgba(255,0,200,0.08); box-shadow: 0 0 12px rgba(255,0,200,0.3); }
     .btn-p:hover { background: rgba(170,0,255,0.08); box-shadow: 0 0 12px rgba(170,0,255,0.3); }
-    .btn-sm { min-height: 34px; padding: 6px 12px; font-size: 0.7rem; }
-    .seg { display: flex; border: 1px solid #222; }
-    .seg button { flex: 1; border: 0; min-height: 40px; color: var(--mid); }
+    .btn-b:hover { background: rgba(40,80,255,0.1); box-shadow: 0 0 12px rgba(40,80,255,0.35); }
+    .btn-sm { min-height: 32px; padding: 5px 10px; font-size: 0.66rem; }
+    .btn-panic { color: #fff; border-color: var(--fuchsia); background: rgba(255,0,200,0.12); box-shadow: 0 0 14px rgba(255,0,200,0.35); }
+    .seg { display: flex; border: 1px solid #222; flex-wrap: wrap; }
+    .seg button { flex: 1; border: 0; min-height: 38px; color: var(--mid); padding: 6px 10px; }
     .seg button.on { color: var(--cyan); background: rgba(0,240,255,0.07); text-shadow: 0 0 8px var(--cyan); }
     .seg button.on.live { color: var(--fuchsia); background: rgba(255,0,200,0.08); text-shadow: 0 0 8px var(--fuchsia); }
-    details summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--mid); padding: 8px 0; list-style: none; }
-    details summary::before { content: "▸ "; }
-    details[open] summary::before { content: "▾ "; }
 
-    /* ── BOT PICKER ── */
-    .bots { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 720px) { .bots { grid-template-columns: 1fr 1fr; } }
-    .bot-card { border: 1px solid #222; background: #080808; padding: 14px; cursor: pointer; text-align: left; letter-spacing: normal; text-transform: none; font-size: inherit; min-height: 0; width: 100%; display: block; }
-    .bot-card:hover { border-color: #444; }
-    .bot-card.on { border-color: var(--cyan); box-shadow: 0 0 16px rgba(0,240,255,0.15); }
-    .bot-card:disabled { opacity: 1; cursor: default; }
-    .bot-card .name { font-size: 0.95rem; letter-spacing: 0.12em; color: var(--text); display: flex; justify-content: space-between; gap: 8px; }
-    .bot-card.on .name { color: var(--cyan); }
-    .bot-card .desc { font-size: 0.72rem; color: var(--mid); line-height: 1.6; margin: 6px 0 10px; }
+    /* library */
+    .lib-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+    @media (min-width: 760px) { .lib-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1080px) { .lib-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    .lib { border: 1px solid #1f1f1f; background: #090909; padding: 12px; display: flex; flex-direction: column; }
+    .lib.sel { border-color: var(--cyan); box-shadow: 0 0 14px rgba(0,240,255,0.14); }
+    .lib h4 { font-weight: normal; font-size: 0.92rem; letter-spacing: 0.08em; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .lib .desc { font-size: 0.7rem; color: var(--mid); line-height: 1.6; margin: 6px 0 8px; min-height: 3.2em; }
     .chart { width: 100%; height: 110px; display: block; }
-    .bt-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin-top: 8px; }
-    .bt-stats div { font-size: 0.66rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
-    .bt-stats b { display: block; font-weight: normal; font-size: 0.9rem; color: var(--text); letter-spacing: 0; text-transform: none; margin-top: 2px; }
-    .chip { font-size: 0.6rem; padding: 2px 7px; border: 1px solid #2a2a2a; color: #777; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
-    .chip.c { border-color: var(--cyan); color: var(--cyan); }
+    .chart.big { height: 220px; }
+    .bt-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px 8px; margin-top: 8px; }
+    .bt-stats div { font-size: 0.58rem; color: #555; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+    .bt-stats b { display: block; font-weight: normal; font-size: 0.86rem; color: var(--text); letter-spacing: 0; text-transform: none; margin-top: 2px; }
+    .lib .foot { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; }
+    .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 0.7rem; margin-top: 8px; }
+    .legend i { display: inline-block; width: 12px; height: 3px; margin-right: 6px; vertical-align: middle; }
 
+    /* builder */
+    .tpl-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 700px) { .tpl-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    .tpl { border: 1px solid #222; background: #080808; padding: 12px; text-align: left; text-transform: none; letter-spacing: normal; font-size: 0.8rem; min-height: 0; }
+    .tpl b { display: block; font-weight: normal; color: var(--cyan); letter-spacing: 0.08em; margin-bottom: 6px; }
+    .tpl span { color: var(--mid); font-size: 0.7rem; line-height: 1.55; }
+    .tpl:hover { border-color: var(--cyan); }
+    .fsec { border-top: 1px solid #1a1a1a; padding-top: 12px; margin-top: 6px; }
+    .fsec h5 { font-weight: normal; font-size: 0.66rem; letter-spacing: 0.3em; text-transform: uppercase; color: #c060ff; margin-bottom: 10px; }
+
+    /* modal + toast */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
-    .modal-box { background: #090909; border: 1px solid var(--fuchsia); box-shadow: 0 0 40px rgba(255,0,200,0.2); padding: 24px 20px; width: min(420px, 100%); display: flex; flex-direction: column; gap: 14px; }
+    .modal-box { background: #090909; border: 1px solid var(--fuchsia); box-shadow: 0 0 40px rgba(255,0,200,0.2); padding: 22px 20px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 14px; max-height: 92vh; overflow: auto; }
     .modal-box h3 { color: var(--fuchsia); font-weight: normal; letter-spacing: 0.3em; font-size: 0.9rem; text-shadow: 0 0 12px var(--fuchsia); }
     .modal-box p { font-size: 0.82rem; line-height: 1.7; }
-    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: #0a0a0a; border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 16px; font-size: 0.78rem; letter-spacing: 0.1em; z-index: 300; max-width: calc(100% - 32px); }
+    .code-box { width: min(980px, 100%); border-color: var(--cyan); box-shadow: 0 0 40px rgba(0,240,255,0.15); }
+    .code-box h3 { color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+    pre.code { background: #050505; border: 1px solid #1a1a1a; padding: 12px; font-size: 0.72rem; line-height: 1.5; overflow: auto; max-height: 62vh; white-space: pre; color: #bfbfbf; font-family: 'Courier New', Courier, monospace; }
+    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: #0a0a0a; border: 1px solid var(--cyan); color: var(--cyan); padding: 10px 16px; font-size: 0.78rem; letter-spacing: 0.08em; z-index: 300; max-width: calc(100% - 32px); }
     .toast.bad { border-color: var(--fuchsia); color: var(--fuchsia); }
+    .tip { position: fixed; pointer-events: none; background: #0a0a0a; border: 1px solid #333; padding: 6px 8px; font-size: 0.68rem; z-index: 250; line-height: 1.5; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -202,73 +220,56 @@
   let charWidth = 8, cols = 0, rows = 0, cells = [], cellColors = [];
   let mouseX = -9999, mouseY = -9999;
   const startTime = performance.now();
-
   function setup() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     ctx.font = `${FONT_SIZE}px monospace`;
     charWidth = ctx.measureText("M").width;
-    cols = Math.floor(canvas.width / charWidth);
-    rows = Math.floor(canvas.height / LINE_HEIGHT);
+    cols = Math.floor(canvas.width / charWidth); rows = Math.floor(canvas.height / LINE_HEIGHT);
     cells = []; cellColors = [];
     for (let i = 0; i < cols * rows; i++) {
       cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
       cellColors.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
     }
   }
-
   function venomShape(dx, dy, t) {
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx);
+    const dist = Math.sqrt(dx * dx + dy * dy), angle = Math.atan2(dy, dx);
     const blob = 52 + 18 * Math.sin(angle * 2 + t * 0.5) + 11 * Math.sin(angle * 5 - t * 0.9) + 7 * Math.cos(angle * 8 + t * 0.4);
     let tendril = 0;
-    const count = 7;
-    for (let i = 0; i < count; i++) {
-      const ta = (i / count) * Math.PI * 2 + t * 0.18 + i * 0.93;
+    for (let i = 0; i < 7; i++) {
+      const ta = (i / 7) * Math.PI * 2 + t * 0.18 + i * 0.93;
       const diff = Math.abs(((angle - ta + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
       const width = 0.10 + 0.04 * Math.sin(t * 0.7 + i * 2.1);
-      if (diff < width) {
-        const s = 1 - diff / width;
-        tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i)));
-      }
+      if (diff < width) { const s = 1 - diff / width; tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i))); }
     }
     const totalR = blob + tendril;
     return { inside: dist < totalR, dist, blob, totalR };
   }
-
   function draw() {
     const t = (performance.now() - startTime) / 1000;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const maxR = 220;
-    const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth));
-    const cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
-    const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT));
-    const rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
+    const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth)), cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
+    const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT)), rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
     ctx.font = `${FONT_SIZE}px monospace`;
-    for (let row = rMin; row <= rMax; row++) {
-      for (let col = cMin; col <= cMax; col++) {
-        const x = col * charWidth, y = row * LINE_HEIGHT + FONT_SIZE;
-        const cx = x + charWidth / 2, cy = row * LINE_HEIGHT + LINE_HEIGHT / 2;
-        const { inside, dist, blob, totalR } = venomShape(cx - mouseX, cy - mouseY, t);
-        if (!inside) continue;
-        const coreEdge = blob * 0.65;
-        const brightness = dist < coreEdge ? 1 : 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
-        const [cr, cg, cb] = cellColors[row * cols + col];
-        ctx.fillStyle = `rgb(${Math.round(cr * brightness)},${Math.round(cg * brightness)},${Math.round(cb * brightness)})`;
-        ctx.fillText(cells[row * cols + col], x, y);
-      }
+    for (let row = rMin; row <= rMax; row++) for (let col = cMin; col <= cMax; col++) {
+      const x = col * charWidth, y = row * LINE_HEIGHT + FONT_SIZE;
+      const { inside, dist, blob, totalR } = venomShape(x + charWidth / 2 - mouseX, row * LINE_HEIGHT + LINE_HEIGHT / 2 - mouseY, t);
+      if (!inside) continue;
+      const coreEdge = blob * 0.65;
+      const b = dist < coreEdge ? 1 : 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
+      const [cr, cg, cb] = cellColors[row * cols + col];
+      ctx.fillStyle = `rgb(${Math.round(cr * b)},${Math.round(cg * b)},${Math.round(cb * b)})`;
+      ctx.fillText(cells[row * cols + col], x, y);
     }
     requestAnimationFrame(draw);
   }
-
   const follow = (x, y) => { mouseX = x; mouseY = y; };
   window.addEventListener("mousemove", e => follow(e.clientX, e.clientY));
   window.addEventListener("touchstart", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
   window.addEventListener("touchmove", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
   document.addEventListener("mouseleave", () => follow(-9999, -9999));
   window.addEventListener("resize", setup);
-  setup();
-  draw();
+  setup(); draw();
 })();
 </script>
 
@@ -288,7 +289,6 @@
   </form>
 </section>
 
-<!-- ===================== NOT ALLOWED ===================== -->
 <section class="login-screen hidden" id="deniedScreen">
   <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
   <div class="login-box" style="border-color:var(--fuchsia);">
@@ -298,7 +298,6 @@
   </div>
 </section>
 
-<!-- ===================== LOADING ===================== -->
 <section class="login-screen" id="loadingScreen">
   <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
   <div class="tagline pulse">connecting…</div>
@@ -306,151 +305,159 @@
 
 <!-- ===================== APP ===================== -->
 <div class="hidden" id="app">
-  <header class="site-header" style="padding-bottom:6px;">
+  <header class="site-header">
     <div class="glitch-wrap"><h1 class="glitch-title" data-text="bob">bob</h1></div>
     <div class="tagline">bots that keep working after you log off</div>
   </header>
-
   <div class="wrap">
     <div class="topbar">
       <span class="who" id="whoAmI"></span>
-      <span class="pill" id="serverPill"><span class="dot" id="serverDot"></span><span id="serverText">server…</span></span>
+      <span class="pill"><span class="dot" id="serverDot"></span><span id="serverText">server…</span></span>
       <button class="btn-p btn-sm" id="signOutBtn">sign out</button>
     </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="bots" class="on">my bots</button>
+      <button data-tab="library">library</button>
+      <button data-tab="history">history</button>
+      <button data-tab="settings">settings</button>
+            <button class="btn-c btn-sm" id="newBotBtn" style="margin:6px 0;">+ new bot</button>
+    </nav>
 
-    <!-- ===== STATUS HERO ===== -->
-    <section class="panel">
-      <div class="section-label label-cyan">your bot</div>
-      <div class="hero-state idle" id="heroState">—</div>
-      <div class="safe-banner hidden" id="safeBanner"><b>✓ safe to turn off your computer.</b> The bot is running on the server, not on this device. Close this page, shut down, come back whenever to check on it. (If the server itself ever restarts, the bot pauses until you sign in here again.)</div>
-      <div class="warn-box hidden" id="warnBox"></div>
-      <div class="hero-sub" id="heroSub"></div>
-      <div class="actions">
-        <button class="btn-c" id="startBtn">start bot</button>
-        <button class="btn-p" id="stopBtn">stop bot</button>
-        <button class="btn-f" id="closeBtn">close basket</button>
+    <!-- ========== MY BOTS ========== -->
+    <section id="tab-bots">
+      <div class="note-box hidden" id="setupNote">First, add your OANDA account number and API token in <a href="#" data-goto="settings">settings</a>. Then pick a bot from the <a href="#" data-goto="library">library</a> or make your own with <b>+ new bot</b>.</div>
+      <div class="safe-banner hidden" id="safeBanner"><b>✓ safe to turn off your computer.</b> Your running bots live on the server, not on this device. (If the server itself ever restarts, bots pause until you sign in here again.)</div>
+      <div class="panel" id="acctPanel">
+        <div class="section-label label-cyan"><span>account</span><button class="btn-sm btn-panic" id="panicBtn" title="Close every trade your bots opened and stop all your bots">panic: close all</button></div>
+        <div class="tiles" id="acctTiles"></div>
+      </div>
+      <div id="botList"></div>
+      <div class="panel hidden" id="noBots">
+        <p class="small">No bots yet. Open the <a href="#" data-goto="library">library</a> and press <b>use this bot</b> on one, or press <b>+ new bot</b> to build your own from a template.</p>
       </div>
     </section>
 
-    <!-- ===== BREAKDOWN ===== -->
-    <section class="panel hidden" id="breakdown">
-      <div class="section-label label-fuchsia">breakdown</div>
-      <div class="tiles" id="tiles"></div>
-      <div id="tradesWrap" style="margin-top:18px;">
-        <div class="section-label label-blue" style="margin-bottom:8px;">open trades</div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>#</th><th>opened</th><th class="r">units</th><th class="r">entry</th><th class="r">pips</th></tr></thead>
-          <tbody id="tradesBody"></tbody>
-        </table></div>
-      </div>
-    </section>
-
-    <div class="grid2">
-      <section class="panel hidden" id="sessionPanel">
-        <div class="section-label label-purple">this session</div>
-        <div class="tiles" id="sessionTiles" style="grid-template-columns:repeat(2,minmax(0,1fr));"></div>
-      </section>
-      <section class="panel hidden" id="logPanel">
-        <div class="section-label label-purple">bot log</div>
-        <div class="log" id="log"></div>
-      </section>
-    </div>
-
-    <!-- ===== SETUP ===== -->
-    <section class="panel" id="setup">
-      <div class="section-label label-cyan">setup</div>
-      <div class="warn-box hidden" id="lockedNote" style="border-color:var(--purple);background:rgba(170,0,255,0.05);">Settings are locked while the bot runs. Stop it to change anything.</div>
-
-      <div class="field">
-        <label>pick a bot · backtest on</label>
-        <div class="seg" style="max-width:260px;margin-bottom:12px;" id="btPairSeg">
-          <button type="button" data-pair="EUR_USD" class="on">EUR/USD</button>
-          <button type="button" data-pair="GBP_USD">GBP/USD</button>
-        </div>
-        <div class="bots" id="botCards"></div>
-        <div class="hint" id="btNote"></div>
-      </div>
-
-      <div class="field-row">
-        <div class="field" style="flex-basis:220px;">
-          <label>account type</label>
-          <div class="seg" id="envSeg">
-            <button type="button" data-env="PRACTICE" class="on">practice</button>
-            <button type="button" data-env="LIVE">live</button>
+    <!-- ========== LIBRARY ========== -->
+    <section id="tab-library" class="hidden">
+      <div class="panel">
+        <div class="section-label label-fuchsia"><span>every bot we've tried</span><span class="small" style="letter-spacing:0;text-transform:none;" id="libMeta"></span></div>
+        <div class="row">
+          <div class="grow" style="min-width:220px;">
+            <span class="flabel">backtest pair</span>
+            <div class="seg" id="libPairSeg"></div>
           </div>
-          <div class="hint" id="envHint">Practice uses OANDA's demo money.</div>
+          <div style="min-width:180px;">
+            <span class="flabel">sort by</span>
+            <select id="libSort"><option value="order">original order</option><option value="pnl">2-year P/L</option><option value="rdd">P/L ÷ worst dip</option><option value="dd">smallest dip</option></select>
+          </div>
         </div>
-        <div class="field">
-          <label for="acct">OANDA account number</label>
-          <input id="acct" placeholder="101-001-1234567-001" autocomplete="off" spellcheck="false">
-        </div>
+        <p class="small" style="margin-top:10px;">Same 2 years, real bid/ask spreads, $5,000 account at 50:1, 1,000-unit first trade. Tick <b>compare</b> on up to 4 to overlay them. Past results don't predict the next trade: every basket bot shows 100% wins because a basket only closes at its target; the risk is the dip (and anything still open at the end).</p>
       </div>
-      <div class="field">
-        <label for="token">OANDA API token</label>
-        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="paste your token">
-        <div class="hint" id="tokenHint">Encrypted in your browser before it's saved. Only a key locked in Google's key vault can unlock it; it's never stored on the server.</div>
+      <div class="panel hidden" id="comparePanel">
+        <div class="section-label label-blue"><span>compare</span><button class="btn-sm" id="clearCompare">clear</button></div>
+        <div id="compareChart"></div>
+        <div class="table-wrap" style="margin-top:10px;"><table id="compareTable"></table></div>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="instrument">pair</label>
-          <select id="instrument">
-            <option value="EUR_USD">EUR/USD</option><option value="GBP_USD">GBP/USD</option>
-            <option value="USD_JPY">USD/JPY</option><option value="AUD_USD">AUD/USD</option>
-            <option value="USD_CAD">USD/CAD</option><option value="USD_CHF">USD/CHF</option>
-            <option value="NZD_USD">NZD/USD</option><option value="EUR_GBP">EUR/GBP</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="s_first_units">first trade units</label>
-          <input id="s_first_units" inputmode="numeric">
-        </div>
-        <div class="field">
-          <label for="s_max_trades">max trades</label>
-          <input id="s_max_trades" inputmode="numeric">
-        </div>
-      </div>
-      <details id="advanced">
-        <summary>advanced</summary>
-        <div class="field-row" style="margin-top:8px;">
-          <div class="field"><label for="s_unit_increment">units added per trade</label><input id="s_unit_increment" inputmode="numeric"></div>
-          <div class="field"><label for="s_negative_pips">add trade at −pips</label><input id="s_negative_pips" inputmode="decimal"></div>
-          <div class="field"><label for="s_basket_target_pips">close basket at +pips</label><input id="s_basket_target_pips" inputmode="decimal"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label for="s_fast_ma">fast MA</label><input id="s_fast_ma" inputmode="numeric"></div>
-          <div class="field"><label for="s_slow_ma">slow MA</label><input id="s_slow_ma" inputmode="numeric"></div>
-          <div class="field"><label for="s_granularity">candles</label>
-            <select id="s_granularity"><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option></select></div>
-          <div class="field" id="slipField"><label for="s_max_entry_slippage_pips">max slippage pips</label><input id="s_max_entry_slippage_pips" inputmode="decimal"></div>
-        </div>
-        <button type="button" class="btn-sm" id="resetDefaults">reset to this bot's defaults</button>
-      </details>
-      <div class="actions" style="margin-top:14px;">
-        <button class="btn-c" id="saveBtn">save settings</button>
-      </div>
-      <div class="err" id="setupErr" style="margin-top:10px;"></div>
+      <div class="lib-grid" id="libGrid"></div>
     </section>
 
-    <p class="small" style="margin-top:18px;text-align:center;">
-      Stopping the bot leaves any open trades on OANDA as they are. Close the basket first if you want out.<br>
-      Backtests are 2 years of M5 data at default settings with a 1.8-pip spread. Past results don't predict the next trade.
-    </p>
+    <!-- ========== HISTORY ========== -->
+    <section id="tab-history" class="hidden">
+      <div class="panel">
+        <div class="section-label label-purple"><span>closed baskets &amp; trades</span><span class="small" id="histMeta" style="letter-spacing:0;text-transform:none;"></span></div>
+        <div class="tiles" id="histTiles"></div>
+        <div id="histChart" style="margin-top:12px;"></div>
+        <div class="table-wrap" style="margin-top:10px;"><table id="histTable"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== SETTINGS ========== -->
+    <section id="tab-settings" class="hidden">
+      <div class="panel">
+        <div class="section-label label-cyan"><span>OANDA account</span></div>
+        <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+          <div class="field">
+            <label>account type</label>
+            <div class="seg" id="envSeg"><button type="button" data-env="PRACTICE">practice</button><button type="button" data-env="LIVE">live</button></div>
+            <div class="hint" id="envHint"></div>
+          </div>
+          <div class="field"><label for="acct">account number</label><input id="acct" placeholder="101-001-1234567-001" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="field">
+          <label for="token">API token</label>
+          <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="paste your token">
+          <div class="hint" id="tokenHint"></div>
+        </div>
+        <div class="row"><button class="btn-c" id="saveAcct">save account</button><span class="err" id="acctErr"></span></div>
+        <p class="small" style="margin-top:12px;">Changing account type or number while bots run only takes effect when they restart. Two bots can't trade the same pair on one account.</p>
+      </div>
+      <div class="panel">
+        <div class="section-label label-fuchsia"><span>phone alerts</span></div>
+        <p class="small">Free push notifications through the <b>ntfy</b> app, with no account needed. Install it (<a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a>), tap <b>+</b>, and subscribe to this topic. It's random, so only people you share it with get your alerts.</p>
+        <div class="row" style="margin:10px 0;">
+          <input id="ntfyTopic" readonly class="grow" style="min-width:200px;">
+          <button class="btn-sm btn-c" id="copyTopic">copy</button>
+          <button class="btn-sm" id="newTopic">new topic</button>
+          <button class="btn-sm btn-p" id="testNtfy">send test</button>
+        </div>
+        <label class="check"><input type="checkbox" id="nTrades"> trades: basket/position opened and closed (with P/L)</label>
+        <label class="check"><input type="checkbox" id="nAlerts"> alerts: hit max trades, loss limit, bot stopped by an error, panic, paused after a server restart</label>
+        <label class="check"><input type="checkbox" id="nOn"> alerts on</label>
+      </div>
+      <div class="panel">
+        <div class="section-label label-purple"><span>how your token is kept safe</span></div>
+        <p class="small">Your OANDA token is locked in this browser with a key made from your login password, and only the locked copy is saved. Nothing else can open it: not the server, not the database, not Chris. When you press start, or sign in after the server restarted, your browser unlocks it and hands it to the server's running process, which keeps it in memory only. If you change your password, paste your token again.</p>
+      </div>
+    </section>
+
+    <!-- ========== BUILDER ========== -->
+    <section id="tab-builder" class="hidden">
+      <div class="panel" id="tplPanel">
+        <div class="section-label label-cyan"><span>new bot: pick a starting point</span><button class="btn-sm" data-close-builder>cancel</button></div>
+        <div class="tpl-grid" id="tplGrid"></div>
+        <p class="small" style="margin-top:12px;">Or start from any bot in the <a href="#" data-goto="library">library</a> with <b>use this bot</b>.</p>
+      </div>
+      <div class="panel hidden" id="formPanel">
+        <div class="section-label label-cyan"><span id="formTitle">bot settings</span><button class="btn-sm" data-close-builder>cancel</button></div>
+        <div class="note-box hidden" id="origNote">This is Bob's original code, run exactly as written. Only the settings Bob's bot has can be changed; for anything else, use a template (<a href="#" id="toEngine">convert to a custom bot</a>).</div>
+        <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+          <div class="field"><label for="f_name">name</label><input id="f_name" maxlength="40"></div>
+        </div>
+        <div id="formFields"></div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn-b" id="btRun">backtest 2 years</button>
+          <button class="btn-c" id="saveBot">save bot</button>
+          <button class="btn-c" id="saveStart">save &amp; start</button>
+          <span class="err grow" id="formErr"></span>
+        </div>
+        <div id="btOut" class="hidden" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <p class="small" style="margin-top:22px;text-align:center;">Stopping a bot leaves its open trades on OANDA. Close the basket first if you want out. Backtests aren't promises.</p>
   </div>
 </div>
 
-<!-- ===================== CONFIRM MODAL ===================== -->
+<!-- ===================== MODALS ===================== -->
 <div class="modal hidden" id="modal">
   <form class="modal-box" id="modalForm">
     <h3 id="modalTitle"></h3>
     <p id="modalText"></p>
     <input id="modalInput" class="hidden" autocomplete="off" spellcheck="false">
     <div class="err" id="modalErr"></div>
-    <div class="actions">
-      <button class="btn-f" type="submit" id="modalOk">confirm</button>
-      <button class="btn-p" type="button" id="modalCancel">cancel</button>
-    </div>
+    <div class="row"><button class="btn-f grow" type="submit" id="modalOk">confirm</button><button class="btn-p grow" type="button" id="modalCancel">cancel</button></div>
   </form>
 </div>
+<div class="modal hidden" id="codeModal">
+  <div class="modal-box code-box">
+    <div class="row"><h3 class="grow" id="codeTitle">code</h3><button class="btn-sm" id="codeClose">close</button></div>
+    <div class="seg hidden" id="codeTabs"></div>
+    <p class="small" id="codeNote"></p>
+    <pre class="code" id="codeText"></pre>
+    <div class="row"><button class="btn-c" id="codeCopy">copy to clipboard</button><button class="btn-b" id="codeDownload">download</button><span class="small" id="codeInfo"></span></div>
+  </div>
+</div>
+<div class="tip hidden" id="tip"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" integrity="sha384-yuGdyIzzYtOBlBG6JOWn+Ey9kpq7HocusNuxEGyyohr1eEyXpeEyehIIXC/hznw4" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" integrity="sha384-nwX2Qpkhc2sv6L0ZPkLefLGguao67toSowvePuQvGF6cG+8MUphGI2uI94Ls3JF7" crossorigin="anonymous"></script>
@@ -459,47 +466,41 @@
 "use strict";
 const $ = id => document.getElementById(id);
 const DEMO = new URLSearchParams(location.search).has("demo");
-
-const BOTS = {
-  v2: { label: "Bob Sell Only v2", desc: "Bob's sell strategy with fixes: it only enters on a finished candle, caps slippage, and tags every trade so it never touches anything else.",
-        defaults: { first_units: "1000", unit_increment: "100" } },
-  v1: { label: "Original Sell Bot", desc: "Bob's original robot, unchanged. Same strategy, but it can enter on a mid-candle cross that reverses before the candle closes.",
-        defaults: { first_units: "100", unit_increment: "10" } },
-};
-const COMMON = { granularity: "M5", max_trades: "10", negative_pips: "10", basket_target_pips: "20", fast_ma: "100", slow_ma: "200", max_entry_slippage_pips: "5" };
-const SETTING_KEYS = ["first_units","unit_increment","max_trades","negative_pips","basket_target_pips","fast_ma","slow_ma","granularity","max_entry_slippage_pips"];
 const ONLINE_WITHIN_MS = 150000;
+const PAIRS = ["EUR_USD", "GBP_USD", "USD_JPY", "AUD_USD", "USD_CAD", "USD_CHF", "NZD_USD", "EUR_GBP"];
+const COLORS = ["#00F0FF", "#FF00C8", "#6a88ff", "#c060ff", "#cccccc"];
+const ORIGINAL_FIELDS = ["instrument", "timeframe", "fast_ma", "slow_ma", "first_units", "unit_increment", "max_trades",
+                         "add_every_pips", "basket_target_pips", "max_entry_slippage_pips", "max_loss_usd"];
 
-let S = { user: null, bot: {}, status: null, server: null, heartbeat: null, backtests: null, btPair: "EUR_USD",
-          form: { bot: "v2", environment: "PRACTICE" }, formDirty: false };
-let db, auth, unsubs = [];
+let S = { user: null, password: null, account: {}, bots: {}, status: {}, server: null, heartbeat: null, library: [],
+          history: [], tab: "bots", libPair: "EUR_USD", libSort: "order", compare: [], builder: null, openCard: {} };
+let db, auth, unsubs = [], histUnsub = null;
 
 /* ── helpers ── */
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmtMoney = (v, cur) => v == null || v === "" || isNaN(+v) ? "—" : (+v < 0 ? "−" : "") + (cur === "USD" || !cur ? "$" : "") + Math.abs(+v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + (cur && cur !== "USD" ? " " + cur : "");
-const signCls = v => +v > 0 ? "pos" : +v < 0 ? "neg" : "";
-const fmtPips = v => v == null || v === "" || isNaN(+v) ? "—" : (+v > 0 ? "+" : "") + (+v).toFixed(1);
+const money = (v, cur) => v == null || v === "" || isNaN(+v) ? "—" : (+v < 0 ? "−" : "") + (!cur || cur === "USD" ? "$" : "") + Math.abs(+v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + (cur && cur !== "USD" ? " " + cur : "");
+const sgn = v => +v > 0 ? "pos" : +v < 0 ? "neg" : "";
+const pips = v => v == null || v === "" || isNaN(+v) ? "—" : (+v > 0 ? "+" : "") + (+v).toFixed(1);
+const pair = p => String(p || "").replace("_", "/");
 const nonce = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const toDate = t => !t ? null : t.toDate ? t.toDate() : new Date(t);
+const TS = () => DEMO ? new Date() : firebase.firestore.FieldValue.serverTimestamp();
 function ago(d) {
   if (!d) return "never";
   const s = Math.max(0, (Date.now() - d.getTime()) / 1000);
-  if (s < 60) return Math.round(s) + "s ago";
-  if (s < 3600) return Math.round(s / 60) + "m ago";
-  if (s < 86400) return Math.round(s / 3600) + "h ago";
-  return Math.round(s / 86400) + "d ago";
+  return s < 60 ? Math.round(s) + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 86400 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago";
 }
-function dur(sec) {
-  sec = +sec || 0;
-  const d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
-  return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`;
+function dur(h) {
+  if (h == null) return "—";
+  const m = h * 60;
+  return m < 60 ? Math.round(m) + "m" : h < 48 ? h.toFixed(1) + "h" : (h / 24).toFixed(1) + "d";
 }
 function toast(msg, bad) {
   const t = document.createElement("div");
   t.className = "toast" + (bad ? " bad" : "");
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3200);
+  setTimeout(() => t.remove(), 3400);
 }
 function show(screen) {
   for (const id of ["loadingScreen", "loginScreen", "deniedScreen", "app"]) $(id).classList.toggle("hidden", id !== screen);
@@ -511,8 +512,7 @@ function confirmBox({ title, text, typeWord, okLabel }) {
     $("modalErr").textContent = "";
     $("modalOk").textContent = okLabel || "confirm";
     const inp = $("modalInput");
-    inp.value = "";
-    inp.placeholder = typeWord ? `type ${typeWord}` : "";
+    inp.type = "text"; inp.value = ""; inp.placeholder = typeWord ? `type ${typeWord}` : "";
     inp.classList.toggle("hidden", !typeWord);
     $("modal").classList.remove("hidden");
     if (typeWord) setTimeout(() => inp.focus(), 50);
@@ -525,203 +525,92 @@ function confirmBox({ title, text, typeWord, okLabel }) {
     $("modalCancel").onclick = () => done(false);
   });
 }
+function askPassword() {
+  return new Promise(resolve => {
+    $("modalTitle").textContent = "unlock";
+    $("modalText").textContent = "Enter your login password to unlock your saved OANDA token.";
+    $("modalErr").textContent = "";
+    $("modalOk").textContent = "unlock";
+    const inp = $("modalInput");
+    inp.type = "password"; inp.value = ""; inp.placeholder = "password"; inp.classList.remove("hidden");
+    $("modal").classList.remove("hidden");
+    setTimeout(() => inp.focus(), 50);
+    const done = v => { $("modal").classList.add("hidden"); inp.type = "text"; $("modalForm").onsubmit = null; $("modalCancel").onclick = null; resolve(v); };
+    $("modalForm").onsubmit = e => { e.preventDefault(); done(inp.value); };
+    $("modalCancel").onclick = () => done(null);
+  });
+}
+
+/* ── charts (inline SVG, hover shows values) ── */
+const chartData = new Map();
+function chart(series, opts = {}) {
+  series = series.filter(s => s.points && s.points.length > 1);
+  if (!series.length) return `<div class="small">no data</div>`;
+  const W = 600, H = opts.big ? 220 : 110, P = 4;
+  const all = series.flatMap(s => s.points.map(p => p[1]));
+  const lo = Math.min(0, ...all), hi = Math.max(0, ...all), span = hi - lo || 1;
+  const dates = [...new Set(series.flatMap(s => s.points.map(p => p[0])))].sort();
+  const di = new Map(dates.map((d, i) => [d, i]));
+  const x = i => P + i / Math.max(1, dates.length - 1) * (W - 2 * P), y = v => H - P - (v - lo) / span * (H - 2 * P);
+  const id = "c" + Math.random().toString(36).slice(2, 9);
+  chartData.set(id, { series, dates, lo, span, H, W, P });
+  const lines = series.map((s, k) => {
+    const col = s.color || COLORS[k % COLORS.length];
+    const pts = s.points.map(p => `${x(di.get(p[0])).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+    return `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="${s.dash ? 1 : 1.5}" ${s.dash ? 'stroke-dasharray="4 3" opacity=".6"' : ""} vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 2px ${col})"/>`;
+  }).join("");
+  const axis = opts.axis === false ? "" :
+    `<div class="row small" style="justify-content:space-between;font-size:0.6rem;margin-top:2px;"><span>${dates[0]}</span><span>${money(hi)} / ${money(lo)}</span><span>${dates[dates.length - 1]}</span></div>`;
+  return `<svg class="chart ${opts.big ? "big" : ""}" id="${id}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="equity curve">
+    <line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#333" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>${lines}
+    <line class="hov" x1="0" x2="0" y1="0" y2="${H}" stroke="#555" vector-effect="non-scaling-stroke" visibility="hidden"/></svg>${axis}`;
+}
+document.addEventListener("mousemove", e => {
+  const svg = e.target.closest && e.target.closest("svg.chart");
+  const tip = $("tip");
+  if (!svg || !chartData.has(svg.id)) { tip.classList.add("hidden"); document.querySelectorAll("svg.chart .hov").forEach(l => l.setAttribute("visibility", "hidden")); return; }
+  const c = chartData.get(svg.id), r = svg.getBoundingClientRect();
+  const i = Math.max(0, Math.min(c.dates.length - 1, Math.round((e.clientX - r.left) / r.width * (c.dates.length - 1))));
+  const d = c.dates[i];
+  const lx = c.P + i / Math.max(1, c.dates.length - 1) * (c.W - 2 * c.P);
+  const hov = svg.querySelector(".hov"); hov.setAttribute("x1", lx); hov.setAttribute("x2", lx); hov.setAttribute("visibility", "visible");
+  tip.innerHTML = `<div class="muted">${d}</div>` + c.series.map((s, k) => {
+    let v = null; for (const p of s.points) { if (p[0] <= d) v = p[1]; else break; }
+    return `<div><span style="color:${s.color || COLORS[k % COLORS.length]}">■</span> ${esc(s.name || "")} <span class="${sgn(v)}">${money(v)}</span></div>`;
+  }).join("");
+  tip.classList.remove("hidden");
+  tip.style.left = Math.min(window.innerWidth - tip.offsetWidth - 8, e.clientX + 12) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
 
 /* ── derived state ── */
 function serverOnline() {
   const at = toDate(S.heartbeat && S.heartbeat.at);
   return !!at && Date.now() - at.getTime() < ONLINE_WITHIN_MS;
 }
-function phase() {
-  const b = S.bot || {}, st = S.status || {};
-  const wantRun = b.desired === "running";
-  const acked = !!b.start_request && st.handled_start === b.start_request;
-  if (wantRun && !acked) return "starting";
-  if (wantRun && st.running) return "running";
-  if (wantRun && st.locked) return "paused";
-  if (wantRun && !st.running && st.error) return "error";
-  if (wantRun && !st.running) return st.started_at ? "error" : "starting";
-  if (!wantRun && st.running) return "stopping";
-  return "stopped";
+function phase(bot, st) {
+  st = st || {};
+  const want = bot.desired === "running";
+  const acked = !!bot.start_request && st.handled_start === bot.start_request;
+  if (want && !acked) return "starting";
+  if (want && st.running) return "running";
+  if (want && st.locked) return "paused";
+  if (want && !st.running) return st.error ? "error" : st.started_at ? "error" : "starting";
+  if (!want && st.running) return "stopping";
+  return st.error && !want ? "stopped" : "stopped";
 }
-const isLocked = () => ["starting", "running", "stopping", "paused"].includes(phase());
+const busy = ph => ["starting", "running", "stopping", "paused"].includes(ph);
+const libById = id => S.library.find(b => b.id === id);
+// equity curves arrive as [[date, value], ...] or {d: [...], v: [...]} (Firestore can't nest lists)
+const eqPts = r => !r || !r.equity ? [] : Array.isArray(r.equity) ? r.equity : r.equity.d.map((d, i) => [d, r.equity.v[i]]);
+const botConfig = b => ({ ...(S.server && S.server.defaults || {}), ...(b.config || {}) });
 
-/* ── render: hero + breakdown ── */
-function renderStatus() {
-  const b = S.bot || {}, st = S.status || {}, live = st.live || {}, cfg = st.config || {};
-  const online = serverOnline(), ph = phase();
-  const hb = toDate(S.heartbeat && S.heartbeat.at);
-
-  $("serverDot").className = "dot " + (online ? "on" : "off");
-  $("serverText").textContent = online ? "server online" : `server offline · seen ${ago(hb)}`;
-
-  const hero = $("heroState");
-  const set = (text, cls) => { hero.textContent = text; hero.className = "hero-state " + cls; };
-  let sub = "", warn = "";
-  if (ph === "running") { set(online ? "running" : "running?", online ? "ok" : "wait"); sub = `${esc(st.bot_label || "")} · ${esc((cfg.instrument || "").replace("_", "/"))} · ${esc((cfg.environment || "").toLowerCase())} · since ${st.started_at ? new Date(st.started_at).toLocaleString() : "—"}`; }
-  else if (ph === "starting") { set("starting…", "wait"); sub = online ? "The server is picking it up. This takes a few seconds." : "Waiting for the server to come online. It'll start as soon as it's back."; }
-  else if (ph === "stopping") { set("stopping…", "wait"); sub = "Waiting for the server to confirm."; }
-  else if (ph === "paused") { set("paused", "wait"); sub = online ? "The server restarted, so your bot is waiting for you to unlock it. Any open trades are still on OANDA, unmanaged until you do." : "Waiting for the server to come back online."; }
-  else if (ph === "error") { set("stopped", "bad"); sub = "The bot stopped itself. Fix the problem below and press start again."; }
-  else { set("stopped", "idle"); sub = b.vault ? "Ready. Press start and it runs on the server." : "Fill in setup below, then press start."; }
-  if (st.error && ph !== "running") warn = st.error;
-  if (!online && ph === "running") warn = "The server hasn't checked in for a while (power or internet at the server?). The bot resumes by itself when it's back; open trades stay on OANDA meanwhile.";
-  $("heroSub").innerHTML = sub;
-  $("warnBox").textContent = warn;
-  $("warnBox").classList.toggle("hidden", !warn);
-  $("safeBanner").classList.toggle("hidden", !(ph === "running" && online));
-
-  $("startBtn").disabled = ["starting", "running", "stopping"].includes(ph) || (ph === "paused" && !online);
-  $("startBtn").textContent = ph === "error" ? "start again" : ph === "paused" ? "unlock & resume" : "start bot";
-  $("stopBtn").disabled = !(ph === "running" || ph === "starting" || ph === "paused" || (ph === "error" && b.desired === "running"));
-  $("closeBtn").disabled = !(ph === "running" && (st.open_trades || []).length);
-
-  // breakdown
-  const running = ph === "running" || ph === "stopping";
-  $("breakdown").classList.toggle("hidden", !running && !(st.open_trades || []).length && !st.account?.balance);
-  const acc = st.account || {}, cur = acc.currency;
-  const trades = +live.trades || 0, maxT = +cfg.max_trades || 0;
-  const cum = live.cumulative_pips, target = +cfg.basket_target_pips || 20;
-  const cumPct = Math.max(0, Math.min(100, Math.abs(+cum || 0) / target * 100));
-  const tile = (k, v, s = "", cls = "", extra = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}${extra}</div>`;
-  const maTxt = live.fast === "DISABLED" ? "paused while basket open" : live.fast ? `${(+live.fast).toFixed(5)} / ${(+live.slow).toFixed(5)}` : "—";
-  $("tiles").innerHTML = [
-    tile("state", esc((live.state || (running ? "connecting" : "stopped")).toLowerCase()), esc(`${(cfg.instrument || "").replace("_", "/")} · ${(cfg.environment || "").toLowerCase()}`)),
-    tile("price (bid)", live.price ? (+live.price).toFixed(5) : "—", `MA${cfg.fast_ma || ""}/${cfg.slow_ma || ""}: ${esc(maTxt)}`),
-    tile("open trades", `${trades}${maxT ? " / " + maxT : ""}`, trades ? `newest ${fmtPips(live.latest_pips)} pips` : "no basket open", trades >= maxT && maxT ? "neg" : "",
-         maxT ? `<div class="bar"><i class="${trades >= maxT * 0.7 ? "neg" : ""}" style="width:${Math.min(100, trades / maxT * 100)}%"></i></div>` : ""),
-    tile("basket pips", fmtPips(cum), `closes at +${target}`, signCls(cum),
-         `<div class="bar"><i class="${+cum < 0 ? "neg" : ""}" style="width:${cumPct}%"></i></div>`),
-    tile("balance", fmtMoney(acc.balance, cur), "account"),
-    tile("equity (NAV)", fmtMoney(acc.NAV, cur), "balance + open P/L"),
-    tile("open P/L", fmtMoney(acc.unrealizedPL, cur), "all open trades on the account", signCls(acc.unrealizedPL)),
-    tile("margin used", fmtMoney(acc.marginUsed, cur), `free ${fmtMoney(acc.marginAvailable, cur)}`),
-  ].join("");
-  const rows = (st.open_trades || []).map((t, i) => `<tr><td>${i + 1}</td><td>${esc(new Date(t.opened).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</td>
-      <td class="r num">${(+t.units).toLocaleString()}</td><td class="r num">${esc(t.price)}</td><td class="r num ${signCls(t.pips)}">${fmtPips(t.pips)}</td></tr>`);
-  $("tradesBody").innerHTML = rows.join("") || `<tr><td colspan="5" class="muted">no open trades. Waiting for the next sell signal.</td></tr>`;
-
-  // session
-  const ss = st.session;
-  $("sessionPanel").classList.toggle("hidden", !ss);
-  if (ss) {
-    const w = +ss.winning_baskets || 0, l = +ss.losing_baskets || 0;
-    $("sessionTiles").innerHTML = [
-      tile("baskets closed", ss.baskets ?? 0, `${w} won · ${l} lost`),
-      tile("net result", fmtMoney(ss.true_net_pl, cur), "after financing", signCls(ss.true_net_pl)),
-      tile("price P/L", fmtMoney(ss.gross_price_pl, cur), `financing ${fmtMoney(ss.total_financing, cur)}`, signCls(ss.gross_price_pl)),
-      tile("most trades at once", ss.max_simultaneous_trades ?? 0, ss.baskets ? `avg basket ${dur((+ss.total_duration || 0) / ss.baskets)}` : ""),
-    ].join("");
-  }
-
-  // log
-  const logs = st.logs || [];
-  $("logPanel").classList.toggle("hidden", !logs.length);
-  $("log").innerHTML = logs.slice().reverse().map(l => `<div><time>${esc(new Date(l.t).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}))}</time>${esc(l.m)}</div>`).join("");
-
-  renderLock();
-}
-
-/* ── render: setup ── */
-function currentSettings() {
-  const out = {};
-  for (const k of SETTING_KEYS) out[k] = $("s_" + k).value.trim();
-  return out;
-}
-function fillForm() {
-  const b = S.bot || {};
-  S.form.bot = b.bot || S.form.bot || "v2";
-  S.form.environment = b.environment || "PRACTICE";
-  const s = { ...COMMON, ...BOTS[S.form.bot].defaults, ...(b.settings || {}) };
-  for (const k of SETTING_KEYS) $("s_" + k).value = s[k] ?? "";
-  $("instrument").value = (b.settings && b.settings.instrument) || "EUR_USD";
-  $("acct").value = b.account_id || "";
-  $("token").value = "";
-  S.formDirty = false;
-  renderSetup();
-}
-function renderSetup() {
-  const b = S.bot || {};
-  $("token").placeholder = b.vault ? `saved & locked ✓ (…${b.token_hint || ""}) · leave blank to keep` : "paste your token";
-  $("tokenHint").textContent = S.vaultBroken
-    ? "Your saved token was locked with an old password, so it can't be opened. Paste it again."
-    : "Locked in your browser with your login password before it's saved. Nobody else can open it: not the server, not the database.";
-  $("tokenHint").style.color = S.vaultBroken ? "var(--fuchsia)" : "";
-  for (const btn of $("envSeg").querySelectorAll("button")) {
-    const on = btn.dataset.env === S.form.environment;
-    btn.classList.toggle("on", on);
-    btn.classList.toggle("live", on && btn.dataset.env === "LIVE");
-  }
-  $("envHint").textContent = S.form.environment === "LIVE" ? "LIVE: real money. You'll be asked to confirm before it starts." : "Practice uses OANDA's demo money.";
-  $("envHint").style.color = S.form.environment === "LIVE" ? "var(--fuchsia)" : "";
-  $("slipField").classList.toggle("hidden", S.form.bot !== "v2");
-  renderBotCards();
-  renderLock();
-}
-function renderLock() {
-  const locked = isLocked();
-  $("lockedNote").classList.toggle("hidden", !locked);
-  for (const el of $("setup").querySelectorAll("input, select, button")) el.disabled = locked && !el.closest("#btPairSeg");
-}
-
-function chartSvg(eq) {
-  if (!eq || !eq.length) return "";
-  const W = 300, H = 110, P = 4;
-  const vals = eq.map(p => p[1]);
-  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals), span = hi - lo || 1;
-  const x = i => P + i / (eq.length - 1) * (W - 2 * P), y = v => H - P - (v - lo) / span * (H - 2 * P);
-  const pts = eq.map((p, i) => `${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
-  const last = vals[vals.length - 1], color = last >= 0 ? "var(--cyan)" : "var(--fuchsia)";
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="2-year backtest equity, ending ${fmtMoney(last)}">
-    <line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#333" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
-    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 3px ${color})"/></svg>`;
-}
-function renderBotCards() {
-  const bt = S.backtests;
-  $("botCards").innerHTML = Object.entries(BOTS).map(([id, meta]) => {
-    const r = bt && bt.runs[`${id}:${S.btPair}`];
-    const stats = r ? `
-      ${chartSvg(r.equity)}
-      <div class="bt-stats">
-        <div>2y P/L<b class="num ${signCls(r.pnl)}">${fmtMoney(r.pnl)}</b></div>
-        <div>worst dip<b class="num neg">${fmtMoney(r.max_drawdown)}</b></div>
-        <div>baskets<b class="num">${r.baskets}</b></div>
-        <div>win rate<b class="num">${r.win_rate}%</b></div>
-        <div>hit max<b class="num">${r.capped}×</b></div>
-        <div>stuck now<b class="num ${r.stuck_since ? "neg" : ""}">${r.stuck_since ? fmtMoney(r.stuck_pnl) : "none"}</b></div>
-      </div>
-      <div class="small" style="margin-top:6px;">${r.start} → ${r.end} · ${(+r.first_units).toLocaleString()} units +${r.unit_increment}/trade · $5k account</div>` :
-      `<div class="small">${bt ? "no backtest for this pair" : "loading backtest…"}</div>`;
-    return `<button type="button" class="bot-card ${S.form.bot === id ? "on" : ""}" data-bot="${id}">
-      <div class="name"><span>${meta.label}</span>${S.form.bot === id ? '<span class="chip c">selected</span>' : ""}</div>
-      <div class="desc">${meta.desc}</div>${stats}</button>`;
-  }).join("");
-  for (const c of $("botCards").querySelectorAll(".bot-card")) {
-    c.disabled = isLocked();
-    c.onclick = () => {
-      if (isLocked() || S.form.bot === c.dataset.bot) return;
-      const prevDefaults = BOTS[S.form.bot].defaults;
-      S.form.bot = c.dataset.bot;
-      // carry sizing over only if it was customised; otherwise switch to the new bot's defaults
-      for (const k of Object.keys(prevDefaults)) if ($("s_" + k).value === prevDefaults[k]) $("s_" + k).value = BOTS[S.form.bot].defaults[k];
-      S.formDirty = true;
-      renderSetup();
-    };
-  }
-  $("btNote").textContent = bt ? `Both bots trade the same MA${bt.fast_ma}/${bt.slow_ma} sell strategy, so their backtests differ only by trade size. Every closed basket is a win by design; the risk is a basket that maxes out and stays open ("stuck now").` : "";
-}
-
-/* ── actions ── */
-/* Token security: the OANDA token is stored only as `vault` -- AES-GCM with a key derived
-   (PBKDF2, 600k rounds) from the owner's login password, in this browser. Nothing else can
-   open it. To run the bot, the browser opens the vault and re-encrypts the token to the
-   server's current in-memory key (`session_token_enc`); that copy dies when the server
-   restarts, which is why a restart pauses bots until their owner signs in again. */
+/* ── crypto: password-locked token + hand-over to the server's in-memory key ── */
 const b64 = u8 => { let s = ""; u8.forEach(b => s += String.fromCharCode(b)); return btoa(s); };
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 async function vaultKey(password, salt) {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" }, base,
-                                 { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
 }
 async function getPassword() {
   if (S.password) return S.password;
@@ -739,16 +628,16 @@ async function lockToken(tok) {
   return { salt: b64(salt), iv: b64(iv), ct: b64(ct), v: 1 };
 }
 async function unlockToken() {
-  const v = S.bot.vault;
-  if (!v) throw new Error("Paste your OANDA API token.");
+  const v = S.account.vault;
+  if (!v) throw new Error("Add your OANDA API token in settings first.");
   const key = await vaultKey(await getPassword(), unb64(v.salt));
   try {
     const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(v.iv) }, key, unb64(v.ct));
     S.vaultBroken = false;
     return new TextDecoder().decode(pt);
   } catch {
-    S.vaultBroken = true; renderSetup();
-    throw new Error("Your saved token was locked with an old password. Paste your OANDA token again.");
+    S.vaultBroken = true; renderSettings();
+    throw new Error("Your saved token was locked with an old password. Paste your OANDA token again in settings.");
   }
 }
 async function sealForServer(tok) {
@@ -757,171 +646,697 @@ async function sealForServer(tok) {
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, new TextEncoder().encode(tok)));
   return { session_token_enc: b64(ct), session_key_id: S.server.key_id };
 }
-// Signed in with a bot that should be running, but this server run doesn't have the token: hand it over.
+const accountRef = () => db.collection("bob_accounts").doc(S.user.uid);
+const botsRef = () => accountRef().collection("bots");
+async function writeAccount(data) {
+  if (DEMO) { S.account = { ...S.account, ...data }; renderAll(); return; }
+  await accountRef().set(data, { merge: true });
+}
+async function ensureHandedOver() {
+  if (DEMO) return;
+  if (S.server && S.account.session_key_id === S.server.key_id && S.account.session_token_enc) return;
+  const sealed = await sealForServer(await unlockToken());
+  if (sealed.session_token_enc) await writeAccount(sealed);
+}
+// Signed in with a bot that should be running, but this server run doesn't have the token yet: hand it over.
 let handedTo = null;
 async function autoResume() {
-  const b = S.bot || {};
-  if (DEMO || !S.password || b.desired !== "running" || !b.vault || !S.server || !serverOnline()) return;
-  if (b.session_key_id === S.server.key_id || handedTo === S.server.key_id) return;
+  if (DEMO || !S.password || !S.account.vault || !S.server || !serverOnline()) return;
+  if (!Object.values(S.bots).some(b => b.desired === "running")) return;
+  if (S.account.session_key_id === S.server.key_id || handedTo === S.server.key_id) return;
   handedTo = S.server.key_id;
   try {
     const sealed = await sealForServer(await unlockToken());
-    if (sealed.session_token_enc) { await db.collection("bob_bots").doc(S.user.uid).set(sealed, { merge: true }); toast("unlocked, resuming your bot"); }
+    if (sealed.session_token_enc) { await writeAccount(sealed); toast("unlocked, resuming your bots"); }
   } catch (e) { toast(e.message, true); }
 }
-function askPassword() {
-  return new Promise(resolve => {
-    $("modalTitle").textContent = "unlock";
-    $("modalText").innerHTML = "Enter your login password to unlock your saved OANDA token.";
-    $("modalErr").textContent = "";
-    $("modalOk").textContent = "unlock";
-    const inp = $("modalInput");
-    inp.type = "password"; inp.value = ""; inp.placeholder = "password"; inp.classList.remove("hidden");
-    $("modal").classList.remove("hidden");
-    setTimeout(() => inp.focus(), 50);
-    const done = v => { $("modal").classList.add("hidden"); inp.type = "text"; $("modalForm").onsubmit = null; $("modalCancel").onclick = null; resolve(v); };
-    $("modalForm").onsubmit = e => { e.preventDefault(); done(inp.value); };
-    $("modalCancel").onclick = () => done(null);
-  });
+
+/* ── render: my bots ── */
+function renderBots() {
+  const online = serverOnline();
+  $("serverDot").className = "dot " + (online ? "on" : "off");
+  $("serverText").textContent = online ? "server online" : `server offline · seen ${ago(toDate(S.heartbeat && S.heartbeat.at))}`;
+  const ids = Object.keys(S.bots).sort((a, b) => (toDate(S.bots[a].created) || 0) - (toDate(S.bots[b].created) || 0));
+  $("setupNote").classList.toggle("hidden", !!(S.account.account_id && S.account.vault));
+  $("noBots").classList.toggle("hidden", ids.length > 0);
+  const phases = ids.map(id => phase(S.bots[id], S.status[id]));
+  $("safeBanner").classList.toggle("hidden", !(online && phases.includes("running")));
+  $("panicBtn").disabled = !ids.some(id => S.bots[id].desired === "running" || (S.status[id] && S.status[id].running));
+
+  // account tiles from the freshest running status
+  const acc = ids.map(id => S.status[id] && S.status[id].account).find(a => a && a.balance) || {};
+  const cur = acc.currency;
+  const tile = (k, v, s = "", cls = "", extra = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}${extra}</div>`;
+  const running = phases.filter(p => p === "running").length;
+  $("acctTiles").innerHTML = [
+    tile("bots running", `${running} / ${ids.length}`, `${pair(S.account.environment || "practice").toLowerCase()} · ${esc(S.account.account_id || "no account yet")}`),
+    tile("balance", money(acc.balance, cur), acc.balance ? "account" : "shows once a bot runs"),
+    tile("open P/L", money(acc.unrealizedPL, cur), "whole account", sgn(acc.unrealizedPL)),
+    tile("margin used", money(acc.marginUsed, cur), acc.marginAvailable ? `free ${money(acc.marginAvailable, cur)}` : ""),
+  ].join("");
+
+  // keep open/closed state of each card's sections across re-renders
+  document.querySelectorAll("#botList details[data-k]").forEach(d => S.openCard[d.dataset.k] = d.open);
+  $("botList").innerHTML = ids.map((id, i) => botCard(id, S.bots[id], S.status[id] || {}, phases[i], online)).join("");
+  document.querySelectorAll("#botList details[data-k]").forEach(d => { if (S.openCard[d.dataset.k] != null) d.open = S.openCard[d.dataset.k]; });
 }
-function validate(s) {
-  const pos = k => +s[k] > 0 && isFinite(+s[k]);
-  if (!$("acct").value.trim()) return "Enter your OANDA account number.";
-  if (!pos("first_units") || !(+s.unit_increment >= 0)) return "Units must be positive numbers.";
-  if (!Number.isInteger(+s.max_trades) || +s.max_trades < 1 || +s.max_trades > 50) return "Max trades must be a whole number from 1 to 50.";
-  if (!pos("negative_pips") || !pos("basket_target_pips")) return "Pip settings must be positive.";
-  if (!Number.isInteger(+s.fast_ma) || !Number.isInteger(+s.slow_ma) || +s.fast_ma < 2 || +s.slow_ma < 2 || +s.fast_ma === +s.slow_ma) return "MAs must be whole numbers ≥ 2 and different.";
+function botCard(id, bot, st, ph, online) {
+  const cfg = botConfig(bot), live = st.live || {}, orig = bot.kind === "original";
+  const stateTxt = { running: online ? "running" : "running?", starting: "starting…", stopping: "stopping…", paused: "paused", error: "stopped", stopped: "stopped" }[ph];
+  const stateCls = { running: online ? "ok" : "wait", starting: "wait", stopping: "wait", paused: "wait", error: "bad", stopped: "idle" }[ph];
+  const cardCls = { running: "run", error: "bad", paused: "wait", starting: "wait", stopping: "wait" }[ph] || "";
+  const trades = +live.trades || 0, maxT = +cfg.max_trades || 1;
+  const cum = live.cumulative_pips, target = +cfg.basket_target_pips || 0;
+  const tile = (k, v, s = "", cls = "", extra = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}${extra}</div>`;
+  const maTxt = live.fast === "DISABLED" ? "paused while basket open" : live.fast ? `${(+live.fast).toFixed(5)} / ${(+live.slow).toFixed(5)}` : "—";
+  let msg = "";
+  if (ph === "paused") msg = `<div class="note-box">${online ? "The server restarted, so this bot is waiting for you to unlock it. Open trades stay on OANDA until you do." : "Waiting for the server to come back."} <button class="btn-sm btn-c" data-act="unlock" data-id="${id}">unlock &amp; resume</button></div>`;
+  if (st.error && ph !== "running") msg += `<div class="warn-box">${esc(st.error)}</div>`;
+  if (ph === "starting" && !online) msg += `<div class="note-box">Waiting for the server to come online. It'll start as soon as it's back.</div>`;
+  const body = (ph === "running" || ph === "stopping" || (st.open_trades || []).length) ? `
+    <div class="tiles">
+      ${tile("state", esc((live.state || "connecting").toLowerCase()), live.trend ? `daily trend: ${esc(live.trend)}` : `${cfg.ma_type || "SMA"}${cfg.fast_ma}/${cfg.slow_ma}: ${esc(maTxt)}`)}
+      ${tile("price", live.price || "—", pair(cfg.instrument))}
+      ${tile("open trades", `${trades}${maxT > 1 ? " / " + maxT : ""}`, trades ? `newest ${pips(live.latest_pips)} pips` : "waiting for a signal", trades >= maxT && maxT > 1 ? "neg" : "",
+             maxT > 1 ? `<div class="bar"><i class="${trades >= maxT * 0.7 ? "neg" : ""}" style="width:${Math.min(100, trades / maxT * 100)}%"></i></div>` : "")}
+      ${tile(target ? "basket pips" : "open pips", pips(cum), target ? `closes at +${target}` : (cfg.take_profit_pips ? `TP ${cfg.take_profit_pips} · SL ${cfg.stop_loss_pips || "—"}` : ""), sgn(cum),
+             target ? `<div class="bar"><i class="${+cum < 0 ? "neg" : ""}" style="width:${Math.max(0, Math.min(100, Math.abs(+cum || 0) / target * 100))}%"></i></div>` : "")}
+    </div>
+    ${st.floating != null && trades ? `<div class="small" style="margin-top:6px;">this bot's open P/L: <span class="${sgn(st.floating)}">${money(st.floating, (st.account || {}).currency)}</span>${cfg.max_loss_usd ? ` · loss limit ${money(-cfg.max_loss_usd)}` : ""}</div>` : ""}
+    ${(st.open_trades || []).length ? `<details data-k="${id}-t" open><summary>open trades (${st.open_trades.length})</summary><div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>opened</th><th>side</th><th class="r">units</th><th class="r">entry</th><th class="r">pips</th></tr></thead><tbody>
+      ${st.open_trades.map((t, i) => `<tr><td>${i + 1}</td><td>${esc(new Date(t.opened).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</td><td>${esc(t.side || "sell")}</td><td class="r num">${(+t.units).toLocaleString()}</td><td class="r num">${esc(t.price)}</td><td class="r num ${sgn(t.pips)}">${pips(t.pips)}</td></tr>`).join("")}
+      </tbody></table></div></details>` : ""}` : "";
+  const logs = st.logs || [];
+  return `<div class="bot ${cardCls}">
+    <div class="bot-head">
+      <div class="grow">
+        <div class="bot-name">${esc(bot.name || id)} <span class="chip ${orig ? "p" : "c"}">${orig ? "Bob's original" : "custom"}</span></div>
+        <div class="bot-sub">${esc(pair(cfg.instrument))} · ${esc(cfg.timeframe)} · ${esc(describe(cfg))}${st.started_at && ph === "running" ? ` · since ${new Date(st.started_at).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})}` : ""}</div>
+      </div>
+      <div class="state ${stateCls}">${stateTxt}</div>
+    </div>
+    <div class="bot-body">
+      ${msg}${body}
+      ${logs.length ? `<details data-k="${id}-l"><summary>log</summary><div class="log">${logs.slice().reverse().map(l => `<div><time>${esc(new Date(l.t).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</time>${esc(l.m)}</div>`).join("")}</div></details>` : ""}
+      <div class="bot-actions">
+        <button class="btn-c btn-sm" data-act="start" data-id="${id}" ${busy(ph) && ph !== "paused" ? "disabled" : ""}>${ph === "error" ? "start again" : ph === "paused" ? "unlock & resume" : "start"}</button>
+        <button class="btn-p btn-sm" data-act="stop" data-id="${id}" ${!(busy(ph) || (ph === "error" && bot.desired === "running")) ? "disabled" : ""}>stop</button>
+        <button class="btn-f btn-sm" data-act="close" data-id="${id}" ${!(ph === "running" && trades) ? "disabled" : ""}>close basket</button>
+        <button class="btn-sm" data-act="edit" data-id="${id}">${busy(ph) ? "view settings" : "edit"}</button>
+        <button class="btn-b btn-sm" data-act="code" data-id="${id}">code</button>
+        <button class="btn-sm" data-act="dup" data-id="${id}">duplicate</button>
+        <button class="btn-sm" data-act="del" data-id="${id}" ${busy(ph) || (st.open_trades || []).length ? "disabled" : ""}>delete</button>
+      </div>
+    </div></div>`;
+}
+function describe(c) {
+  const ma = `${c.ma_type}${c.fast_ma}/${c.slow_ma}`;
+  const e = { cross: `${ma} cross`, cross_live: `${ma} live cross`, pullback: `pullback after ${ma} cross`, always: "always in", meanrev: `${c.meanrev_threshold_pips}p stretch fade` }[c.entry] || c.entry;
+  const parts = [`${c.direction} · ${e}`];
+  if (c.max_trades > 1) parts.push(`basket ≤${c.max_trades}`);
+  if (c.basket_target_pips) parts.push(`+${c.basket_target_pips}p`);
+  if (c.take_profit_pips) parts.push(`TP${c.take_profit_pips}`);
+  if (c.stop_loss_pips) parts.push(`SL${c.stop_loss_pips}`);
+  if (c.trend_filter) parts.push("daily filter");
+  if (c.max_loss_usd) parts.push(`limit $${c.max_loss_usd}`);
+  return parts.join(" · ");
+}
+
+/* ── bot actions ── */
+$("botList").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const id = b.dataset.id, bot = S.bots[id], st = S.status[id] || {};
+  try {
+    if (b.dataset.act === "start" || b.dataset.act === "unlock") await startBot(id);
+    else if (b.dataset.act === "stop") {
+      const n = (st.open_trades || []).length;
+      if (!(await confirmBox({ title: "stop bot", okLabel: "stop",
+        text: n ? `${n} trade${n > 1 ? "s are" : " is"} open. Stopping leaves ${n > 1 ? "them" : "it"} on OANDA with <b>nobody managing ${n > 1 ? "them" : "it"}</b> until you start again. To get out, use close basket.` : "No trades are open. The bot stops watching for signals." }))) return;
+      await updateBot(id, { desired: "stopped" });
+    } else if (b.dataset.act === "close") {
+      if (!(await confirmBox({ title: "close basket", okLabel: "close all", typeWord: "CLOSE",
+        text: `Closes every trade <b>${esc(bot.name)}</b> has open, right now, at market price, win or lose. The bot keeps running and waits for its next signal.` }))) return;
+      await updateBot(id, { close_request: nonce() }); toast("close sent to the server");
+    } else if (b.dataset.act === "edit") openBuilder({ id });
+    else if (b.dataset.act === "code") showBotCode(id);
+    else if (b.dataset.act === "dup") {
+      const copy = { ...bot, name: (bot.name || "bot") + " copy", desired: "stopped", created: TS(), updated: TS() };
+      delete copy.start_request; delete copy.close_request; delete copy.live_ack;
+      await createBot(copy); toast("duplicated");
+    } else if (b.dataset.act === "del") {
+      if (!(await confirmBox({ title: "delete bot", okLabel: "delete", text: `Delete <b>${esc(bot.name)}</b>? Its history stays.` }))) return;
+      if (DEMO) { delete S.bots[id]; renderAll(); return; }
+      await botsRef().doc(id).delete(); toast("deleted");
+    }
+  } catch (err) { toast(err.message || String(err), true); }
+});
+async function updateBot(id, data) {
+  if (DEMO) { S.bots[id] = { ...S.bots[id], ...data }; renderAll(); return; }
+  await botsRef().doc(id).set({ ...data, updated: TS() }, { merge: true });
+}
+async function createBot(data) {
+  const id = "b" + nonce();
+  if (DEMO) { S.bots[id] = { ...data, created: new Date() }; renderAll(); return id; }
+  await botsRef().doc(id).set({ ...data, created: TS(), updated: TS() });
+  return id;
+}
+async function startBot(id) {
+  const bot = S.bots[id];
+  if (!S.account.account_id || !S.account.vault) { goto("settings"); throw new Error("Add your OANDA account and token first."); }
+  const st = S.status[id] || {};
+  if (phase(bot, st) === "paused") { await ensureHandedOver(); return; }
+  const live = String(S.account.environment || "PRACTICE").toUpperCase() === "LIVE";
+  if (live && !(await confirmBox({ title: "live money", okLabel: "start live", typeWord: "LIVE",
+      text: `<b>${esc(bot.name)}</b> will place <b>real</b> orders on your live OANDA account${botConfig(bot).max_trades > 1 ? " and keep adding trades as price moves against it, up to its max trades" : ""}. ${botConfig(bot).max_loss_usd ? "" : "It has <b>no loss limit</b>. "}Only do this with money you're fine losing.` }))) return;
+  await ensureHandedOver();
+  await updateBot(id, { desired: "running", start_request: nonce(), live_ack: live });
+  if (!serverOnline()) toast("saved; it'll start when the server is back online", true);
+}
+$("panicBtn").onclick = async () => {
+  if (!(await confirmBox({ title: "panic", okLabel: "close everything", typeWord: "PANIC",
+      text: "Closes <b>every trade your bots opened</b> at market price and stops <b>all</b> your bots. Trades you opened by hand aren't touched." }))) return;
+  try { await writeAccount({ panic_request: nonce() }); toast("panic sent: closing and stopping everything", true); }
+  catch (e) { toast(e.message, true); }
+};
+
+/* ── library ── */
+function renderLibrary() {
+  $("libPairSeg").innerHTML = PAIRS.map(p => `<button type="button" data-pair="${p}" class="${p === S.libPair ? "on" : ""}">${pair(p)}</button>`).join("");
+  const items = S.library.map(b => ({ b, r: (b.results || {})[b.config ? S.libPair : "ALL"] }));
+  const key = { pnl: x => -(x.r ? x.r.pnl : -1e9), rdd: x => -(x.r && x.r.max_drawdown ? x.r.pnl / -x.r.max_drawdown : -1e9), dd: x => -(x.r ? x.r.max_drawdown : -1e9), order: x => x.b.order }[S.libSort];
+  items.sort((a, b) => key(a) - key(b));
+  $("libMeta").textContent = S.library.length ? `${S.library.length} bots` : "loading…";
+  $("libGrid").innerHTML = items.map(({ b, r }) => {
+    const sel = S.compare.includes(b.id);
+    const stats = r ? `${chart([{ name: b.name, points: eqPts(r), color: r.pnl >= 0 ? "#00F0FF" : "#FF00C8" }], { axis: false })}
+      <div class="bt-stats">
+        <div>2y P/L<b class="num ${sgn(r.pnl)}">${money(r.pnl)}</b></div>
+        <div>worst dip<b class="num neg">${money(r.max_drawdown)}</b></div>
+        <div>${r.rounds != null ? "baskets/trades" : "days"}<b class="num">${r.rounds != null ? r.rounds : "—"}</b></div>
+        <div>win rate<b class="num">${r.win_rate != null ? r.win_rate + "%" : "—"}</b></div>
+        <div>profit factor<b class="num">${r.profit_factor != null ? r.profit_factor : "—"}</b></div>
+        <div>open at end<b class="num ${r.stuck && r.stuck.pnl < 0 ? "neg" : ""}">${r.stuck ? money(r.stuck.pnl) : "none"}</b></div>
+      </div>
+      ${r.stuck && r.stuck.since && b.config && b.config.max_trades > 1 && (Date.parse(r.end) - Date.parse(r.stuck.since)) > 7 * 864e5 ? `<div class="small neg" style="margin-top:4px;">stuck since ${r.stuck.since} (${r.stuck.trades} trades)</div>` : ""}
+      ${r.note ? `<div class="small" style="margin-top:4px;">${esc(r.note)}</div>` : ""}` : `<div class="small">no backtest for ${pair(S.libPair)}</div>`;
+    return `<div class="lib ${sel ? "sel" : ""}">
+      <h4><span>${esc(b.name)}</span><span class="chip ${b.runtime === "original" ? "p" : b.runtime ? "c" : ""}">${b.runtime === "original" ? "Bob's code" : b.runtime ? "runnable" : "view only"}</span></h4>
+      <div class="desc">${esc(b.summary)}</div>${stats}
+      <div class="foot">
+        ${b.runtime ? `<button class="btn-c btn-sm" data-lib="use" data-id="${b.id}">use this bot</button>` : ""}
+        <button class="btn-b btn-sm" data-lib="code" data-id="${b.id}">view code</button>
+        ${r ? `<label class="check" style="min-height:32px;font-size:0.7rem;margin-left:auto;"><input type="checkbox" data-lib="cmp" data-id="${b.id}" ${sel ? "checked" : ""}> compare</label>` : ""}
+      </div></div>`;
+  }).join("");
+  renderCompare();
+}
+function renderCompare() {
+  const rows = S.compare.map(id => libById(id)).filter(Boolean).map(b => ({ b, r: (b.results || {})[b.config ? S.libPair : "ALL"] })).filter(x => x.r);
+  $("comparePanel").classList.toggle("hidden", !rows.length);
+  if (!rows.length) return;
+  $("compareChart").innerHTML = chart(rows.map((x, k) => ({ name: x.b.name, points: eqPts(x.r), color: COLORS[k] })), { big: true }) +
+    `<div class="legend">${rows.map((x, k) => `<span><i style="background:${COLORS[k]}"></i>${esc(x.b.name)}</span>`).join("")}</div>`;
+  $("compareTable").innerHTML = `<thead><tr><th>bot</th><th class="r">2y P/L</th><th class="r">return</th><th class="r">worst dip</th><th class="r">P/L÷dip</th><th class="r">trades</th><th class="r">win</th><th class="r">PF</th><th class="r">open at end</th></tr></thead><tbody>` +
+    rows.map((x, k) => `<tr><td><span style="color:${COLORS[k]}">■</span> ${esc(x.b.name)}</td><td class="r num ${sgn(x.r.pnl)}">${money(x.r.pnl)}</td><td class="r num">${x.r.return_pct}%</td><td class="r num neg">${money(x.r.max_drawdown)}</td><td class="r num">${x.r.return_to_dd ?? "—"}</td><td class="r num">${x.r.rounds ?? "—"}</td><td class="r num">${x.r.win_rate != null ? x.r.win_rate + "%" : "—"}</td><td class="r num">${x.r.profit_factor ?? "—"}</td><td class="r num">${x.r.stuck ? money(x.r.stuck.pnl) : "none"}</td></tr>`).join("") + "</tbody>";
+}
+$("libPairSeg").addEventListener("click", e => { const b = e.target.closest("button[data-pair]"); if (b) { S.libPair = b.dataset.pair; renderLibrary(); } });
+$("libSort").onchange = () => { S.libSort = $("libSort").value; renderLibrary(); };
+$("clearCompare").onclick = () => { S.compare = []; renderLibrary(); };
+$("libGrid").addEventListener("click", e => {
+  const el = e.target.closest("[data-lib]");
+  if (!el) return;
+  const b = libById(el.dataset.id);
+  if (el.dataset.lib === "cmp") {
+    S.compare = el.checked ? [...S.compare, b.id].slice(-4) : S.compare.filter(x => x !== b.id);
+    renderLibrary();
+  } else if (el.dataset.lib === "code") showLibraryCode(b);
+  else if (el.dataset.lib === "use") openBuilder({ lib: b });
+});
+
+/* ── code viewer ── */
+const codeCache = {};
+async function getCode(id) {
+  if (!id) return null;
+  if (codeCache[id]) return codeCache[id];
+  if (DEMO) return { name: id.split("__").pop(), text: "# demo: code loads from the server\n" };
+  const d = await db.collection("bob_code").doc(id).get();
+  return codeCache[id] = d.exists ? d.data() : null;
+}
+let codeState = { files: [], i: 0 };
+function openCode(title, note, files) {
+  codeState = { files, i: 0 };
+  $("codeTitle").textContent = title;
+  $("codeNote").innerHTML = note || "";
+  $("codeTabs").classList.toggle("hidden", files.length < 2);
+  $("codeTabs").innerHTML = files.map((f, i) => `<button type="button" data-i="${i}">${esc(f.name)}</button>`).join("");
+  showCodeFile(0);
+  $("codeModal").classList.remove("hidden");
+}
+function showCodeFile(i) {
+  codeState.i = i;
+  const f = codeState.files[i];
+  $("codeText").textContent = f.text;
+  $("codeInfo").textContent = `${f.name} · ${f.text.split("\n").length.toLocaleString()} lines`;
+  [...$("codeTabs").children].forEach((b, k) => b.classList.toggle("on", k === i));
+}
+$("codeTabs").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (b) showCodeFile(+b.dataset.i); });
+$("codeClose").onclick = () => $("codeModal").classList.add("hidden");
+$("codeCopy").onclick = async () => {
+  const f = codeState.files[codeState.i];
+  try { await navigator.clipboard.writeText(f.text); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents($("codeText"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand("copy"); s.removeAllRanges();
+  }
+  toast(`copied ${f.name}`);
+};
+$("codeDownload").onclick = () => {
+  const f = codeState.files[codeState.i];
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([f.text], { type: "text/x-python" }));
+  a.download = f.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+async function showLibraryCode(b) {
+  try {
+    const c = await getCode(b.code_id);
+    if (!c) throw new Error("code not available yet");
+    const files = [{ name: c.name, text: c.text }];
+    let note = b.runtime === "original" ? "Bob's own file, exactly as it runs on the server (it has its own desktop window if you run it yourself)." :
+               b.runtime ? "The original script this library entry comes from. On the server it runs through the shared engine with the settings shown on its card." :
+               "View only: this one isn't a single-pair bot.";
+    if (b.runtime === "engine") {
+      const sa = await standalone(b.config, b.name);
+      if (sa) { files.unshift(sa); note = "<b>" + esc(sa.name) + "</b> is a complete, runnable copy of this bot exactly as the server trades it. The other tab is the original script it was modelled on."; }
+    }
+    openCode(b.name, note, files);
+  } catch (e) { toast(e.message, true); }
+}
+async function showBotCode(id) {
+  const bot = S.bots[id];
+  try {
+    if (bot.kind === "original") {
+      const lib = libById(bot.source);
+      const c = await getCode(lib && lib.code_id);
+      if (!c) throw new Error("code not available yet");
+      openCode(bot.name, "Bob's original file. On the server it runs with this bot's settings: " +
+        esc(ORIGINAL_FIELDS.map(k => `${k}=${botConfig(bot)[k]}`).join(", ")), [{ name: c.name, text: c.text }]);
+      return;
+    }
+    const sa = await standalone(botConfig(bot), bot.name);
+    openCode(bot.name, "A complete, runnable copy of this bot, exactly as the server trades it (the shared engine with this bot's settings baked in). Needs Python 3.9+ and <code>pip install requests</code>.", [sa]);
+  } catch (e) { toast(e.message, true); }
+}
+// One self-contained file: engine config + strategy + live runner, and a main() with these settings.
+async function standalone(config, name) {
+  const parts = await Promise.all(["engine__config.py", "engine__strategy.py", "engine__live.py"].map(getCode));
+  if (parts.some(p => !p)) return null;
+  const strip = t => t.replace(/^from __future__ import annotations\s*$/m, "").replace(/^from \.(config|strategy) import .*$/mg, "");
+  const safe = String(name || "bot").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "bot";
+  const cfg = JSON.stringify(Object.fromEntries(Object.entries(config).filter(([k]) => k in (S.server ? S.server.defaults : config))), null, 4);
+  const text = `#!/usr/bin/env python3
+"""
+${String(name).replace(/"""/g, "")}: standalone copy of a bob bot (christanharper.com/bob).
+
+This file is the bob engine (config + strategy + live runner) with this bot's
+settings baked in, the same code the server runs. To run it yourself:
+
+    pip install requests
+    OANDA_TOKEN=... OANDA_ACCOUNT_ID=... OANDA_ENV=PRACTICE python ${safe}.py
+
+It trades until you press Ctrl+C (open trades are left alone when it stops).
+"""
+from __future__ import annotations
+
+${strip(parts[0].text)}
+
+${strip(parts[1].text)}
+
+${strip(parts[2].text)}
+
+SETTINGS = ${cfg.replace(/\btrue\b/g, "True").replace(/\bfalse\b/g, "False").replace(/\bnull\b/g, "None")}
+
+
+def main():
+    import os
+    import queue as _q
+    missing = [k for k in ("OANDA_TOKEN", "OANDA_ACCOUNT_ID") if not os.environ.get(k)]
+    if missing:
+        raise SystemExit("Set " + " and ".join(missing) + " first (see the top of this file).")
+    cfg = BotConfig.from_dict(SETTINGS)
+    problems = cfg.validate()
+    if problems:
+        raise SystemExit("Bad settings: " + " ".join(problems))
+    events = _q.Queue()
+    bot = LiveRunner(cfg, os.environ.get("OANDA_ENV", "PRACTICE").upper(), os.environ["OANDA_ACCOUNT_ID"],
+                     os.environ["OANDA_TOKEN"], "${safe}", events)
+    bot.start()
+    try:
+        while bot.thread.is_alive():
+            try:
+                e = events.get(timeout=1)
+            except _q.Empty:
+                continue
+            if e["kind"] in ("log", "error"):
+                print(e.get("message"), flush=True)
+            elif e["kind"] == "status":
+                print(f"  {e['state']:<28} price {e['price']}  trades {e['trades']}  pips {e['cumulative_pips']}", end="\\r", flush=True)
+    except KeyboardInterrupt:
+        bot.stop()
+        bot.thread.join(15)
+
+
+if __name__ == "__main__":
+    main()
+`;
+  return { name: safe + ".py", text };
+}
+
+/* ── builder ── */
+const FIELDS = [
+  { sec: "what it trades", k: "instrument", label: "pair", type: "select", opts: () => PAIRS.map(p => [p, pair(p)]) },
+  { sec: "what it trades", k: "direction", label: "direction", type: "select", opts: [["sell", "sell only"], ["buy", "buy only"], ["both", "both ways"]] },
+  { sec: "entry signal", k: "entry", label: "entry", type: "select", opts: [["cross", "MA cross, finished candle"], ["cross_live", "MA cross, live price (Bob's original)"], ["pullback", "pullback to fast MA after a cross"], ["meanrev", "fade a stretch from the average"], ["always", "enter whenever flat"]] },
+  { sec: "entry signal", k: "timeframe", label: "candles", type: "select", opts: [["M1", "1 minute"], ["M5", "5 minutes"], ["M15", "15 minutes"], ["M30", "30 minutes"], ["H1", "1 hour"], ["H4", "4 hours"], ["D", "1 day"]], show: c => c.entry !== "always" },
+  { sec: "entry signal", k: "ma_type", label: "MA type", type: "select", opts: [["SMA", "simple (SMA)"], ["EMA", "exponential (EMA)"]], show: c => ["cross", "cross_live", "pullback"].includes(c.entry) },
+  { sec: "entry signal", k: "fast_ma", label: "fast MA", type: "int", show: c => ["cross", "cross_live", "pullback"].includes(c.entry) },
+  { sec: "entry signal", k: "slow_ma", label: "slow MA", type: "int", show: c => ["cross", "cross_live", "pullback"].includes(c.entry) },
+  { sec: "entry signal", k: "pullback_max_entries", label: "entries per cross", type: "int", show: c => c.entry === "pullback", hint: "max pullback entries before waiting for a new cross" },
+  { sec: "entry signal", k: "pullback_max_overshoot_pips", label: "max overshoot pips", type: "num", show: c => c.entry === "pullback", hint: "skip touches that blow this far past the MA" },
+  { sec: "entry signal", k: "meanrev_lookback", label: "average of last N candles", type: "int", show: c => c.entry === "meanrev" },
+  { sec: "entry signal", k: "meanrev_threshold_pips", label: "stretch (pips)", type: "num", show: c => c.entry === "meanrev" },
+  { sec: "entry signal", k: "trend_filter", label: "only trade with the daily trend", type: "bool", show: c => c.entry !== "always" },
+  { sec: "entry signal", k: "trend_ma_type", label: "daily MA type", type: "select", opts: [["SMA", "SMA"], ["EMA", "EMA"]], show: c => c.trend_filter && c.entry !== "always" },
+  { sec: "entry signal", k: "trend_fast", label: "daily fast MA", type: "int", show: c => c.trend_filter && c.entry !== "always" },
+  { sec: "entry signal", k: "trend_slow", label: "daily slow MA", type: "int", show: c => c.trend_filter && c.entry !== "always" },
+  { sec: "size & basket", k: "first_units", label: "first trade units", type: "int", hint: "1,000 units ≈ $0.10/pip on EUR/USD" },
+  { sec: "size & basket", k: "max_trades", label: "max trades", type: "int", hint: "1 = single trade; more = recovery basket" },
+  { sec: "size & basket", k: "add_every_pips", label: "add a trade every −pips", type: "num", show: c => c.max_trades > 1, hint: "when the newest trade is this far underwater" },
+  { sec: "size & basket", k: "unit_increment", label: "each add: + units", type: "int", show: c => c.max_trades > 1 },
+  { sec: "size & basket", k: "basket_target_pips", label: "close all at +pips", type: "num", hint: "raw pips summed across the basket; 0 = off" },
+  { sec: "exits & safety", k: "take_profit_pips", label: "take profit pips", type: "num", hint: "per trade, at the broker; 0 = off" },
+  { sec: "exits & safety", k: "stop_loss_pips", label: "stop loss pips", type: "num", hint: "per trade, at the broker; 0 = off" },
+  { sec: "exits & safety", k: "exit_on_opposite_cross", label: "exit on the opposite cross", type: "bool", show: c => c.entry === "cross" },
+  { sec: "exits & safety", k: "max_loss_usd", label: "loss limit ($)", type: "num", hint: "if this bot's open P/L hits −$X: close everything and stop. 0 = off" },
+  { sec: "exits & safety", k: "session_start_utc", label: "entries from (UTC hour)", type: "int", show: c => c.entry !== "always" },
+  { sec: "exits & safety", k: "session_end_utc", label: "entries until (UTC hour)", type: "int", show: c => c.entry !== "always" },
+  { sec: "exits & safety", k: "max_spread_pips", label: "skip entries if spread > pips", type: "num", hint: "0 = off" },
+  { sec: "exits & safety", k: "max_entry_slippage_pips", label: "max slippage pips", type: "num", hint: "live orders reject worse fills" },
+];
+function goto(tab) {
+  S.tab = tab;
+  for (const b of $("tabs").querySelectorAll("button[data-tab]")) b.classList.toggle("on", b.dataset.tab === tab);
+  for (const t of ["bots", "library", "history", "settings", "builder"]) $("tab-" + t).classList.toggle("hidden", t !== tab);
+  if (tab === "history") startHistory();
+  if (tab === "library") renderLibrary();
+  if (tab === "settings") renderSettings();
+  window.scrollTo({ top: 0 });
+}
+$("tabs").addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (b) goto(b.dataset.tab); });
+document.addEventListener("click", e => { const a = e.target.closest("[data-goto]"); if (a) { e.preventDefault(); goto(a.dataset.goto); } });
+document.addEventListener("click", e => { if (e.target.closest("[data-close-builder]")) goto(S.builder && S.builder.from === "library" ? "library" : "bots"); });
+$("newBotBtn").onclick = () => openBuilder({});
+
+function renderTemplates() {
+  const t = (S.server && S.server.templates) || {};
+  $("tplGrid").innerHTML = Object.entries(t).map(([k, v]) => `<button type="button" class="tpl" data-tpl="${k}"><b>${esc(v.label)}</b><span>${esc(v.desc)}</span></button>`).join("") ||
+    `<p class="small">Templates load from the server; it looks offline right now.</p>`;
+}
+$("tplGrid").addEventListener("click", e => {
+  const b = e.target.closest("[data-tpl]");
+  if (!b) return;
+  const t = S.server.templates[b.dataset.tpl];
+  S.builder = { kind: "engine", source: b.dataset.tpl, name: t.label, config: { ...S.server.defaults, ...t.config }, from: "new" };
+  showForm();
+});
+function openBuilder({ id, lib }) {
+  goto("builder");
+  $("btOut").classList.add("hidden");
+  if (id) {
+    const bot = S.bots[id];
+    S.builder = { id, kind: bot.kind, source: bot.source, name: bot.name, config: botConfig(bot), readonly: busy(phase(bot, S.status[id])), from: "bots" };
+    showForm();
+  } else if (lib) {
+    S.builder = { kind: lib.runtime === "original" ? "original" : "engine", source: lib.id, name: lib.name,
+                  config: { ...(S.server ? S.server.defaults : {}), ...lib.config, instrument: S.libPair }, from: "library" };
+    showForm();
+  } else {
+    S.builder = null;
+    $("tplPanel").classList.remove("hidden");
+    $("formPanel").classList.add("hidden");
+    renderTemplates();
+  }
+}
+function showForm() {
+  const B = S.builder;
+  $("tplPanel").classList.add("hidden");
+  $("formPanel").classList.remove("hidden");
+  $("formTitle").textContent = B.id ? (B.readonly ? "bot settings (stop it to edit)" : "edit bot") : "new bot";
+  $("origNote").classList.toggle("hidden", B.kind !== "original");
+  $("f_name").value = B.name || "";
+  $("f_name").disabled = !!B.readonly;
+  $("formErr").textContent = "";
+  $("saveBot").disabled = $("saveStart").disabled = !!B.readonly;
+  renderFields();
+}
+function renderFields() {
+  const B = S.builder, c = B.config;
+  const secs = {};
+  for (const f of FIELDS) {
+    if (B.kind === "original" && !ORIGINAL_FIELDS.includes(f.k)) continue;
+    if (f.show && !f.show(c)) continue;
+    (secs[f.sec] = secs[f.sec] || []).push(f);
+  }
+  $("formFields").innerHTML = Object.entries(secs).map(([sec, fs]) => `<div class="fsec"><h5>${sec}</h5><div class="fgrid">${fs.map(f => {
+    const v = c[f.k], dis = B.readonly ? "disabled" : "";
+    let input;
+    if (f.type === "select") {
+      const opts = typeof f.opts === "function" ? f.opts() : f.opts;
+      input = `<select data-f="${f.k}" ${dis}>${opts.map(([val, lab]) => `<option value="${val}" ${String(v) === val ? "selected" : ""}>${esc(lab)}</option>`).join("")}</select>`;
+    } else if (f.type === "bool") {
+      return `<div class="field"><label class="check"><input type="checkbox" data-f="${f.k}" ${v ? "checked" : ""} ${dis}> ${esc(f.label)}</label></div>`;
+    } else {
+      input = `<input data-f="${f.k}" value="${esc(v)}" inputmode="${f.type === "int" ? "numeric" : "decimal"}" ${dis}>`;
+    }
+    return `<div class="field"><label>${esc(f.label)}</label>${input}${f.hint ? `<div class="hint">${esc(f.hint)}</div>` : ""}</div>`;
+  }).join("")}</div></div>`).join("");
+}
+$("formFields").addEventListener("change", e => {
+  const el = e.target.closest("[data-f]");
+  if (!el) return;
+  const f = FIELDS.find(x => x.k === el.dataset.f);
+  S.builder.config[f.k] = f.type === "bool" ? el.checked : f.type === "int" ? parseInt(el.value, 10) : f.type === "num" ? parseFloat(el.value) : el.value;
+  if (["entry", "trend_filter", "max_trades"].includes(f.k)) renderFields();
+});
+$("toEngine").onclick = e => {
+  e.preventDefault();
+  const B = S.builder;
+  B.kind = "engine"; B.source = B.source || "basket";
+  if (!B.id) B.name = (B.name || "bot") + " (custom)";
+  showForm();
+};
+function checkConfig(c) {
+  const int = k => Number.isInteger(+c[k]), pos = k => +c[k] > 0;
+  if (["cross", "cross_live", "pullback"].includes(c.entry) && !(int("fast_ma") && int("slow_ma") && +c.fast_ma >= 2 && +c.fast_ma < +c.slow_ma && +c.slow_ma <= 500)) return "Fast MA must be at least 2 and smaller than the slow MA (max 500).";
+  if (!(int("first_units") && pos("first_units"))) return "First trade units must be a positive whole number.";
+  if (!(int("max_trades") && c.max_trades >= 1 && c.max_trades <= 50)) return "Max trades must be 1 to 50.";
+  if (c.max_trades > 1 && !pos("add_every_pips")) return "A basket needs a positive 'add a trade every' distance.";
+  if (c.max_trades === 1 && !(c.take_profit_pips > 0 || c.stop_loss_pips > 0 || c.basket_target_pips > 0 || c.exit_on_opposite_cross || c.entry === "always")) return "A single-trade bot needs an exit: take profit, stop loss, target, or opposite cross.";
+  if (c.entry === "always" && c.direction === "both") return "'Enter whenever flat' needs buy or sell, not both.";
+  for (const k of ["take_profit_pips", "stop_loss_pips", "basket_target_pips", "max_loss_usd", "max_spread_pips"]) if (+c[k] < 0 || isNaN(+c[k])) return "Pip and dollar settings can't be negative.";
   return "";
 }
-async function saveSettings(extra = {}, handOver = false) {
-  $("setupErr").textContent = "";
-  const s = currentSettings();
-  const err = validate(s);
-  if (err) { $("setupErr").textContent = err; throw new Error(err); }
-  const data = {
-    bot: S.form.bot, environment: S.form.environment, account_id: $("acct").value.trim(),
-    settings: { ...s, instrument: $("instrument").value }, ...extra,
-  };
-  if (data.environment !== "LIVE") data.live_ack = false;
-  const tok = $("token").value.trim();
-  if (!tok && !S.bot.vault) { $("setupErr").textContent = "Paste your OANDA API token."; throw new Error("no token"); }
-  if (DEMO) { S.bot = { ...S.bot, ...data, vault: S.bot.vault || {}, updated_at: new Date() }; $("token").value = ""; onBot(); return; }
-  if (tok) {
-    Object.assign(data, { vault: await lockToken(tok), token_hint: tok.slice(-4) });
-    S.vaultBroken = false;
-  }
-  if (handOver) Object.assign(data, await sealForServer(tok || await unlockToken()));
-  data.updated_at = firebase.firestore.FieldValue.serverTimestamp();
-  await db.collection("bob_bots").doc(S.user.uid).set(data, { merge: true });
-  $("token").value = "";
-  S.formDirty = false;
+function formData() {
+  const B = S.builder;
+  const c = { ...B.config };
+  if (B.kind === "original") { c.direction = "sell"; c.entry = B.source === "bob_v1" ? "cross_live" : "cross"; c.ma_type = "SMA"; }
+  return { name: $("f_name").value.trim() || "my bot", kind: B.kind, source: B.source || null, config: c };
 }
-
-$("saveBtn").onclick = async () => { try { await saveSettings(); toast("settings saved"); } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; } };
-$("startBtn").onclick = async () => {
-  if (phase() === "paused") {
-    try {
-      const sealed = await sealForServer(await unlockToken());
-      if (sealed.session_token_enc) await update(sealed);
-    } catch (e) { toast(e.message, true); }
-    return;
-  }
-  const live = S.form.environment === "LIVE";
-  if (live && !(await confirmBox({ title: "live money", okLabel: "start live",
-      text: "This bot will place <b>real</b> orders on your live OANDA account and keep adding sells as price rises, up to your max trades, with no stop-loss. Only do this with money you're fine losing.",
-      typeWord: "LIVE" }))) return;
+async function saveBuilder(andStart) {
+  const B = S.builder, d = formData();
+  const err = checkConfig(d.config);
+  if (err) { $("formErr").textContent = err; return; }
+  $("formErr").textContent = "";
   try {
-    await saveSettings({ desired: "running", start_request: nonce(), live_ack: live }, true);
-    if (!serverOnline()) toast("saved, and it'll start when the server is back online", true);
-  } catch (e) { if (!$("setupErr").textContent) $("setupErr").textContent = e.message; $("setup").scrollIntoView({ behavior: "smooth" }); }
-};
-$("stopBtn").onclick = async () => {
-  const n = (S.status && S.status.open_trades || []).length;
-  if (!(await confirmBox({ title: "stop bot", okLabel: "stop",
-      text: n ? `There ${n === 1 ? "is 1 open trade" : `are ${n} open trades`}. Stopping leaves ${n === 1 ? "it" : "them"} open on OANDA with <b>nobody managing ${n === 1 ? "it" : "them"}</b> until you start again. To get out, use close basket instead.` : "No trades are open. The bot stops watching for signals." }))) return;
-  await update({ desired: "stopped" });
-};
-$("closeBtn").onclick = async () => {
-  if (!(await confirmBox({ title: "close basket", okLabel: "close all",
-      text: "Closes every trade this bot has open, right now, at market price, win or lose. The bot keeps running and waits for the next signal.", typeWord: "CLOSE" }))) return;
-  await update({ close_request: nonce() });
-  toast("close sent to server");
-};
-async function update(data) {
-  if (DEMO) { S.bot = { ...S.bot, ...data }; onBot(); return; }
-  try { await db.collection("bob_bots").doc(S.user.uid).set(data, { merge: true }); }
-  catch (e) { toast("couldn't reach the database: " + e.message, true); }
+    let id = B.id;
+    if (id) await updateBot(id, d);
+    else id = await createBot({ ...d, desired: "stopped" });
+    toast("saved");
+    goto("bots");
+    if (andStart) await startBot(id);
+  } catch (e) { $("formErr").textContent = e.message; }
 }
-for (const btn of $("envSeg").querySelectorAll("button")) btn.onclick = () => { S.form.environment = btn.dataset.env; S.formDirty = true; renderSetup(); };
-for (const btn of $("btPairSeg").querySelectorAll("button")) btn.onclick = () => {
-  S.btPair = btn.dataset.pair;
-  for (const b of $("btPairSeg").querySelectorAll("button")) b.classList.toggle("on", b === btn);
-  renderBotCards();
-};
-$("resetDefaults").onclick = () => { const d = { ...COMMON, ...BOTS[S.form.bot].defaults }; for (const k of SETTING_KEYS) $("s_" + k).value = d[k]; S.formDirty = true; };
-$("setup").addEventListener("input", () => { S.formDirty = true; });
+$("saveBot").onclick = () => saveBuilder(false);
+$("saveStart").onclick = () => saveBuilder(true);
 
-/* ── data wiring ── */
-function onBot() {
-  if (!S.formDirty) fillForm(); else renderSetup();
-  renderStatus();
+let btUnsub = null, lastBt = null;
+$("btRun").onclick = async () => {
+  const d = formData();
+  const err = checkConfig(d.config);
+  if (err) { $("formErr").textContent = err; return; }
+  $("formErr").textContent = "";
+  $("btOut").classList.remove("hidden");
+  $("btOut").innerHTML = `<div class="small pulse">backtesting 2 years of ${pair(d.config.instrument)} on the server… (~10-30s)</div>`;
+  if (DEMO) { setTimeout(() => showBacktest({ status: "done", result: demoResult(d.config) }, d), 800); return; }
+  if (!serverOnline()) { $("btOut").innerHTML = `<div class="warn-box">The server is offline, so it can't run backtests right now.</div>`; return; }
+  if (btUnsub) btUnsub();
+  try {
+    const ref = await accountRef().collection("backtests").add({ status: "queued", config: d.config, name: d.name, created: TS() });
+    btUnsub = ref.onSnapshot(s => { const x = s.data() || {}; if (x.status === "done" || x.status === "error") { btUnsub(); btUnsub = null; showBacktest(x, d); } });
+  } catch (e) { $("btOut").innerHTML = `<div class="warn-box">${esc(e.message)}</div>`; }
+};
+function showBacktest(x, d) {
+  if (x.status === "error") { $("btOut").innerHTML = `<div class="warn-box">${esc(x.error)}</div>`; return; }
+  const r = x.result, prev = lastBt && lastBt.instrument === r.instrument ? lastBt : null;
+  const series = [{ name: "this setup", points: eqPts(r), color: r.pnl >= 0 ? "#00F0FF" : "#FF00C8" }];
+  if (prev) series.push({ name: "previous run", points: eqPts(prev), color: "#888", dash: true });
+  const tile = (k, v, s = "", cls = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  const delta = (a, b) => prev ? ` <span class="small">(was ${money(b)})</span>` : "";
+  $("btOut").innerHTML = `<div class="section-label label-blue"><span>backtest · ${pair(r.instrument)} · ${r.start} → ${r.end}</span><span class="small" style="letter-spacing:0;text-transform:none;">${r.seconds}s</span></div>
+    ${chart(series, { big: true })}
+    ${prev ? `<div class="legend"><span><i style="background:${series[0].color}"></i>this setup</span><span><i style="background:#888"></i>previous run</span></div>` : ""}
+    <div class="tiles six" style="margin-top:10px;">
+      ${tile("2y P/L", money(r.pnl) + delta(r.pnl, prev && prev.pnl), `${r.return_pct}% of $5k`, sgn(r.pnl))}
+      ${tile("worst dip", money(r.max_drawdown), prev ? `was ${money(prev.max_drawdown)}` : "peak to trough", "neg")}
+      ${tile("trades/baskets", r.rounds, r.median_hours != null ? `median ${dur(r.median_hours)} open` : "")}
+      ${tile("win rate", r.win_rate != null ? r.win_rate + "%" : "—", r.profit_factor != null ? `profit factor ${r.profit_factor}` : "")}
+      ${tile("deepest basket dip", money(r.deepest_dip), `largest ${r.largest_basket} trades`, "neg")}
+      ${tile("open at end", r.stuck ? money(r.stuck.pnl) : "none", r.stuck ? `since ${r.stuck.since}` : `${r.time_in_market_pct}% time in market`, r.stuck && r.stuck.pnl < 0 ? "neg" : "")}
+    </div>
+    ${r.hit_max_trades ? `<div class="small" style="margin-top:6px;">hit max trades ${r.hit_max_trades} time${r.hit_max_trades > 1 ? "s" : ""}.</div>` : ""}
+    ${r.halted ? `<div class="warn-box">${esc(r.halted)}</div>` : ""}`;
+  lastBt = r;
+}
+function demoResult(c) {
+  const lib = S.library.find(b => b.config && b.config.entry === c.entry) || S.library[0];
+  return { ...(lib.results[c.instrument] || lib.results.EUR_USD), seconds: 9.3 };
+}
+
+/* ── history ── */
+function startHistory() {
+  if (DEMO || histUnsub || !S.user) { renderHistory(); return; }
+  histUnsub = accountRef().collection("history").orderBy("closed", "desc").limit(300).onSnapshot(s => {
+    S.history = s.docs.map(d => d.data()); renderHistory();
+  }, e => toast("history: " + e.message, true));
+  unsubs.push(() => { if (histUnsub) { histUnsub(); histUnsub = null; } });
+}
+function renderHistory() {
+  const h = S.history;
+  const net = h.reduce((a, x) => a + (+x.net || 0), 0), wins = h.filter(x => x.net > 0).length;
+  const tile = (k, v, s = "", cls = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  $("histMeta").textContent = h.length ? `last ${h.length}` : "";
+  $("histTiles").innerHTML = [
+    tile("closed", h.length, "baskets/trades"),
+    tile("net P/L", money(net), "after financing", sgn(net)),
+    tile("winners", h.length ? Math.round(wins / h.length * 100) + "%" : "—", `${wins} won · ${h.length - wins} lost`),
+    tile("best / worst", h.length ? `${money(Math.max(...h.map(x => x.net)))}` : "—", h.length ? `worst ${money(Math.min(...h.map(x => x.net)))}` : ""),
+  ].join("");
+  const asc = h.slice().reverse();
+  let run = 0;
+  const pts = asc.map(x => [String(x.closed).slice(0, 16).replace("T", " "), run += (+x.net || 0)]);
+  $("histChart").innerHTML = pts.length > 1 ? chart([{ name: "cumulative", points: pts, color: run >= 0 ? "#00F0FF" : "#FF00C8" }]) : "";
+  $("histTable").innerHTML = h.length ? `<thead><tr><th>closed</th><th>bot</th><th>pair</th><th class="r">trades</th><th class="r">held</th><th>why</th><th class="r">net</th></tr></thead><tbody>` +
+    h.map(x => {
+      const held = x.opened && x.closed ? (Date.parse(x.closed) - Date.parse(x.opened)) / 36e5 : null;
+      return `<tr><td>${esc(new Date(x.closed).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</td><td>${esc(x.bot_name)}</td><td>${esc(pair(x.instrument))}</td><td class="r num">${x.trades}</td><td class="r num">${dur(held)}</td><td class="muted">${esc(x.reason || "")}</td><td class="r num ${sgn(x.net)}">${money(x.net)}</td></tr>`;
+    }).join("") + "</tbody>" : `<tbody><tr><td class="muted">Nothing closed yet. Every basket or trade your bots close shows up here with its real P/L from OANDA.</td></tr></tbody>`;
+}
+
+/* ── settings ── */
+function renderSettings() {
+  const a = S.account, env = String(a.environment || "PRACTICE").toUpperCase();
+  for (const b of $("envSeg").querySelectorAll("button")) { const on = b.dataset.env === (S.envDraft || env); b.classList.toggle("on", on); b.classList.toggle("live", on && b.dataset.env === "LIVE"); }
+  $("envHint").textContent = (S.envDraft || env) === "LIVE" ? "LIVE: real money. Every bot asks you to type LIVE before it starts." : "Practice uses OANDA's demo money.";
+  $("envHint").style.color = (S.envDraft || env) === "LIVE" ? "var(--fuchsia)" : "";
+  if (document.activeElement !== $("acct")) $("acct").value = a.account_id || "";
+  $("token").placeholder = a.vault ? `saved & locked ✓ (…${a.token_hint || ""}) · leave blank to keep` : "paste your token";
+  $("tokenHint").textContent = S.vaultBroken ? "Your saved token was locked with an old password, so it can't be opened. Paste it again." :
+    "Locked in this browser with your login password before it's saved. Nobody else can open it.";
+  $("tokenHint").style.color = S.vaultBroken ? "var(--fuchsia)" : "";
+  $("ntfyTopic").value = a.ntfy_topic || "(press new topic)";
+  const n = a.notify || {};
+  $("nTrades").checked = n.trades !== false; $("nAlerts").checked = n.alerts !== false; $("nOn").checked = !!a.ntfy_topic && n.off !== true;
+}
+$("envSeg").addEventListener("click", e => { const b = e.target.closest("button[data-env]"); if (b) { S.envDraft = b.dataset.env; renderSettings(); } });
+$("saveAcct").onclick = async () => {
+  $("acctErr").textContent = "";
+  const acct = $("acct").value.trim(), tok = $("token").value.trim();
+  if (!acct) { $("acctErr").textContent = "Enter your account number."; return; }
+  if (!tok && !S.account.vault) { $("acctErr").textContent = "Paste your API token."; return; }
+  try {
+    const data = { account_id: acct, environment: S.envDraft || S.account.environment || "PRACTICE" };
+    if (tok) Object.assign(data, { vault: DEMO ? {} : await lockToken(tok), token_hint: tok.slice(-4) }, DEMO ? {} : await sealForServer(tok));
+    await writeAccount(data);
+    $("token").value = ""; S.vaultBroken = false; S.envDraft = null;
+    toast("account saved");
+  } catch (e) { $("acctErr").textContent = e.message; }
+};
+const newTopic = () => "bob-" + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => "abcdefghijkmnpqrstuvwxyz23456789"[b % 32]).join("");
+$("newTopic").onclick = async () => { await writeAccount({ ntfy_topic: newTopic() }); toast("new topic: subscribe to it in the ntfy app"); };
+$("copyTopic").onclick = async () => { try { await navigator.clipboard.writeText(S.account.ntfy_topic || ""); toast("copied"); } catch { toast("couldn't copy", true); } };
+$("testNtfy").onclick = async () => {
+  if (!S.account.ntfy_topic) { toast("press new topic first", true); return; }
+  try { await fetch("https://ntfy.sh/" + S.account.ntfy_topic, { method: "POST", body: "If you see this, bob alerts work.", headers: { Title: "bob test" } }); toast("sent, check your phone"); }
+  catch { toast("couldn't reach ntfy.sh", true); }
+};
+for (const [id, key] of [["nTrades", "trades"], ["nAlerts", "alerts"]]) $(id).onchange = () => writeAccount({ notify: { ...(S.account.notify || {}), [key]: $(id).checked } });
+$("nOn").onchange = async () => {
+  if ($("nOn").checked && !S.account.ntfy_topic) await writeAccount({ ntfy_topic: newTopic(), notify: { ...(S.account.notify || {}), off: false } });
+  else await writeAccount({ notify: { ...(S.account.notify || {}), off: !$("nOn").checked } });
+};
+
+/* ── wiring ── */
+function renderAll() {
+  renderBots();
+  if (S.tab === "library") renderLibrary();
+  if (S.tab === "settings") renderSettings();
   autoResume();
 }
-fetch("backtests.json").then(r => r.json()).then(j => { S.backtests = j; renderBotCards(); }).catch(() => {});
-setInterval(() => { if (!$("app").classList.contains("hidden")) renderStatus(); }, 15000);
+setInterval(() => { if (!$("app").classList.contains("hidden")) renderBots(); }, 15000);
+// Tell the server someone is watching, so it sends status updates every few seconds instead of every few minutes.
+setInterval(() => { if (!DEMO && S.user && document.visibilityState === "visible") accountRef().set({ watch_until: Date.now() + 120000 }, { merge: true }).catch(() => {}); }, 90000);
+document.addEventListener("visibilitychange", () => { if (!DEMO && S.user && document.visibilityState === "visible") accountRef().set({ watch_until: Date.now() + 120000 }, { merge: true }).catch(() => {}); });
 
 function startApp(user) {
   $("whoAmI").textContent = user.email;
   show("app");
-  const uid = user.uid;
-  unsubs.push(db.collection("bob_bots").doc(uid).onSnapshot(d => { S.bot = d.exists ? d.data() : {}; onBot(); }, e => toast("database: " + e.message, true)));
-  unsubs.push(db.collection("bob_status").doc(uid).onSnapshot(d => { S.status = d.exists ? d.data() : null; renderStatus(); }));
-  unsubs.push(db.collection("bob_server").doc("heartbeat").onSnapshot(d => { S.heartbeat = d.exists ? d.data() : null; renderStatus(); autoResume(); }));
-  unsubs.push(db.collection("bob_server").doc("config").onSnapshot(d => { S.server = d.exists ? d.data() : null; renderSetup(); autoResume(); }));
+  goto("bots");
+  accountRef().set({ watch_until: Date.now() + 120000, email: user.email }, { merge: true }).catch(() => {});
+  unsubs.push(accountRef().onSnapshot(d => { S.account = d.exists ? d.data() : {}; renderAll(); }, e => toast("database: " + e.message, true)));
+  unsubs.push(botsRef().onSnapshot(s => { S.bots = Object.fromEntries(s.docs.map(d => [d.id, d.data()])); renderAll(); }));
+  unsubs.push(accountRef().collection("status").onSnapshot(s => { S.status = Object.fromEntries(s.docs.map(d => [d.id, d.data()])); renderBots(); }));
+  unsubs.push(db.collection("bob_server").doc("heartbeat").onSnapshot(d => { S.heartbeat = d.exists ? d.data() : null; renderAll(); }));
+  unsubs.push(db.collection("bob_server").doc("config").onSnapshot(d => { S.server = d.exists ? d.data() : null; renderAll(); }));
+  db.collection("bob_library").get().then(s => { S.library = s.docs.map(d => d.data()).sort((a, b) => a.order - b.order); renderAll(); if (S.tab === "library") renderLibrary(); })
+    .catch(e => toast("library: " + e.message, true));
 }
 
 if (DEMO) {
   const now = Date.now();
-  S.user = { email: "demo@bob" };
+  S.user = { email: "demo@bob", uid: "demo" };
   S.heartbeat = { at: new Date(now - 20000) };
-  S.server = { key_id: "demo" };
-  S.bot = { bot: "v2", environment: "PRACTICE", account_id: "101-001-1234567-001", vault: {}, token_hint: "7f2b",
-            desired: "running", start_request: "a", settings: { instrument: "EUR_USD" } };
-  S.status = { running: true, bot: "v2", bot_label: "Bob Sell Only v2", handled_start: "a", started_at: new Date(now - 3.6e6 * 30).toISOString(),
-    config: { instrument: "EUR_USD", environment: "PRACTICE", max_trades: 10, basket_target_pips: "20", fast_ma: 100, slow_ma: 200 },
-    live: { state: "MANAGING SELL BASKET", price: "1.16842", fast: "DISABLED", slow: "DISABLED", trades: 3, cumulative_pips: "-14.6", latest_pips: "-2.4" },
-    open_trades: [ { opened: new Date(now - 9e6).toISOString(), units: "1000", price: "1.16611", pips: -24.9 },
-                   { opened: new Date(now - 6e6).toISOString(), units: "1100", price: "1.16712", pips: -14.8 },
-                   { opened: new Date(now - 2e6).toISOString(), units: "1200", price: "1.16820", pips: -4.0 } ],
-    account: { currency: "USD", balance: "100231.44", NAV: "100226.10", unrealizedPL: "-5.34", marginUsed: "77.10", marginAvailable: "100149.00" },
-    session: { baskets: 6, winning_baskets: 6, losing_baskets: 0, true_net_pl: "18.42", gross_price_pl: "18.97", total_financing: "-0.55", total_duration: 86400, max_simultaneous_trades: 5 },
-    logs: [ { t: new Date(now - 9e6).toISOString(), m: "TRUE bearish MA100/MA200 cross on completed M5 candle. Opening first SELL." },
-            { t: new Date(now - 6e6).toISOString(), m: "Newest trade at -10.0 pips. Opening SELL #2 with 1100 units." },
-            { t: new Date(now - 2e6).toISOString(), m: "Newest trade at -10.1 pips. Opening SELL #3 with 1200 units." } ] };
-  $("whoAmI").textContent = "demo@bob · demo data";
-  show("app");
-  onBot();
+  S.account = { account_id: "101-001-1234567-001", environment: "PRACTICE", vault: {}, token_hint: "7f2b", ntfy_topic: "bob-demo7k2m9x", notify: {} };
+  fetch("demo.json").then(r => r.json()).then(j => {
+    S.server = j.server; S.library = j.library; S.bots = j.bots; S.status = j.status; S.history = j.history;
+    $("whoAmI").textContent = "demo@bob · demo data";
+    show("app"); goto(new URLSearchParams(location.search).get("tab") || "bots"); renderAll();
+    const c = new URLSearchParams(location.search).get("compare"); if (c) { S.compare = c.split(","); renderLibrary(); }
+    if (new URLSearchParams(location.search).has("build")) { openBuilder({ lib: S.library[3] }); $("btRun").click(); }
+  });
 } else {
   firebase.initializeApp({
-    apiKey:            "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE",
-    authDomain:        "my-website-529cc.firebaseapp.com",
-    projectId:         "my-website-529cc",
-    storageBucket:     "my-website-529cc.firebasestorage.app",
-    messagingSenderId: "698883805148",
-    appId:             "1:698883805148:web:3519bc8f1775a381830919"
+    apiKey: "AIzaSyDXJKlER0Ii-VKkVMEjLKPjx4Tv1-46DXE", authDomain: "my-website-529cc.firebaseapp.com", projectId: "my-website-529cc",
+    storageBucket: "my-website-529cc.firebasestorage.app", messagingSenderId: "698883805148", appId: "1:698883805148:web:3519bc8f1775a381830919"
   });
   db = firebase.firestore();
   auth = firebase.auth();
-  // Every visit starts at the login screen, and the password (the key to your saved token)
-  // only ever lives in this tab's memory.
+  // Every visit starts at the login screen; the password (the key to your saved token) only lives in this tab's memory.
   auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
-
   auth.onAuthStateChanged(async user => {
-    unsubs.forEach(u => u()); unsubs = [];
-    handedTo = null;
-    S = { ...S, user, bot: {}, status: null, heartbeat: null, server: null, formDirty: false, vaultBroken: false };
-    if (!user) S.password = null;
-    if (!user) { show("loginScreen"); setTimeout(() => $("loginEmail").focus(), 50); return; }
+    unsubs.forEach(u => u()); unsubs = []; histUnsub = null; handedTo = null;
+    S = { ...S, user, account: {}, bots: {}, status: {}, heartbeat: null, server: null, history: [], vaultBroken: false, envDraft: null };
+    if (!user) { S.password = null; show("loginScreen"); setTimeout(() => $("loginEmail").focus(), 50); return; }
     show("loadingScreen");
     try {
       const me = await db.collection("bob_users").doc(user.uid).get();
@@ -932,11 +1347,9 @@ if (DEMO) {
     }
     startApp(user);
   });
-
   $("loginForm").onsubmit = async e => {
     e.preventDefault();
-    $("loginErr").textContent = "";
-    $("loginBtn").disabled = true;
+    $("loginErr").textContent = ""; $("loginBtn").disabled = true;
     const pw = $("loginPass").value;
     try { S.password = pw; await auth.signInWithEmailAndPassword($("loginEmail").value.trim(), pw); $("loginPass").value = ""; }
     catch { S.password = null; $("loginErr").textContent = "nope. try again."; }
