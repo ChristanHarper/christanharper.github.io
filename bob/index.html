@@ -1150,7 +1150,7 @@ function checkConfig(c) {
 function formData() {
   const B = S.builder;
   const c = { ...B.config };
-  if (B.kind === "original") { c.direction = "sell"; c.entry = B.source === "bob_v1" ? "cross_live" : "cross"; c.ma_type = "SMA"; }
+  if (B.kind === "original") { c.direction = "sell"; c.entry = String(B.source).startsWith("bob_v1") ? "cross_live" : "cross"; c.ma_type = "SMA"; }
   return { name: $("f_name").value.trim() || "my bot", kind: B.kind, source: B.source || null, config: c };
 }
 async function saveBuilder(andStart) {
