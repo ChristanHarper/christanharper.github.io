@@ -419,6 +419,7 @@
       </div>
       <div class="panel hidden" id="formPanel">
         <div class="section-label label-cyan"><span id="formTitle">bot settings</span><button class="btn-sm" data-close-builder>cancel</button></div>
+        <div class="note-box hidden" id="pfNote">This is Bob's multi-pair robot v1, run exactly as written: it scans EUR/USD, GBP/USD, USD/JPY, USD/CAD and AUD/USD every 30 seconds and sizes every trade at 2% of the account. Its rules are fixed in his file; here you only choose signals-only mode and a loss limit. <b>Practice accounts only.</b> It counts every trade on the account and won't open anything while any trade has no stop loss, so give it an account (or OANDA sub-account) without basket bots.</div>
         <div class="note-box hidden" id="origNote">This is Bob's original code, run exactly as written. Only the settings Bob's bot has can be changed; for anything else, use a template (<a href="#" id="toEngine">convert to a custom bot</a>).</div>
         <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
           <div class="field"><label for="f_name">name</label><input id="f_name" maxlength="40"></div>
@@ -603,7 +604,9 @@ const busy = ph => ["starting", "running", "stopping", "paused"].includes(ph);
 const libById = id => S.library.find(b => b.id === id);
 // equity curves arrive as [[date, value], ...] or {d: [...], v: [...]} (Firestore can't nest lists)
 const eqPts = r => !r || !r.equity ? [] : Array.isArray(r.equity) ? r.equity : r.equity.d.map((d, i) => [d, r.equity.v[i]]);
-const botConfig = b => ({ ...(S.server && S.server.defaults || {}), ...(b.config || {}) });
+const botConfig = b => b.kind === "portfolio" ? { ...(b.config || {}) } : ({ ...(S.server && S.server.defaults || {}), ...(b.config || {}) });
+const PF_PAIRS = ["EUR_USD", "GBP_USD", "USD_JPY", "USD_CAD", "AUD_USD"];
+const isBobs = b => b.kind === "original" || b.kind === "portfolio";
 
 /* ── crypto: password-locked token + hand-over to the server's in-memory key ── */
 const b64 = u8 => { let s = ""; u8.forEach(b => s += String.fromCharCode(b)); return btoa(s); };
@@ -701,7 +704,7 @@ function renderBots() {
   document.querySelectorAll("#botList details[data-k]").forEach(d => { if (S.openCard[d.dataset.k] != null) d.open = S.openCard[d.dataset.k]; });
 }
 function botCard(id, bot, st, ph, online) {
-  const cfg = botConfig(bot), live = st.live || {}, orig = bot.kind === "original";
+  const cfg = botConfig(bot), live = st.live || {}, orig = isBobs(bot);
   const stateTxt = { running: online ? "running" : "running?", starting: "starting…", stopping: "stopping…", paused: "paused", error: "stopped", stopped: "stopped" }[ph];
   const stateCls = { running: online ? "ok" : "wait", starting: "wait", stopping: "wait", paused: "wait", error: "bad", stopped: "idle" }[ph];
   const cardCls = { running: "run", error: "bad", paused: "wait", starting: "wait", stopping: "wait" }[ph] || "";
@@ -713,7 +716,7 @@ function botCard(id, bot, st, ph, online) {
   if (ph === "paused") msg = `<div class="note-box">${online ? "The server restarted, so this bot is waiting for you to unlock it. Open trades stay on OANDA until you do." : "Waiting for the server to come back."} <button class="btn-sm btn-c" data-act="unlock" data-id="${id}">unlock &amp; resume</button></div>`;
   if (st.error && ph !== "running") msg += `<div class="warn-box">${esc(st.error)}</div>`;
   if (ph === "starting" && !online) msg += `<div class="note-box">Waiting for the server to come online. It'll start as soon as it's back.</div>`;
-  const body = (ph === "running" || ph === "stopping" || (st.open_trades || []).length) ? `
+  const body = bot.kind === "portfolio" ? portfolioBody(id, cfg, st, ph) : (ph === "running" || ph === "stopping" || (st.open_trades || []).length) ? `
     <div class="tiles">
       ${tile("state", esc((live.state || "connecting").toLowerCase()), live.trend ? `daily trend: ${esc(live.trend)}` : `${cfg.ma_type || "SMA"}${cfg.fast_ma}/${cfg.slow_ma}: ${esc(maTxt)}`)}
       ${tile("price", live.price || "—", pair(cfg.instrument))}
@@ -732,7 +735,7 @@ function botCard(id, bot, st, ph, online) {
     <div class="bot-head">
       <div class="grow">
         <div class="bot-name">${esc(bot.name || id)} <span class="chip ${orig ? "p" : "c"}">${orig ? "Bob's original" : "custom"}</span></div>
-        <div class="bot-sub">${esc(pair(cfg.instrument))} · ${esc(cfg.timeframe)} · ${esc(describe(cfg))}${st.started_at && ph === "running" ? ` · since ${new Date(st.started_at).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})}` : ""}</div>
+        <div class="bot-sub">${bot.kind === "portfolio" ? `5 pairs · H4 trend + M15 pullback · 2% risk · 2R${cfg.dry_run ? " · signals only" : ""}${cfg.max_loss_usd ? ` · limit $${cfg.max_loss_usd}` : ""}` : `${esc(pair(cfg.instrument))} · ${esc(cfg.timeframe)} · ${esc(describe(cfg))}`}${st.started_at && ph === "running" ? ` · since ${new Date(st.started_at).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})}` : ""}</div>
       </div>
       <div class="state ${stateCls}">${stateTxt}</div>
     </div>
@@ -749,6 +752,29 @@ function botCard(id, bot, st, ph, online) {
         <button class="btn-sm" data-act="del" data-id="${id}" ${busy(ph) || (st.open_trades || []).length ? "disabled" : ""}>delete</button>
       </div>
     </div></div>`;
+}
+function portfolioBody(id, cfg, st, ph) {
+  const live = st.live || {}, rows = st.open_trades || [];
+  if (!(ph === "running" || ph === "stopping" || rows.length)) return "";
+  const tile = (k, v, s = "", cls = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
+  const pl = rows.reduce((a, t) => a + (+t.pl || 0), 0);
+  const when = t => t ? new Date(t).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}) : "—";
+  const pairs = live.pairs || {};
+  return `<div class="tiles">
+      ${tile("state", esc((live.state || "connecting").toLowerCase()), live.last_scan ? `last scan ${ago(new Date(live.last_scan))}` : "")}
+      ${tile("account NAV", money(live.nav, (st.account || {}).currency), live.mode ? esc(live.mode) : "")}
+      ${tile("its open trades", `${+live.trades || 0}`, `${live.account_trades ?? "—"} on the account · max 3`)}
+      ${tile("open risk", live.open_risk_pct != null ? (+live.open_risk_pct).toFixed(2) + "%" : "—", "of NAV · cap 4%", +live.open_risk_pct >= 4 ? "neg" : "")}
+    </div>
+    ${rows.length ? `<div class="small" style="margin-top:6px;">its open P/L: <span class="${sgn(pl)}">${money(pl, (st.account || {}).currency)}</span>${cfg.max_loss_usd ? ` · loss limit ${money(-cfg.max_loss_usd)}` : ""}</div>` : ""}
+    ${rows.length ? `<details data-k="${id}-t" open><summary>open trades (${rows.length})</summary><div class="table-wrap"><table>
+      <thead><tr><th>opened</th><th>pair</th><th>side</th><th class="r">units</th><th class="r">entry</th><th class="r">stop</th><th class="r">target</th><th class="r">P/L</th></tr></thead><tbody>
+      ${rows.map(t => `<tr><td>${esc(when(t.opened))}</td><td>${esc(pair(t.pair))}</td><td>${esc(t.side)}</td><td class="r num">${(+t.units).toLocaleString()}</td><td class="r num">${esc(t.price)}</td><td class="r num">${esc(t.stop || "—")}</td><td class="r num">${esc(t.tp || "—")}</td><td class="r num ${sgn(t.pl)}">${money(t.pl)}</td></tr>`).join("")}
+      </tbody></table></div></details>` : ""}
+    <details data-k="${id}-p"><summary>pairs</summary><div class="table-wrap"><table>
+      <thead><tr><th>pair</th><th>last M15 candle</th><th>checked</th></tr></thead><tbody>
+      ${PF_PAIRS.map(p => { const x = pairs[p] || {}; return `<tr><td>${pair(p)}</td><td class="${/opened|submitted|valid/.test(x.result || "") ? "pos" : ""}">${esc([x.direction, x.result].filter(Boolean).join(" ") || "—")}</td><td class="muted">${esc(x.t ? ago(new Date(x.t)) : "—")}</td></tr>`; }).join("")}
+      </tbody></table></div></details>`;
 }
 function describe(c) {
   const ma = `${c.ma_type}${c.fast_ma}/${c.slow_ma}`;
@@ -808,6 +834,7 @@ async function startBot(id) {
   const st = S.status[id] || {};
   if (phase(bot, st) === "paused") { await ensureHandedOver(); return; }
   const live = String(S.account.environment || "PRACTICE").toUpperCase() === "LIVE";
+  if (live && bot.kind === "portfolio") throw new Error("Bob's multi-pair robot v1 is practice-only. Switch settings to a practice account.");
   if (live && !(await confirmBox({ title: "live money", okLabel: "start live", typeWord: "LIVE",
       text: `<b>${esc(bot.name)}</b> will place <b>real</b> orders on your live OANDA account${botConfig(bot).max_trades > 1 ? " and keep adding trades as price moves against it, up to its max trades" : ""}. ${botConfig(bot).max_loss_usd ? "" : "It has <b>no loss limit</b>. "}Only do this with money you're fine losing.` }))) return;
   await ensureHandedOver();
@@ -842,7 +869,7 @@ function renderLibrary() {
       ${r.stuck && r.stuck.since && b.config && b.config.max_trades > 1 && (Date.parse(r.end) - Date.parse(r.stuck.since)) > 7 * 864e5 ? `<div class="small neg" style="margin-top:4px;">stuck since ${r.stuck.since} (${r.stuck.trades} trades)</div>` : ""}
       ${r.note ? `<div class="small" style="margin-top:4px;">${esc(r.note)}</div>` : ""}` : `<div class="small">no backtest for ${pair(S.libPair)}</div>`;
     return `<div class="lib ${sel ? "sel" : ""}">
-      <h4><span>${esc(b.name)}</span><span class="chip ${b.runtime === "original" ? "p" : b.runtime ? "c" : ""}">${b.runtime === "original" ? "Bob's code" : b.runtime ? "runnable" : "view only"}</span></h4>
+      <h4><span>${esc(b.name)}</span><span class="chip ${["original", "portfolio"].includes(b.runtime) ? "p" : b.runtime ? "c" : ""}">${["original", "portfolio"].includes(b.runtime) ? "Bob's code" : b.runtime ? "runnable" : "view only"}</span></h4>
       <div class="desc">${esc(b.summary)}</div>${stats}
       <div class="foot">
         ${b.runtime ? `<button class="btn-c btn-sm" data-lib="use" data-id="${b.id}">use this bot</button>` : ""}
@@ -924,6 +951,7 @@ async function showLibraryCode(b) {
     if (!c) throw new Error("code not available yet");
     const files = [{ name: c.name, text: c.text }];
     let note = b.runtime === "original" ? "Bob's own file, exactly as it runs on the server (it has its own desktop window if you run it yourself)." :
+               b.runtime === "portfolio" ? "Bob's own file, exactly as it runs on the server: its scan_once() every 30 seconds, with orders on unless the bot is set to signals only." :
                b.runtime ? "The original script this library entry comes from. On the server it runs through the shared engine with the settings shown on its card." :
                "View only: this one isn't a single-pair bot.";
     if (b.runtime === "engine") {
@@ -936,6 +964,13 @@ async function showLibraryCode(b) {
 async function showBotCode(id) {
   const bot = S.bots[id];
   try {
+    if (bot.kind === "portfolio") {
+      const lib = libById(bot.source);
+      const c = await getCode(lib && lib.code_id);
+      if (!c) throw new Error("code not available yet");
+      openCode(bot.name, "Bob's original file, run unchanged on the server" + (botConfig(bot).dry_run ? " in signals-only mode." : " with practice orders on."), [{ name: c.name, text: c.text }]);
+      return;
+    }
     if (bot.kind === "original") {
       const lib = libById(bot.source);
       const c = await getCode(lib && lib.code_id);
@@ -1039,6 +1074,7 @@ const FIELDS = [
   { sec: "exits & safety", k: "stop_loss_pips", label: "stop loss pips", type: "num", hint: "per trade, at the broker; 0 = off" },
   { sec: "exits & safety", k: "exit_on_opposite_cross", label: "exit on the opposite cross", type: "bool", show: c => c.entry === "cross" },
   { sec: "exits & safety", k: "max_loss_usd", label: "loss limit ($)", type: "num", hint: "if this bot's open P/L hits −$X: close everything and stop. 0 = off" },
+  { sec: "exits & safety", k: "dry_run", label: "signals only (log setups, place no orders)", type: "bool", pf: true },
   { sec: "exits & safety", k: "session_start_utc", label: "entries from (UTC hour)", type: "int", show: c => c.entry !== "always" },
   { sec: "exits & safety", k: "session_end_utc", label: "entries until (UTC hour)", type: "int", show: c => c.entry !== "always" },
   { sec: "exits & safety", k: "max_spread_pips", label: "skip entries if spread > pips", type: "num", hint: "0 = off" },
@@ -1078,7 +1114,8 @@ function openBuilder({ id, lib }) {
     S.builder = { id, kind: bot.kind, source: bot.source, name: bot.name, config: botConfig(bot), readonly: busy(phase(bot, S.status[id])), from: "bots" };
     showForm();
   } else if (lib) {
-    S.builder = { kind: lib.runtime === "original" ? "original" : "engine", source: lib.id, name: lib.name,
+    S.builder = lib.runtime === "portfolio" ? { kind: "portfolio", source: lib.id, name: lib.name, config: { dry_run: false, max_loss_usd: 0 }, from: "library" } :
+                { kind: lib.runtime === "original" ? "original" : "engine", source: lib.id, name: lib.name,
                   config: { ...(S.server ? S.server.defaults : {}), ...lib.config, instrument: S.libPair }, from: "library" };
     showForm();
   } else {
@@ -1094,6 +1131,7 @@ function showForm() {
   $("formPanel").classList.remove("hidden");
   $("formTitle").textContent = B.id ? (B.readonly ? "bot settings (stop it to edit)" : "edit bot") : "new bot";
   $("origNote").classList.toggle("hidden", B.kind !== "original");
+  $("pfNote").classList.toggle("hidden", B.kind !== "portfolio");
   $("f_name").value = B.name || "";
   $("f_name").disabled = !!B.readonly;
   $("formErr").textContent = "";
@@ -1105,6 +1143,7 @@ function renderFields() {
   const secs = {};
   for (const f of FIELDS) {
     if (B.kind === "original" && !ORIGINAL_FIELDS.includes(f.k)) continue;
+    if ((B.kind === "portfolio") !== (!!f.pf || (B.kind === "portfolio" && f.k === "max_loss_usd"))) continue;
     if (f.show && !f.show(c)) continue;
     (secs[f.sec] = secs[f.sec] || []).push(f);
   }
@@ -1136,7 +1175,8 @@ $("toEngine").onclick = e => {
   if (!B.id) B.name = (B.name || "bot") + " (custom)";
   showForm();
 };
-function checkConfig(c) {
+function checkConfig(c, kind) {
+  if (kind === "portfolio") return +c.max_loss_usd < 0 || isNaN(+c.max_loss_usd) ? "The loss limit can't be negative." : "";
   const int = k => Number.isInteger(+c[k]), pos = k => +c[k] > 0;
   if (["cross", "cross_live", "pullback"].includes(c.entry) && !(int("fast_ma") && int("slow_ma") && +c.fast_ma >= 2 && +c.fast_ma < +c.slow_ma && +c.slow_ma <= 500)) return "Fast MA must be at least 2 and smaller than the slow MA (max 500).";
   if (!(int("first_units") && pos("first_units"))) return "First trade units must be a positive whole number.";
@@ -1150,12 +1190,13 @@ function checkConfig(c) {
 function formData() {
   const B = S.builder;
   const c = { ...B.config };
+  if (B.kind === "portfolio") return { name: $("f_name").value.trim() || "my bot", kind: B.kind, source: B.source, config: { dry_run: !!c.dry_run, max_loss_usd: +c.max_loss_usd || 0 } };
   if (B.kind === "original") { c.direction = "sell"; c.entry = String(B.source).startsWith("bob_v1") ? "cross_live" : "cross"; c.ma_type = "SMA"; }
   return { name: $("f_name").value.trim() || "my bot", kind: B.kind, source: B.source || null, config: c };
 }
 async function saveBuilder(andStart) {
   const B = S.builder, d = formData();
-  const err = checkConfig(d.config);
+  const err = checkConfig(d.config, d.kind);
   if (err) { $("formErr").textContent = err; return; }
   $("formErr").textContent = "";
   try {
@@ -1173,6 +1214,12 @@ $("saveStart").onclick = () => saveBuilder(true);
 let btUnsub = null, lastBt = null;
 $("btRun").onclick = async () => {
   const d = formData();
+  if (d.kind === "portfolio") {         // fixed rules: the library already holds its 2-year backtest
+    const lib = libById(d.source), r = lib && (lib.results || {}).ALL;
+    $("btOut").classList.remove("hidden");
+    if (r) showBacktest({ status: "done", result: r }, d); else $("btOut").innerHTML = `<div class="warn-box">No backtest stored yet.</div>`;
+    return;
+  }
   const err = checkConfig(d.config);
   if (err) { $("formErr").textContent = err; return; }
   $("formErr").textContent = "";
@@ -1188,7 +1235,7 @@ $("btRun").onclick = async () => {
 };
 function showBacktest(x, d) {
   if (x.status === "error") { $("btOut").innerHTML = `<div class="warn-box">${esc(x.error)}</div>`; return; }
-  const r = x.result, prev = lastBt && lastBt.instrument === r.instrument ? lastBt : null;
+  const r = x.result, prev = lastBt && lastBt.instrument === r.instrument && !r.by_pair ? lastBt : null;
   const series = [{ name: "this setup", points: eqPts(r), color: r.pnl >= 0 ? "#00F0FF" : "#FF00C8" }];
   if (prev) series.push({ name: "previous run", points: eqPts(prev), color: "#888", dash: true });
   const tile = (k, v, s = "", cls = "") => `<div class="tile"><div class="k">${k}</div><div class="v num ${cls}">${v}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`;
@@ -1201,11 +1248,16 @@ function showBacktest(x, d) {
       ${tile("worst dip", money(r.max_drawdown), prev ? `was ${money(prev.max_drawdown)}` : "peak to trough", "neg")}
       ${tile("trades/baskets", r.rounds, r.median_hours != null ? `median ${dur(r.median_hours)} open` : "")}
       ${tile("win rate", r.win_rate != null ? r.win_rate + "%" : "—", r.profit_factor != null ? `profit factor ${r.profit_factor}` : "")}
-      ${tile("deepest basket dip", money(r.deepest_dip), `largest ${r.largest_basket} trades`, "neg")}
+      ${r.by_pair ? tile("avg trade", (r.avg_r > 0 ? "+" : "") + r.avg_r + "R", `win ${money(r.avg_win)} · loss ${money(r.avg_loss)}`, sgn(r.avg_r)) : tile("deepest basket dip", money(r.deepest_dip), `largest ${r.largest_basket} trades`, "neg")}
       ${tile("open at end", r.stuck ? money(r.stuck.pnl) : "none", r.stuck ? `since ${r.stuck.since}` : `${r.time_in_market_pct}% time in market`, r.stuck && r.stuck.pnl < 0 ? "neg" : "")}
     </div>
     ${r.hit_max_trades ? `<div class="small" style="margin-top:6px;">hit max trades ${r.hit_max_trades} time${r.hit_max_trades > 1 ? "s" : ""}.</div>` : ""}
-    ${r.halted ? `<div class="warn-box">${esc(r.halted)}</div>` : ""}`;
+    ${r.halted ? `<div class="warn-box">${esc(r.halted)}</div>` : ""}
+    ${r.by_pair ? `<div class="table-wrap" style="margin-top:10px;"><table>
+      <thead><tr><th></th><th class="r">trades</th><th class="r">P/L</th><th class="r">win</th><th class="r">PF</th><th class="r">avg R</th></tr></thead><tbody>
+      ${[...Object.entries(r.by_pair).map(([k, v]) => [pair(k), v]), ...Object.entries(r.by_side || {}), ...Object.entries(r.halves || {})].map(([k, v]) => `<tr><td>${esc(k)}</td><td class="r num">${v.trades}</td><td class="r num ${sgn(v.pnl)}">${money(v.pnl)}</td><td class="r num">${v.win_rate ?? "—"}%</td><td class="r num">${v.profit_factor ?? "—"}</td><td class="r num ${sgn(v.avg_r)}">${v.avg_r ?? "—"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <div class="small" style="margin-top:6px;">${esc(r.note || "")} P/L compounds: 2% of a shrinking account is a smaller bet, so avg R is the fairer comparison between rows.</div>` : ""}`;
   lastBt = r;
 }
 function demoResult(c) {
