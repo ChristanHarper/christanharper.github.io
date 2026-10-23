@@ -419,7 +419,7 @@
       </div>
       <div class="panel hidden" id="formPanel">
         <div class="section-label label-cyan"><span id="formTitle">bot settings</span><button class="btn-sm" data-close-builder>cancel</button></div>
-        <div class="note-box hidden" id="pfNote">This is Bob's multi-pair robot v1, run exactly as written: it scans EUR/USD, GBP/USD, USD/JPY, USD/CAD and AUD/USD every 30 seconds and sizes every trade at 2% of the account. Its rules are fixed in his file; here you only choose signals-only mode and a loss limit. <b>Practice accounts only.</b> It counts every trade on the account and won't open anything while any trade has no stop loss, so give it an account (or OANDA sub-account) without basket bots.</div>
+        <div class="note-box hidden" id="pfNote">This is Bob's multi-pair robot (<span id="pfVer"></span>), run exactly as written: it scans EUR/USD, GBP/USD, USD/JPY, USD/CAD and AUD/USD every 30 seconds and sizes every trade at <span id="pfRisk"></span> of the account. Its rules are fixed in his file; here you only choose signals-only mode and a loss limit. <b>Practice accounts only.</b> It counts every trade on the account and won't open anything while any trade has no stop loss, so give it an account (or OANDA sub-account) without basket bots.</div>
         <div class="note-box hidden" id="origNote">This is Bob's original code, run exactly as written. Only the settings Bob's bot has can be changed; for anything else, use a template (<a href="#" id="toEngine">convert to a custom bot</a>).</div>
         <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
           <div class="field"><label for="f_name">name</label><input id="f_name" maxlength="40"></div>
@@ -735,7 +735,7 @@ function botCard(id, bot, st, ph, online) {
     <div class="bot-head">
       <div class="grow">
         <div class="bot-name">${esc(bot.name || id)} <span class="chip ${orig ? "p" : "c"}">${orig ? "Bob's original" : "custom"}</span></div>
-        <div class="bot-sub">${bot.kind === "portfolio" ? `5 pairs · H4 trend + M15 pullback · 2% risk · 2R${cfg.dry_run ? " · signals only" : ""}${cfg.max_loss_usd ? ` · limit $${cfg.max_loss_usd}` : ""}` : `${esc(pair(cfg.instrument))} · ${esc(cfg.timeframe)} · ${esc(describe(cfg))}`}${st.started_at && ph === "running" ? ` · since ${new Date(st.started_at).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})}` : ""}</div>
+        <div class="bot-sub">${bot.kind === "portfolio" ? `5 pairs · ${bot.source === "robot_v2" ? "v2 · ADX + levels · 1% risk" : "H4 trend + M15 pullback · 2% risk"} · 2R${cfg.dry_run ? " · signals only" : ""}${cfg.max_loss_usd ? ` · limit $${cfg.max_loss_usd}` : ""}` : `${esc(pair(cfg.instrument))} · ${esc(cfg.timeframe)} · ${esc(describe(cfg))}`}${st.started_at && ph === "running" ? ` · since ${new Date(st.started_at).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"})}` : ""}</div>
       </div>
       <div class="state ${stateCls}">${stateTxt}</div>
     </div>
@@ -834,7 +834,7 @@ async function startBot(id) {
   const st = S.status[id] || {};
   if (phase(bot, st) === "paused") { await ensureHandedOver(); return; }
   const live = String(S.account.environment || "PRACTICE").toUpperCase() === "LIVE";
-  if (live && bot.kind === "portfolio") throw new Error("Bob's multi-pair robot v1 is practice-only. Switch settings to a practice account.");
+  if (live && bot.kind === "portfolio") throw new Error("Bob's multi-pair robot is practice-only. Switch settings to a practice account.");
   if (live && !(await confirmBox({ title: "live money", okLabel: "start live", typeWord: "LIVE",
       text: `<b>${esc(bot.name)}</b> will place <b>real</b> orders on your live OANDA account${botConfig(bot).max_trades > 1 ? " and keep adding trades as price moves against it, up to its max trades" : ""}. ${botConfig(bot).max_loss_usd ? "" : "It has <b>no loss limit</b>. "}Only do this with money you're fine losing.` }))) return;
   await ensureHandedOver();
@@ -1132,6 +1132,8 @@ function showForm() {
   $("formTitle").textContent = B.id ? (B.readonly ? "bot settings (stop it to edit)" : "edit bot") : "new bot";
   $("origNote").classList.toggle("hidden", B.kind !== "original");
   $("pfNote").classList.toggle("hidden", B.kind !== "portfolio");
+  $("pfVer").textContent = B.source === "robot_v2" ? "v2" : "v1";
+  $("pfRisk").textContent = B.source === "robot_v2" ? "1%" : "2%";
   $("f_name").value = B.name || "";
   $("f_name").disabled = !!B.readonly;
   $("formErr").textContent = "";
