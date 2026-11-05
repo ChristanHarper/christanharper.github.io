@@ -258,7 +258,9 @@ function onView(v) {
   const s = v.step;
   if (v.i !== lastStep) firstPick = null;
   lastStep = v.i;
-  const key = JSON.stringify([v.i, s.stage, v.mine, s.r, v.canNext, firstPick, v.players[ME].joined, v.players[THEM].joined]);
+  // The partner joining only matters once this player is in; until then it would wipe a half-typed name.
+  const partnerJoined = v.players[ME].joined && v.players[THEM].joined;
+  const key = JSON.stringify([v.i, s.stage, v.mine, s.r, v.canNext, firstPick, v.players[ME].joined, partnerJoined]);
   if (key !== lastKey) {
     lastKey = key;
     app.innerHTML = `<div class="pane">${SCREENS[s.t](v)}</div>`;
