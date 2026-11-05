@@ -8,6 +8,7 @@ const SAVE_HOURS = 12;
 const RETRY_MS = 3000;
 const KEEPALIVE_MS = 5000;
 const SILENCE_MS = 15000;
+const CONNECT_MS = 30000;
 
 const peerId = (room) => `hard-disagree-${room}`;
 
@@ -156,8 +157,12 @@ function startPhone(onView, onStatus) {
   let peer = null;
   let conn = null;
   let heard = Date.now();
+  let connected = false;
   let denied = false;
   let retry = null;
+
+  // A slow first connection needs longer than an established one takes to go quiet.
+  const overdue = () => Date.now() - heard > (connected ? SILENCE_MS : CONNECT_MS);
 
   const flush = () => {
     while (conn?.open && outbox.length) conn.send({ action: outbox.shift() });
@@ -179,6 +184,7 @@ function startPhone(onView, onStatus) {
     clearTimeout(retry);
     if (peer) peer.destroy();
     heard = Date.now();
+    connected = false;
     peer = new Peer();
     peer.on('open', () => {
       conn = peer.connect(peerId(room), { reliable: true, serialization: 'json' });
@@ -193,6 +199,7 @@ function startPhone(onView, onStatus) {
           onStatus?.(false);
         }
         if (msg.view) {
+          connected = true;
           Show.view = msg.view;
           onStatus?.(true);
           onView(msg.view);
@@ -208,9 +215,12 @@ function startPhone(onView, onStatus) {
 
   // A locked phone can lose the connection without noticing, so watch for silence.
   setInterval(() => {
-    if (Date.now() - heard > SILENCE_MS) open();
+    if (overdue()) {
+      onStatus?.(false);
+      open();
+    }
   }, RETRY_MS);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && Date.now() - heard > KEEPALIVE_MS * 1.5) open();
+    if (document.visibilityState === 'visible' && connected && Date.now() - heard > KEEPALIVE_MS * 1.5) open();
   });
 }
