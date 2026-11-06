@@ -271,8 +271,6 @@
         step.a[p] = { text };
       } else if (step.t === 'soft' && step.stage === 'answer') {
         if (v?.fifth) {
-          if (G.players[p].fifths < 1) return;
-          G.players[p].fifths--;
           G.stats.fifths[p]++;
           step.a[p] = { fifth: true };
         } else {

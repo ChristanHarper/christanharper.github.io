@@ -124,8 +124,8 @@ function loadSession(ep) {
 
 function saveSession(session, game) {
   try {
-    // Once the show is over there is nothing to resume, so drop the answers.
-    const finished = game.state().steps[game.state().i].t === 'credits';
+    // Once the finished show is safely stored there is nothing to resume, so drop the answers.
+    const finished = session.resultStored && game.state().steps[game.state().i].t === 'credits';
     localStorage.setItem(SAVE_KEY, JSON.stringify({ ...session, state: finished ? null : game.state(), savedAt: Date.now() }));
   } catch {
     // Private windows can refuse storage. The show still runs, it just can't survive a refresh.
@@ -190,6 +190,7 @@ async function startBigScreen(onView) {
   let note = 'Opening the studio…';
   let ready = false;
   let cleanup = null;
+  let viewsDeleted = false;
 
   const link = (p) => {
     const url = new URL('play.html', location.href);
@@ -206,7 +207,7 @@ async function startBigScreen(onView) {
   };
 
   function writeViews() {
-    if (!ready) return;
+    if (!ready || viewsDeleted) return;
     for (const p of ['p1', 'p2']) {
       const { now, ...view } = game.viewFor(p, isOnline);
       const json = JSON.stringify(view);
@@ -225,6 +226,7 @@ async function startBigScreen(onView) {
       cleanup = null;
     } else if (!cleanup) {
       cleanup = setTimeout(() => {
+        viewsDeleted = true;
         for (const p of ['p1', 'p2']) {
           delete written[p];
           roomRef(room).collection('views').doc(tokens[p]).delete().catch(console.error);
@@ -244,6 +246,8 @@ async function startBigScreen(onView) {
       await db.collection('hd_results').doc(await vault.resultId(ep)).set(await vault.seal(record));
       const played = await playedList();
       await progress.set({ played: [...new Set([...played, ep])] });
+      session.resultStored = true;
+      saveSession(session, game);
       awaitVerdict().catch(console.error);
     } catch (err) {
       console.error(err);

@@ -142,7 +142,7 @@ const SCREENS = {
     const s = v.step;
     if (s.stage === 'answer') {
       if (v.mine !== undefined) return waiting(v);
-      return `${head(s)}${prompt(s)}${textForm('Say the real thing…', 'Lock it in', fifthBtn(v, 'Skips this one. No points for your answer, no questions asked.'))}`;
+      return `${head(s)}${prompt(s)}${textForm('Say the real thing…', 'Lock it in', '<button class="fifth" id="fifth">Plead the Fifth</button><p class="fine">Skips this one. No points for your answer, no questions asked.</p>')}`;
     }
     if (s.stage === 'reveal') {
       if (s.r.texts[THEM] === null) return watch(v, `${v.players[THEM].name} passed on this one.`);
