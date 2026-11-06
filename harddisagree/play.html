@@ -13,8 +13,10 @@
 <body>
   <header id="bar"></header>
   <main id="app"><p class="waiting">Finding the studio…</p></main>
-  <div id="offline" hidden>Can't reach the big screen from this phone. Still trying… Join the same Wi-Fi as the big screen, turn off any VPN, and make sure its tab is open. If the show was restarted, scan your QR code again.</div>
-  <script src="vendor/peerjs.min.js"></script>
+  <div id="offline" hidden>Can't reach the big screen. Still trying… Check this phone's connection and make sure the big screen's tab is open. If the show was restarted, scan your QR code again.</div>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="common.js"></script>
   <script src="play.js"></script>
 </body>
