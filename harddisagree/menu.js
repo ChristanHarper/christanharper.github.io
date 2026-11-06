@@ -56,8 +56,18 @@ async function renderMenu(vault) {
     console.error(err);
     problem = 'Couldn\'t check which episodes you\'ve played, so some may not show as played.';
   }
+  const verdicts = {};
+  await Promise.all(played.map(async (id) => {
+    try {
+      const doc = await db.collection('hd_results').doc(await vault.verdictId(id)).get();
+      if (doc.exists) verdicts[id] = await vault.unseal(doc.data());
+    } catch (err) {
+      console.error(err);
+    }
+  }));
   const resume = savedEpisode();
   const episode = (e) => {
+    if (verdicts[e.id]) return `<button class="episode" data-verdict="${esc(e.id)}"><b>${esc(e.title)}</b><span>Played. Read the verdict.</span></button>`;
     if (played.includes(e.id)) return `<div class="episode played"><b>${esc(e.title)}</b><span>Played</span></div>`;
     const isResume = e.id === resume;
     return `<a class="episode ${isResume ? 'resume' : ''}" href="show.html?ep=${encodeURIComponent(e.id)}&v=${BUILD}"><b>${esc(e.title)}</b><span>${isResume ? 'In progress. Pick up where you left off.' : esc(e.blurb)}</span></a>`;
@@ -70,6 +80,18 @@ async function renderMenu(vault) {
     ${problem ? `<p class="wifi">${esc(problem)}</p>` : ''}
     ${allPlayed ? '<p class="note">You\'ve played everything. Time to ask Claude for a new batch.</p>' : ''}
   </div></div>`;
+  const menuHtml = stageEl.innerHTML;
+  const wire = () => {
+    stageEl.querySelectorAll('[data-verdict]').forEach((b) => b.addEventListener('click', () => {
+      stageEl.innerHTML = `<div class="screen"><div class="verdict-screen">${verdictHtml(verdicts[b.dataset.verdict])}
+        <div class="report-end"><button class="big-next" id="close-verdict">Back to the menu</button></div></div></div>`;
+      document.getElementById('close-verdict').addEventListener('click', () => {
+        stageEl.innerHTML = menuHtml;
+        wire();
+      });
+    }));
+  };
+  wire();
 }
 
 const remembered = Vault.passcode();

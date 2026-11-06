@@ -8,6 +8,8 @@ const LETTERS = 'ABCDE';
 
 let lastKey = '';
 let lastSound = '';
+let reportOpen = false;
+let verdictAnnounced = false;
 let shownScore = { p1: 0, p2: 0 };
 let timer = null;
 let muted = false;
@@ -329,7 +331,16 @@ const SCREENS = {
   },
 
   credits(v) {
+    if (v.verdict && !reportOpen) {
+      return `<div class="verdict-screen">${verdictHtml(v.verdict)}
+        <div class="report-end"><button class="big-next quiet" id="open-report">See the numbers</button><a class="big-next" href="${esc(v.menu)}">Back to the menu</a></div>
+      </div>`;
+    }
     const r = v.report;
+    let status = '';
+    if (v.menu && v.verdict) status = '<button class="big-next quiet" id="open-verdict">Read the verdict</button>';
+    else if (v.menu && v.verdictLate) status = '<p class="quip">The verdict is running late. It will appear on the menu.</p>';
+    else if (v.menu) status = '<p class="quip">Rex is deliberating…</p>';
     const champ = (obj, ifTie) => {
       if (obj.p1 === obj.p2) return ifTie;
       return v.players[obj.p1 > obj.p2 ? 'p1' : 'p2'].name;
@@ -348,6 +359,7 @@ const SCREENS = {
       <dl>${rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('')}</dl>
       <div class="report-end">
         <p class="logo small-logo">Goodnight!</p>
+        ${status}
         ${v.menu ? `<a class="big-next" href="${esc(v.menu)}">Back to the menu</a>` : '<button class="big-next" id="again">Run it back</button>'}
       </div>
     </div>`;
@@ -468,7 +480,12 @@ function onView(v) {
   renderScores(v);
   const s = v.step;
   const lobbyKey = s.t === 'lobby' ? JSON.stringify([v.players, v.note]) : '';
-  const key = JSON.stringify([v.i, s.stage, s.r, lobbyKey]);
+  const creditsKey = s.t === 'credits' ? [!!v.verdict, v.verdictLate, reportOpen] : null;
+  const key = JSON.stringify([v.i, s.stage, s.r, lobbyKey, creditsKey]);
+  if (v.verdict && !verdictAnnounced) {
+    verdictAnnounced = true;
+    play('fanfare');
+  }
 
   if (v.locked.p1 && !lastLocked.p1 || v.locked.p2 && !lastLocked.p2) play('lock');
   lastLocked = v.locked;
@@ -491,6 +508,10 @@ function onView(v) {
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-next]')) Show.send('next');
   if (e.target.closest('#again')) Show.send('restart');
+  if (e.target.closest('#open-report') || e.target.closest('#open-verdict')) {
+    reportOpen = !!e.target.closest('#open-report');
+    onView(Show.view);
+  }
   const copy = e.target.closest('[data-copy]');
   if (copy) {
     navigator.clipboard.writeText(Show.view.links[copy.dataset.copy]);

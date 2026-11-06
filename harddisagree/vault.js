@@ -58,6 +58,11 @@ const Vault = {
       episode: (id) => shows.flatMap((s) => s.episodes).find((e) => e.id === id),
       progressId: () => Vault.hash(`${idSeed}|progress`),
       resultId: (id) => Vault.hash(`${idSeed}|result|${id}`),
+      verdictId: (id) => Vault.hash(`${idSeed}|verdict|${id}`),
+      async unseal({ iv, data }) {
+        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: Vault.toBytes(iv) }, resultsKey, Vault.toBytes(data));
+        return JSON.parse(new TextDecoder().decode(plain));
+      },
       async seal(value) {
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, resultsKey, new TextEncoder().encode(JSON.stringify(value)));

@@ -14,6 +14,7 @@ const ONLINE_MS = 70000;
 const PRESENCE_CHECK_MS = 10000;
 const FIRST_VIEW_MS = 8000;
 const CLEANUP_MS = 60000;
+const VERDICT_WAIT_MS = 4 * 60000;
 const EXPIRE_MS = 2 * 24 * 3600000;
 
 // A named app keeps this anonymous sign-in separate from the site's own login,
@@ -58,6 +59,17 @@ const Show = {
 if (Show.role === 'host') {
   window.addEventListener('pagehide', () => { db.terminate(); });
   window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+}
+
+function verdictHtml(verdict) {
+  const from = verdict.voice === 'rex' ? 'Rex Valentine\'s verdict' : 'A word from Claude';
+  return `<div class="verdict ${verdict.voice === 'rex' ? 'rex' : 'plain'}">
+    <p class="eyebrow">${from}</p>
+    <h1 class="verdict-head">${esc(verdict.headline)}</h1>
+    <p class="verdict-body">${esc(verdict.verdict)}</p>
+    <p class="verdict-noticed"><b>What I noticed:</b> ${esc(verdict.noticed)}</p>
+    <p class="verdict-question">${esc(verdict.question)}</p>
+  </div>`;
 }
 
 function esc(text) {
@@ -156,6 +168,21 @@ async function startBigScreen(onView) {
   const { room, tokens } = session;
   const game = createShow(episode, session.state);
   let resultSaved = false;
+  let verdict = null;
+  let verdictLate = false;
+
+  // The computer watching for finished shows delivers the verdict here.
+  async function awaitVerdict() {
+    setTimeout(() => {
+      verdictLate = true;
+      publish();
+    }, VERDICT_WAIT_MS);
+    db.collection('hd_results').doc(await vault.verdictId(ep)).onSnapshot(async (doc) => {
+      if (!doc.exists) return;
+      verdict = await vault.unseal(doc.data());
+      publish();
+    }, console.error);
+  }
   const seen = { p1: 0, p2: 0 };
   const isOnline = (p) => Date.now() - seen[p] < ONLINE_MS;
   const written = {};
@@ -217,6 +244,7 @@ async function startBigScreen(onView) {
       await db.collection('hd_results').doc(await vault.resultId(ep)).set(await vault.seal(record));
       const played = await playedList();
       await progress.set({ played: [...new Set([...played, ep])] });
+      awaitVerdict().catch(console.error);
     } catch (err) {
       console.error(err);
       resultSaved = false;
@@ -225,7 +253,7 @@ async function startBigScreen(onView) {
 
   function publish() {
     saveSession(session, game);
-    Show.view = { ...game.viewFor('host', isOnline), qr, links, note, menu: 'index.html' };
+    Show.view = { ...game.viewFor('host', isOnline), qr, links, note, menu: 'index.html', verdict, verdictLate };
     onView(Show.view);
     writeViews();
     scheduleCleanup();
