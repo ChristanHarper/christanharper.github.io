@@ -36,8 +36,15 @@ const Show = {
   deliver: () => {},
 
   connect(onView, onStatus) {
-    if (Show.role === 'host') startBigScreen(onView);
-    else startPhone(onView, onStatus);
+    if (Show.role === 'host') {
+      startupMessage('Opening the studio…');
+      startBigScreen(onView).catch((err) => {
+        console.error(err);
+        startupMessage('Couldn\'t reach the studio. Check this computer\'s connection, then try again.', true);
+      });
+    } else {
+      startPhone(onView, onStatus);
+    }
   },
 
   send(type, extra = {}) {
@@ -52,6 +59,26 @@ function esc(text) {
 
 function randomHex(bytes) {
   return [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Shown until the show has loaded, so a slow or failed start is never a blank screen.
+function startupMessage(text, canRetry) {
+  document.getElementById('stage').innerHTML = `<div class="screen">
+    <p class="rules">${esc(text)}</p>
+    ${canRetry ? '<a class="big-next" href="">Try again</a>' : ''}
+  </div>`;
+}
+
+// A first connection can fail while the browser is still finding a route, so try a few times.
+async function withRetries(task, attempts = 3) {
+  for (let i = 1; ; i++) {
+    try {
+      return await task();
+    } catch (err) {
+      if (i === attempts) throw err;
+      await new Promise((resolve) => { setTimeout(resolve, 2000); });
+    }
+  }
 }
 
 async function signIn() {
@@ -114,8 +141,8 @@ async function startBigScreen(onView) {
     const doc = await progress.get();
     return doc.exists ? doc.data().played : [];
   };
-  await signIn();
-  if ((await playedList()).includes(ep)) {
+  await withRetries(signIn);
+  if ((await withRetries(playedList)).includes(ep)) {
     location.replace('index.html');
     return;
   }
