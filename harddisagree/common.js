@@ -156,11 +156,21 @@ async function startBigScreen(onView) {
     console.error(err);
   }
   const episode = vault && vault.episode(ep);
-  if (!episode) {
+  if (!passcode) {
     location.replace('index.html');
     return;
   }
-  const progress = db.collection('hd_progress').doc(await vault.progressId());
+  // Say what went wrong here. A silent trip back to the menu hides the reason.
+  if (!vault) {
+    startupMessage('This browser couldn\'t open the episode list. Check the connection, then try again.', true);
+    return;
+  }
+  if (!episode) {
+    const build = new URL([...document.scripts].find((s) => s.src.includes('common.js')).src).searchParams.get('v');
+    startupMessage(`Episode "${ep}" isn't in the list this browser loaded. It has: ${vault.shows.map((s) => s.title).join(', ')}. Build ${build}.`, true);
+    return;
+  }
+  const progress =db.collection('hd_progress').doc(await vault.progressId());
   const playedList = async () => {
     const doc = await progress.get();
     return doc.exists ? doc.data().played : [];

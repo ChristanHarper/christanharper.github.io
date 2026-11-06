@@ -43,7 +43,8 @@ const Vault = {
 
   // Throws if the passcode is wrong, because the sealed file won't authenticate.
   async open(passcode) {
-    const sealed = await (await fetch('episodes.sealed.json', { cache: 'no-store' })).json();
+    // The unique address gets past any cache between here and the site, so the list is always current.
+    const sealed = await (await fetch(`episodes.sealed.json?t=${Date.now()}`, { cache: 'no-store' })).json();
     const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(passcode.trim()), 'PBKDF2', false, ['deriveBits']);
     const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: Vault.toBytes(sealed.salt), iterations: sealed.iterations }, base, 768));
     const aes = (bytes) => crypto.subtle.importKey('raw', bytes, 'AES-GCM', false, ['encrypt', 'decrypt']);
