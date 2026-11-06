@@ -1,6 +1,7 @@
 // The main menu: unlock with the passcode, then choose a show and an episode.
 
 const stageEl = document.getElementById('stage');
+const BUILD = new URL(document.currentScript.src).searchParams.get('v') || '';
 
 function renderGate(problem) {
   stageEl.innerHTML = `<div class="screen"><div class="gate">
@@ -59,7 +60,7 @@ async function renderMenu(vault) {
   const episode = (e) => {
     if (played.includes(e.id)) return `<div class="episode played"><b>${esc(e.title)}</b><span>Played</span></div>`;
     const isResume = e.id === resume;
-    return `<a class="episode ${isResume ? 'resume' : ''}" href="show.html?ep=${encodeURIComponent(e.id)}"><b>${esc(e.title)}</b><span>${isResume ? 'In progress. Pick up where you left off.' : esc(e.blurb)}</span></a>`;
+    return `<a class="episode ${isResume ? 'resume' : ''}" href="show.html?ep=${encodeURIComponent(e.id)}&v=${BUILD}"><b>${esc(e.title)}</b><span>${isResume ? 'In progress. Pick up where you left off.' : esc(e.blurb)}</span></a>`;
   };
   const show = (s) => `<section class="menu-show"><h2>${esc(s.title)}</h2><p>${esc(s.tagline)}</p>${s.episodes.map(episode).join('')}</section>`;
   const allPlayed = vault.shows.flatMap((s) => s.episodes).every((e) => played.includes(e.id));

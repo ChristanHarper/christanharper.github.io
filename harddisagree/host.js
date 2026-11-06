@@ -367,7 +367,7 @@ function renderScores(v) {
     const plate = scores.querySelector(`[data-p="${p}"]`);
     const player = v.players[p];
     plate.querySelector('.pl-name').textContent = player.name;
-    plate.classList.toggle('locked', v.locked[p]);
+    plate.classList.toggle('locked', v.locked[p] || v.ready[p]);
     plate.classList.toggle('away', !player.online);
     rollScore(plate.querySelector('.pl-score'), p, player.score);
   }

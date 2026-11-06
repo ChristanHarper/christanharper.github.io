@@ -22,7 +22,11 @@ const them = (v) => esc(v.players[THEM].name);
 
 const head = (s) => (s.roundTitle ? `<p class="eyebrow">${esc(s.roundTitle)} · ${s.n} of ${s.of}</p>` : '');
 const prompt = (s) => `<h1 class="q">${esc(s.q.q)}</h1>`;
-const nextBtn = (v, label = 'Next') => (v.canNext ? `<button class="next" data-next>${label}</button>` : '');
+const nextBtn = (v, label = 'Next') => {
+  if (!v.canNext) return '';
+  if (v.ready[ME]) return `<button class="next" disabled>Waiting for ${them(v)}…</button>`;
+  return `<button class="next" data-next>${label}${v.ready[THEM] ? ` (${them(v)} is ready)` : ''}</button>`;
+};
 const watch = (v, text = 'Eyes on the big screen.', label = 'Next') => `<div class="watch"><p class="logo">${esc(text)}</p>${nextBtn(v, label)}</div>`;
 const waiting = () => '<div class="watch"><div class="locked-in">Locked in</div><p id="wait-note" class="waiting"></p></div>';
 
@@ -302,7 +306,7 @@ function onView(v) {
   lastStep = v.i;
   // The partner joining only matters once this player is in; until then it would wipe a half-typed name.
   const partnerJoined = v.players[ME].joined && v.players[THEM].joined;
-  const key = JSON.stringify([v.i, s.stage, v.mine, s.r, v.canNext, firstPick, v.players[ME].joined, partnerJoined]);
+  const key = JSON.stringify([v.i, s.stage, v.mine, s.r, v.canNext, v.ready, firstPick, v.players[ME].joined, partnerJoined]);
   if (key !== lastKey) {
     lastKey = key;
     app.innerHTML = `<div class="pane">${SCREENS[s.t](v)}</div>`;

@@ -409,6 +409,7 @@
         locked: { p1: a?.p1 !== undefined, p2: a?.p2 !== undefined },
         canNext: canNext(step),
         leader: leader(),
+        ready: G.ready?.key === `${G.i}:${step.stage}` ? { p1: !!G.ready.p1, p2: !!G.ready.p2 } : { p1: false, p2: false },
       };
       if (step.t === 'round') view.round = { title: step.title, rules: step.rules, number: step.number, count: step.count };
       if (step.t === 'lobby' || step.t === 'welcome') {
@@ -435,7 +436,19 @@
       const step = current();
       if (type !== 'join' && (body.i !== G.i || body.stage !== step.stage)) return;
 
-      if (type === 'next') { next(step); return; }
+      if (type === 'next') {
+        if (!canNext(step)) return;
+        // Both players have to be ready. The big screen's own control can override,
+        // in case a phone dies.
+        const key = `${G.i}:${step.stage}`;
+        if (G.ready?.key !== key) G.ready = { key };
+        if (p !== 'host') G.ready[p] = true;
+        if (p === 'host' || (G.ready.p1 && G.ready.p2)) {
+          G.ready = null;
+          next(step);
+        }
+        return;
+      }
       if (p === 'host') return;
       if (type === 'join') {
         const name = cleanText(body.name).slice(0, 16);

@@ -53,6 +53,13 @@ const Show = {
   },
 };
 
+// Leaving a big-screen page closes its database connections, so they can't pile up
+// and stall the next page. A page restored from the back button needs a fresh start.
+if (Show.role === 'host') {
+  window.addEventListener('pagehide', () => { db.terminate(); });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+}
+
 function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -79,6 +86,10 @@ async function withRetries(task, attempts = 3) {
       await new Promise((resolve) => { setTimeout(resolve, 2000); });
     }
   }
+}
+
+function withTimeout(promise, ms = 10000) {
+  return Promise.race([promise, new Promise((_, reject) => { setTimeout(() => reject(new Error('Timed out')), ms); })]);
 }
 
 async function signIn() {
@@ -141,12 +152,6 @@ async function startBigScreen(onView) {
     const doc = await progress.get();
     return doc.exists ? doc.data().played : [];
   };
-  await withRetries(signIn);
-  if ((await withRetries(playedList)).includes(ep)) {
-    location.replace('index.html');
-    return;
-  }
-
   const session = loadSession(ep) || { ep, room: randomHex(8), tokens: { p1: randomHex(6), p2: randomHex(6) }, state: null };
   const { room, tokens } = session;
   const game = createShow(episode, session.state);
@@ -254,9 +259,17 @@ async function startBigScreen(onView) {
   }
 
   publish();
-  signIn()
-    .then((uid) => roomRef(room).set({ host: uid, expireAt: expireAt() }))
-    .then(() => {
+  withRetries(() => withTimeout((async () => {
+    const uid = await signIn();
+    if ((await playedList()).includes(ep)) {
+      location.replace('index.html');
+      return false;
+    }
+    await roomRef(room).set({ host: uid, expireAt: expireAt() });
+    return true;
+  })()))
+    .then((opened) => {
+      if (!opened) return;
       ready = true;
       note = 'Works from anywhere with internet. Keep this tab open: it is running the show.';
       publish();
