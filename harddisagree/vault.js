@@ -59,6 +59,8 @@ const Vault = {
       progressId: () => Vault.hash(`${idSeed}|progress`),
       resultId: (id) => Vault.hash(`${idSeed}|result|${id}`),
       verdictId: (id) => Vault.hash(`${idSeed}|verdict|${id}`),
+      liveAskId: () => Vault.hash(`${idSeed}|live-ask`),
+      liveReplyId: (id) => Vault.hash(`${idSeed}|live-reply|${id}`),
       async unseal({ iv, data }) {
         const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: Vault.toBytes(iv) }, resultsKey, Vault.toBytes(data));
         return JSON.parse(new TextDecoder().decode(plain));

@@ -24,6 +24,10 @@
 
   const randomInt = (n) => globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % n;
 
+  // Other shows can add step types. Each may define build, enter, act, tick, canNext,
+  // next, and view. Anything in a step's "secret" field never reaches any screen.
+  const TYPES = {};
+
   function createShow(BANK, saved) {
     let G = saved;
 
@@ -61,6 +65,28 @@
     const fill = (text, map) => text.replace(/\{(\w)\}/g, (_, k) => map[k] ?? '');
     const nameOf = (p) => G.players[p].name;
 
+    const ctx = {
+      get G() { return G; },
+      award: (p, n) => award(p, n),
+      coin: () => coin(),
+      pick: (list, n) => pick(list, n),
+      randomInt,
+      nameOf: (p) => nameOf(p),
+      other,
+      PLAYERS,
+      cleanText: (v) => cleanText(v),
+      ask(want) {
+        G.asks = G.asks || [];
+        if (!G.asks.includes(want)) G.asks.push(want);
+      },
+    };
+
+    function enterStep() {
+      const step = current();
+      if (step.asks) step.asks.forEach(ctx.ask);
+      TYPES[step.t]?.enter?.(step, ctx);
+    }
+
     function buildSteps() {
       const steps = [{ t: 'welcome', stage: 'show' }];
       let hotSeat = coin();
@@ -70,7 +96,7 @@
       rounds.forEach((round) => {
         if (round.rules) {
           number++;
-          steps.push({ t: 'round', stage: 'show', title: round.title, rules: round.rules, number, soft: round.key === 'soft' });
+          steps.push({ t: 'round', stage: 'show', title: round.title, rules: round.rules, number, soft: round.key === 'soft', ...(round.asks ? { asks: round.asks } : {}) });
         }
         round.items.forEach((item, n) => {
           const raw = typeof item === 'string' ? { q: item } : item;
@@ -88,10 +114,19 @@
           if (round.key === 'final') step.stage = 'wager';
           if (round.key === 'card') step.stage = 'show';
           if (round.key === 'brain') step.seed = randomInt(1000000000);
+          TYPES[round.key]?.build?.(step, raw, ctx);
           steps.push(step);
         });
       });
       steps.forEach((step) => { if (step.t === 'round') step.count = number; });
+      if (BANK.ending) {
+        BANK.ending.forEach((t) => {
+          const step = { t, stage: 'show', a: {} };
+          TYPES[t]?.build?.(step, {}, ctx);
+          steps.push(step);
+        });
+        return steps;
+      }
       steps.push(
         { t: 'winner', stage: 'show' },
         { t: 'wheel', stage: 'spin', prizes: pick(BANK.prizes, BANK.prizes.length) },
@@ -340,6 +375,7 @@
     }
 
     function canNext(step) {
+      if (TYPES[step.t]) return !!TYPES[step.t].canNext?.(step, ctx);
       if (step.t === 'lobby') return G.players.p1.joined && G.players.p2.joined;
       if (['welcome', 'round', 'winner', 'card'].includes(step.t)) return true;
       if (['mind', 'gap', 'final', 'closing', 'brain'].includes(step.t)) return step.stage === 'reveal';
@@ -354,8 +390,10 @@
       if (step.t === 'lobby') {
         G.steps = buildSteps();
         G.i = 0;
+        enterStep();
         return;
       }
+      if (TYPES[step.t]?.next?.(step, ctx)) return;
       if (step.t === 'finger' && step.stage === 'reveal' && !step.r.agree) {
         step.stage = 'debate';
         step.r.endsAt = Date.now() + DEBATE_SECONDS * 1000;
@@ -369,6 +407,7 @@
         return;
       }
       G.i = Math.min(G.i + 1, G.steps.length - 1);
+      enterStep();
     }
 
     function report() {
@@ -393,7 +432,7 @@
 
     function viewFor(role, isOnline) {
       const step = current();
-      const { a, wagers, ...shown } = step;
+      const { a, wagers, secret, ...shown } = step;
       const view = {
         role,
         now: Date.now(),
@@ -412,9 +451,16 @@
       if (step.t === 'round') view.round = { title: step.title, rules: step.rules, number: step.number, count: step.count };
       if (step.t === 'lobby' || step.t === 'welcome') {
         view.title = BANK.showTitle;
+        view.tagline = BANK.lobbyLine;
         view.welcome = BANK.welcome;
       }
       if (step.t === 'credits') view.report = report();
+      if (BANK.engine) {
+        view.crime = true;
+        view.favors = G.favors || [];
+        if (role === 'host') view.live = G.live || {};
+      }
+      TYPES[step.t]?.view?.(step, role, view, ctx);
       if (role !== 'host') {
         view.mine = a?.[role];
         view.maxWager = maxWager(role);
@@ -423,8 +469,37 @@
       return view;
     }
 
+    // Anything written live arrives here. It only ever adds material; it can't touch scores.
+    function mergeLive({ answers, n }) {
+      G.live = G.live || { heckles: [], rulings: {} };
+      if (n !== undefined) {
+        if (G.liveN === n) return false;
+        G.liveN = n;
+      }
+      for (const [key, value] of Object.entries(answers || {})) {
+        if (key === 'heckles') G.live.heckles = [...G.live.heckles, ...value];
+        else if (key === 'rulings') G.live.rulings = { ...G.live.rulings, ...value };
+        else G.live[key] = value;
+      }
+      G.asks = (G.asks || []).filter((want) => {
+        if (want.startsWith('ruling:')) return !G.live.rulings[want.slice(7)];
+        return answers?.[want] === undefined;
+      });
+      return true;
+    }
+
     function handle(body) {
       const { role: p, type } = body;
+      // Only the big screen's own timer and its link to the writers' room can do these.
+      if (type === 'tick') {
+        if (p !== 'host') return false;
+        const step = current();
+        return !!TYPES[step.t]?.tick?.(step, ctx);
+      }
+      if (type === 'live') {
+        if (p !== 'host') return false;
+        return mergeLive(body);
+      }
       if (type === 'restart') {
         if (p === 'host') newGame(true);
         return;
@@ -448,6 +523,10 @@
         return;
       }
       if (p === 'host') return;
+      if (TYPES[step.t]?.act) {
+        TYPES[step.t].act(p, step, body, ctx);
+        return;
+      }
       if (type === 'join') {
         const name = cleanText(body.name).slice(0, 16);
         if (name && step.t === 'lobby') { G.players[p].name = name; G.players[p].joined = true; }
@@ -465,5 +544,6 @@
   }
 
   createShow.ROUNDS = ROUNDS;
+  createShow.types = TYPES;
   return createShow;
 }));

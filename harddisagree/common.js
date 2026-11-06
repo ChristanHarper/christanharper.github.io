@@ -68,6 +68,7 @@ function verdictHtml(verdict) {
     <h1 class="verdict-head">${esc(verdict.headline)}</h1>
     <p class="verdict-body">${esc(verdict.verdict)}</p>
     <p class="verdict-noticed"><b>What I noticed:</b> ${esc(verdict.noticed)}</p>
+${verdict.charges ? `<p class="verdict-charges"><b>Chris:</b> ${esc(verdict.charges.Chris)}<br><b>Jasmine:</b> ${esc(verdict.charges.Jasmine)}</p>` : ''}
     <p class="verdict-question">${esc(verdict.question)}</p>
   </div>`;
 }
@@ -235,20 +236,65 @@ async function startBigScreen(onView) {
     }
   }
 
+  // What happened so far. Answers and secrets that were never revealed stay out.
+  function playedSteps() {
+    const state = game.state();
+    return state.steps.filter((s) => s.r || s.t === 'wheel').map(({ a, secret, ...step }) => step);
+  }
+
+  // Asks the computer running the watcher to write material for the show. Everything
+  // asked for is optional: the show has its own material if nothing comes back.
+  let lastAsk = null;
+  let liveStarted = false;
+  async function sendAsks() {
+    const asks = game.state().asks || [];
+    const signature = JSON.stringify(asks);
+    if (signature === lastAsk) return;
+    lastAsk = signature;
+    try {
+      const state = game.state();
+      await db.collection('hd_results').doc(await vault.liveAskId()).set(await vault.seal({ ep, at: Date.now(), asks, players: state.players, steps: playedSteps(), favors: state.favors, current: (({ a: hidden, secret, ...step }) => step)(state.steps[state.i]) }));
+    } catch (err) {
+      console.error(err);
+      lastAsk = null;
+    }
+  }
+
+  async function startLive() {
+    if (liveStarted || !episode.engine) return;
+    liveStarted = true;
+    const receive = (id, wrap) => db.collection('hd_results').doc(id).onSnapshot(async (doc) => {
+      if (!doc.exists) return;
+      try {
+        if (game.handle({ type: 'live', role: 'host', ...wrap(await vault.unseal(doc.data())) })) publish();
+      } catch (err) {
+        console.error(err);
+      }
+    }, console.error);
+    receive(await vault.liveReplyId(ep), (reply) => reply);
+    receive(await vault.verdictId(ep), (found) => ({ answers: { verdict: found } }));
+    setInterval(() => {
+      sendAsks();
+      if (game.handle({ type: 'tick', role: 'host' })) publish();
+    }, 400);
+    // The first message wakes the watcher, so it starts checking in quickly.
+    lastAsk = null;
+    sendAsks();
+  }
+
   // Files the finished show for later, then marks the episode as played.
   async function saveResult() {
     const state = game.state();
     if (resultSaved || state.steps[state.i].t !== 'credits') return;
     resultSaved = true;
     try {
-      const steps = state.steps.filter((s) => s.r || s.t === 'wheel').map(({ a, ...step }) => step);
-      const record = { ep, title: episode.title, finishedAt: new Date().toISOString(), players: state.players, report: game.viewFor('host', isOnline).report, steps };
+      const record = { ep, title: episode.title, finishedAt: new Date().toISOString(), players: state.players, report: game.viewFor('host', isOnline).report, favors: state.favors, steps: playedSteps() };
       await db.collection('hd_results').doc(await vault.resultId(ep)).set(await vault.seal(record));
       const played = await playedList();
       await progress.set({ played: [...new Set([...played, ep])] });
       session.resultStored = true;
       saveSession(session, game);
-      awaitVerdict().catch(console.error);
+      if (!episode.engine) awaitVerdict().catch(console.error);
     } catch (err) {
       console.error(err);
       resultSaved = false;
@@ -278,9 +324,14 @@ async function startBigScreen(onView) {
       const role = ['p1', 'p2'].find((p) => tokens[p] === k);
       if (!role) return;
       seen[role] = Date.now();
-      changed = true;
       try {
         const action = JSON.parse(body);
+        // Fidgets only animate the big screen. They aren't part of the game.
+        if (action.type === 'fidget') {
+          Show.onFidget?.(role, action.g);
+          return;
+        }
+        changed = true;
         // The role comes from the verified token, never from the message.
         if (action.type !== 'hello') game.handle({ ...action, role });
       } catch (err) {
@@ -306,6 +357,7 @@ async function startBigScreen(onView) {
       note = 'Works from anywhere with internet. Keep this tab open: it is running the show.';
       publish();
       roomRef(room).collection('actions').onSnapshot(onActions, fail);
+      startLive().catch(console.error);
     })
     .catch(fail);
 

@@ -91,7 +91,7 @@ const SCREENS = {
     const ready = v.canNext;
     return `<div class="lobby">
       <div class="logo">${v.title ? esc(v.title) : 'Hard<br>Disagree'}</div>
-      <p class="tagline">${v.title ? 'Scan in. Rex is waiting.' : 'The show that finally settles who was right.'}</p>
+      <p class="tagline">${v.title ? (v.tagline || 'Scan in. Rex is waiting.') : 'The show that finally settles who was right.'}</p>
       <div class="seats">${seat('p1', 'Chris')}${seat('p2', 'Jasmine')}</div>
       ${ready ? '<button class="big-next" data-next>Start the show</button>' : `<p class="wifi">${esc(v.note)}</p>`}
     </div>`;
@@ -331,6 +331,7 @@ const SCREENS = {
   },
 
   credits(v) {
+    if (v.crime) return window.CrimeHost.credits(v);
     if (v.verdict && !reportOpen) {
       return `<div class="verdict-screen">${verdictHtml(v.verdict)}
         <div class="report-end"><button class="big-next quiet" id="open-report">See the numbers</button><a class="big-next" href="${esc(v.menu)}">Back to the menu</a></div>
@@ -456,6 +457,7 @@ function confetti() {
 function soundFor(v) {
   const s = v.step;
   const r = s.r || {};
+  if (window.CrimeHost?.screens[s.t]) return null;
   if (s.t === 'round') return s.soft ? 'soft' : 'fanfare';
   if (s.t === 'blot' && s.stage === 'verdict') return r.close.p1 || r.close.p2 ? 'ding' : 'buzzer';
   if (s.t === 'brain' && s.stage === 'reveal') return 'ding';
@@ -481,7 +483,8 @@ function onView(v) {
   const s = v.step;
   const lobbyKey = s.t === 'lobby' ? JSON.stringify([v.players, v.note]) : '';
   const creditsKey = s.t === 'credits' ? [!!v.verdict, v.verdictLate, reportOpen] : null;
-  const key = JSON.stringify([v.i, s.stage, s.r, lobbyKey, creditsKey]);
+  const key = JSON.stringify(v.crime ? [v.i, s, lobbyKey, creditsKey] : [v.i, s.stage, s.r, lobbyKey, creditsKey]);
+  if (v.crime) window.CrimeHost.onView(v);
   if (v.verdict && !verdictAnnounced) {
     verdictAnnounced = true;
     play('fanfare');
@@ -496,11 +499,12 @@ function onView(v) {
   const note = s.q?.note && ['reveal', 'verdict'].includes(s.stage) ? `<p class="note">${esc(s.q.note)}</p>` : '';
   stage.innerHTML = `<div class="screen">${SCREENS[s.t](v)}${note}</div>`;
   afterRender(v);
+  if (v.crime) window.CrimeHost.afterRender(v);
 
   const soundKey = `${v.i}:${s.stage}`;
   if (soundKey !== lastSound) {
     lastSound = soundKey;
-    const sound = soundFor(v);
+    const sound = (v.crime && window.CrimeHost.soundFor(v)) || soundFor(v);
     if (sound) play(sound);
   }
 }
@@ -527,4 +531,5 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'm' || e.key === 'M') muted = !muted;
 });
 
+Object.assign(SCREENS, window.CrimeHost?.screens);
 Show.connect(onView);

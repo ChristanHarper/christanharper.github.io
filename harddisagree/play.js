@@ -56,7 +56,7 @@ const SCREENS = {
     const me = v.players[ME];
     if (!me.joined) {
       return `<div class="join">
-        <p class="logo">Hard<br>Disagree</p>
+        <p class="logo">${v.title ? esc(v.title) : 'Hard<br>Disagree'}</p>
         <p class="sub">What should Rex call you?</p>
         <input id="name" maxlength="16" autocomplete="given-name" placeholder="Your name" value="${esc(DEFAULT_NAMES[ME] || '')}">
         <button class="next" id="join">I'm ready</button>
@@ -278,6 +278,7 @@ app.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
+  if (window.CrimePlay?.click(b, d)) return;
   if ('next' in d) Show.send('next');
   if ('spin' in d) Show.send('spin');
   if ('back' in d) { firstPick = null; lastKey = ''; onView(Show.view); }
@@ -306,16 +307,20 @@ function onView(v) {
   lastStep = v.i;
   // The partner joining only matters once this player is in; until then it would wipe a half-typed name.
   const partnerJoined = v.players[ME].joined && v.players[THEM].joined;
-  const key = JSON.stringify([v.i, s.stage, v.mine, s.r, v.canNext, v.ready, firstPick, v.players[ME].joined, partnerJoined]);
+  const key = JSON.stringify(v.crime
+    ? [v.i, s, v.priv, v.mine, v.canNext, v.ready, firstPick, v.players[ME].joined, partnerJoined]
+    : [v.i, s.stage, v.mine, s.r, v.canNext, v.ready, firstPick, v.players[ME].joined, partnerJoined]);
   if (key !== lastKey) {
     lastKey = key;
     app.innerHTML = `<div class="pane">${SCREENS[s.t](v)}</div>`;
     window.scrollTo(0, 0);
     bindInputs();
+    if (v.crime) window.CrimePlay.afterRender(v);
   }
   renderBar(v);
 }
 
+Object.assign(SCREENS, window.CrimePlay?.screens);
 Show.connect(onView, (ok) => {
   clearTimeout(offlineTimer);
   if (ok) offline.hidden = true;
