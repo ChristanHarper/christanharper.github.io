@@ -5,7 +5,7 @@ const app = document.getElementById('app');
 const bar = document.getElementById('bar');
 const offline = document.getElementById('offline');
 
-const DEFAULT_NAMES = { p2: 'Jasmine' };
+const DEFAULT_NAMES = { p1: 'Chris', p2: 'Jasmine' };
 const ME = Show.role;
 const THEM = ME === 'p1' ? 'p2' : 'p1';
 const LETTERS = 'ABCDE';
@@ -185,11 +185,38 @@ const SCREENS = {
     return watch(v);
   },
 
+  blot(v) {
+    const s = v.step;
+    if (s.stage === 'answer') {
+      if (v.mine !== undefined) return waiting(v);
+      const art = s.q.seed ? blotSvg(s.q.seed) : `<div class="word-card">${esc(s.q.word)}</div>`;
+      return `${head(s)}<div class="phone-art">${art}</div>
+        <label class="prompt"><span>${esc(s.q.q)}</span><textarea id="see" rows="2" maxlength="${MAX_TEXT}"></textarea></label>
+        <label class="prompt"><span>What did ${them(v)} get?</span><textarea id="guess" rows="2" maxlength="${MAX_TEXT}"></textarea></label>
+        <button class="next" id="send-blot" disabled>Lock it in</button>`;
+    }
+    if (s.stage === 'reveal') {
+      if (v.mine !== undefined) return waiting(v);
+      return `<p class="eyebrow">${them(v)} guessed you got</p><div class="quoted">${esc(s.r.guesses[THEM])}</div>
+        <div class="point short"><button class="choice tall" data-close="1">Close enough</button><button class="choice tall" data-close="0">Not even close</button></div>`;
+    }
+    return watch(v);
+  },
+
+  brain(v) {
+    const s = v.step;
+    if (s.stage !== 'answer') return watch(v);
+    if (v.mine !== undefined) return waiting(v);
+    return `${head(s)}<div id="brain" class="brain" data-game="${esc(s.q.game)}" data-seed="${s.seed}"></div>`;
+  },
+
+  card: (v) => watch(v, 'Phones down.', 'Ready'),
+
   closing(v) {
     const s = v.step;
     if (s.stage === 'answer') {
       if (v.mine !== undefined) return waiting(v);
-      return `<p class="eyebrow">Closing statement</p><h1 class="q">In one sentence: why would you do all this again with ${them(v)}?</h1>${textForm('Nothing is on the line now…', 'Rest my case')}`;
+      return `<p class="eyebrow">Closing statement</p><h1 class="q">${s.q ? esc(s.q.q) : `In one sentence: why would you do all this again with ${them(v)}?`}</h1>${textForm('Nothing is on the line now…', 'Rest my case')}`;
     }
     return watch(v, 'Look up. Then look at them.');
   },
@@ -213,6 +240,20 @@ function bindInputs() {
       Show.send('answer', { value: { text: text.value } });
     });
   }
+  const see = document.getElementById('see');
+  if (see) {
+    const guess = document.getElementById('guess');
+    const send = document.getElementById('send-blot');
+    const check = () => { send.disabled = !see.value.trim() || !guess.value.trim(); };
+    see.addEventListener('input', check);
+    guess.addEventListener('input', check);
+    send.addEventListener('click', () => {
+      send.disabled = true;
+      Show.send('answer', { value: { see: see.value, guess: guess.value } });
+    });
+  }
+  const brain = document.getElementById('brain');
+  if (brain) startBrain(brain, brain.dataset.game, Number(brain.dataset.seed), (value) => Show.send('answer', { value }));
   const range = document.getElementById('range');
   if (range) {
     const val = document.getElementById('val');
@@ -243,6 +284,7 @@ app.addEventListener('click', (e) => {
   if (d.judge !== undefined) Show.send('judge', { value: Number(d.judge) });
   if (d.heart !== undefined) Show.send('heart', { value: Number(d.heart) });
   if (d.final !== undefined) Show.send('answer', { value: Number(d.final) });
+  if (d.close !== undefined) Show.send('answer', { value: d.close === '1' });
   if (b.dataset.next === undefined) b.classList.add('pressed');
 });
 

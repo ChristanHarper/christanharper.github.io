@@ -24,7 +24,7 @@
 
   const randomInt = (n) => globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % n;
 
-  return function createShow(BANK, saved) {
+  function createShow(BANK, saved) {
     let G = saved;
 
     function newGame(keepPlayers) {
@@ -44,6 +44,7 @@
           stands: { p1: 0, p2: 0 }, concedes: { p1: 0, p2: 0 },
           closeGaps: 0, gaps: 0, biggestGap: null,
           hearts: { p1: 0, p2: 0 }, fifths: { p1: 0, p2: 0 }, match: false,
+          brain: { p1: 0, p2: 0 },
         },
       };
     }
@@ -63,33 +64,38 @@
     function buildSteps() {
       const steps = [{ t: 'welcome', stage: 'show' }];
       let hotSeat = coin();
-      ROUNDS.forEach((round, r) => {
-        steps.push({ t: 'round', stage: 'show', round: r });
-        pick(BANK[round.key], round.count).forEach((raw, n) => {
-          const step = { t: round.key, stage: 'answer', a: {}, n: n + 1, of: round.count, roundTitle: round.title };
-          if (round.key === 'mind') step.q = raw;
-          if (round.key === 'finger') step.q = { q: raw };
+      let number = 0;
+      // An episode lists its own rounds in a fixed order; otherwise draw at random.
+      const rounds = BANK.rounds || ROUNDS.map((r) => ({ ...r, items: pick(BANK[r.key], r.count) }));
+      rounds.forEach((round) => {
+        if (round.rules) {
+          number++;
+          steps.push({ t: 'round', stage: 'show', title: round.title, rules: round.rules, number, soft: round.key === 'soft' });
+        }
+        round.items.forEach((item, n) => {
+          const raw = typeof item === 'string' ? { q: item } : item;
+          const step = { t: round.key, stage: 'answer', a: {}, n: n + 1, of: round.items.length, roundTitle: round.title, q: raw };
           if (round.key === 'gap') {
             const first = coin();
             step.q = { ...raw, q: fill(raw.q, { A: nameOf(first), B: nameOf(other(first)) }) };
           }
           if (round.key === 'receipts') {
-            step.subject = hotSeat;
-            step.q = { q: fill(raw, { S: nameOf(hotSeat), O: nameOf(other(hotSeat)) }) };
-            hotSeat = other(hotSeat);
+            const named = PLAYERS.find((p) => nameOf(p) === raw.subject);
+            step.subject = named || hotSeat;
+            step.q = { ...raw, q: fill(raw.q, { S: nameOf(step.subject), O: nameOf(other(step.subject)) }) };
+            hotSeat = other(step.subject);
           }
-          if (round.key === 'soft') step.q = { q: raw };
-          if (round.key === 'final') {
-            step.q = raw;
-            step.stage = 'wager';
-          }
+          if (round.key === 'final') step.stage = 'wager';
+          if (round.key === 'card') step.stage = 'show';
+          if (round.key === 'brain') step.seed = randomInt(1000000000);
           steps.push(step);
         });
       });
+      steps.forEach((step) => { if (step.t === 'round') step.count = number; });
       steps.push(
         { t: 'winner', stage: 'show' },
         { t: 'wheel', stage: 'spin', prizes: pick(BANK.prizes, BANK.prizes.length) },
-        { t: 'closing', stage: 'answer', a: {} },
+        { t: 'closing', stage: 'answer', a: {}, q: BANK.closing ? { q: BANK.closing } : undefined },
         { t: 'credits', stage: 'show' },
       );
       return steps;
@@ -195,6 +201,27 @@
         step.r = { picks: { p1: step.a.p1, p2: step.a.p2 }, wagers: step.wagers, match };
         step.stage = 'reveal';
       },
+      blot(step) {
+        if (step.stage === 'answer') {
+          step.r = { saw: { p1: step.a.p1.see, p2: step.a.p2.see }, guesses: { p1: step.a.p1.guess, p2: step.a.p2.guess } };
+          step.stage = 'reveal';
+          return;
+        }
+        // Each player rules on how close the other's guess about them came.
+        step.r.close = { p1: step.a.p2, p2: step.a.p1 };
+        G.stats.guesses += 2;
+        for (const p of PLAYERS) {
+          if (step.r.close[p]) { award(p, 100); G.stats.hits[p]++; }
+        }
+        step.stage = 'verdict';
+      },
+      brain(step) {
+        const { p1, p2 } = step.a;
+        const winner = p1.score === p2.score ? null : p1.score > p2.score ? 'p1' : 'p2';
+        step.r = { labels: { p1: p1.label, p2: p2.label }, winner };
+        if (winner) { award(winner, 150); G.stats.brain[winner]++; } else { award('p1', 100); award('p2', 100); }
+        step.stage = 'reveal';
+      },
       closing(step) {
         step.r = { texts: { p1: step.a.p1, p2: step.a.p2 } };
         step.stage = 'reveal';
@@ -259,6 +286,17 @@
       } else if (step.t === 'final' && step.stage === 'answer') {
         if (!isIndex(v, step.q.options)) return;
         step.a[p] = v;
+      } else if (step.t === 'blot' && step.stage === 'answer') {
+        const see = cleanText(v?.see);
+        const guess = cleanText(v?.guess);
+        if (!see || !guess) return;
+        step.a[p] = { see, guess };
+      } else if (step.t === 'blot' && step.stage === 'reveal') {
+        if (typeof v !== 'boolean') return;
+        step.a[p] = v;
+      } else if (step.t === 'brain' && step.stage === 'answer') {
+        if (!Number.isFinite(v?.score)) return;
+        step.a[p] = { score: v.score, label: cleanText(v.label).slice(0, 60) };
       } else if (step.t === 'closing' && step.stage === 'answer') {
         const text = cleanText(v?.text);
         if (!text) return;
@@ -305,10 +343,10 @@
 
     function canNext(step) {
       if (step.t === 'lobby') return G.players.p1.joined && G.players.p2.joined;
-      if (['welcome', 'round', 'winner'].includes(step.t)) return true;
-      if (['mind', 'gap', 'final', 'closing'].includes(step.t)) return step.stage === 'reveal';
+      if (['welcome', 'round', 'winner', 'card'].includes(step.t)) return true;
+      if (['mind', 'gap', 'final', 'closing', 'brain'].includes(step.t)) return step.stage === 'reveal';
       if (step.t === 'finger') return ['reveal', 'debate', 'verdict'].includes(step.stage);
-      if (['receipts', 'soft'].includes(step.t)) return step.stage === 'verdict';
+      if (['receipts', 'soft', 'blot'].includes(step.t)) return step.stage === 'verdict';
       if (step.t === 'wheel') return step.stage === 'result';
       return false;
     }
@@ -349,6 +387,7 @@
         hearts: s.hearts,
         fifths: s.fifths,
         hits: s.hits,
+        brain: s.brain,
       };
     }
 
@@ -371,7 +410,11 @@
         canNext: canNext(step),
         leader: leader(),
       };
-      if (step.t === 'round') view.round = { ...ROUNDS[step.round], number: step.round + 1, count: ROUNDS.length };
+      if (step.t === 'round') view.round = { title: step.title, rules: step.rules, number: step.number, count: step.count };
+      if (step.t === 'lobby' || step.t === 'welcome') {
+        view.title = BANK.showTitle;
+        view.welcome = BANK.welcome;
+      }
       if (step.t === 'credits') view.report = report();
       if (role !== 'host') {
         view.mine = a?.[role];
@@ -408,5 +451,8 @@
     if (!G) newGame(false);
 
     return { viewFor, handle, state: () => G };
-  };
+  }
+
+  createShow.ROUNDS = ROUNDS;
+  return createShow;
 }));

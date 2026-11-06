@@ -63,11 +63,10 @@ const roomRef = (room) => db.collection('hd_rooms').doc(room);
 
 // ---- The big screen: holds the game and hands each phone only its own view ----
 
-function loadSession() {
+function loadSession(ep) {
   try {
-    if (PARAMS.has('new')) return null;
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    return saved && Date.now() - saved.savedAt < SAVE_HOURS * 3600000 ? saved : null;
+    return saved && saved.ep === ep && Date.now() - saved.savedAt < SAVE_HOURS * 3600000 ? saved : null;
   } catch {
     return null;
   }
@@ -96,10 +95,35 @@ function setupProblem(err) {
   return 'Can\'t reach Firebase. Check this computer\'s connection, then refresh.';
 }
 
-function startBigScreen(onView) {
-  const session = loadSession() || { room: randomHex(8), tokens: { p1: randomHex(6), p2: randomHex(6) }, state: null };
+async function startBigScreen(onView) {
+  const ep = PARAMS.get('ep');
+  const passcode = Vault.passcode();
+  let vault = null;
+  try {
+    vault = passcode && await Vault.open(passcode);
+  } catch (err) {
+    console.error(err);
+  }
+  const episode = vault && vault.episode(ep);
+  if (!episode) {
+    location.replace('index.html');
+    return;
+  }
+  const progress = db.collection('hd_progress').doc(await vault.progressId());
+  const playedList = async () => {
+    const doc = await progress.get();
+    return doc.exists ? doc.data().played : [];
+  };
+  await signIn();
+  if ((await playedList()).includes(ep)) {
+    location.replace('index.html');
+    return;
+  }
+
+  const session = loadSession(ep) || { ep, room: randomHex(8), tokens: { p1: randomHex(6), p2: randomHex(6) }, state: null };
   const { room, tokens } = session;
-  const game = createShow(QUESTIONS, session.state);
+  const game = createShow(episode, session.state);
+  let resultSaved = false;
   const seen = { p1: 0, p2: 0 };
   const isOnline = (p) => Date.now() - seen[p] < ONLINE_MS;
   const written = {};
@@ -150,12 +174,30 @@ function startBigScreen(onView) {
     }
   }
 
+  // Files the finished show for later, then marks the episode as played.
+  async function saveResult() {
+    const state = game.state();
+    if (resultSaved || state.steps[state.i].t !== 'credits') return;
+    resultSaved = true;
+    try {
+      const steps = state.steps.filter((s) => s.r || s.t === 'wheel').map(({ a, ...step }) => step);
+      const record = { ep, title: episode.title, finishedAt: new Date().toISOString(), players: state.players, report: game.viewFor('host', isOnline).report, steps };
+      await db.collection('hd_results').doc(await vault.resultId(ep)).set(await vault.seal(record));
+      const played = await playedList();
+      await progress.set({ played: [...new Set([...played, ep])] });
+    } catch (err) {
+      console.error(err);
+      resultSaved = false;
+    }
+  }
+
   function publish() {
     saveSession(session, game);
-    Show.view = { ...game.viewFor('host', isOnline), qr, links, note };
+    Show.view = { ...game.viewFor('host', isOnline), qr, links, note, menu: 'index.html' };
     onView(Show.view);
     writeViews();
     scheduleCleanup();
+    saveResult();
   }
 
   Show.deliver = (body) => {
@@ -196,6 +238,7 @@ function startBigScreen(onView) {
     .catch(fail);
 
   setInterval(() => {
+    saveResult();
     const online = JSON.stringify([isOnline('p1'), isOnline('p2')]);
     if (online !== wasOnline) {
       wasOnline = online;

@@ -264,6 +264,44 @@ textarea { resize: none; line-height: 1.3; }
 #name { text-align: center; font-size: 20px; padding: 16px; }
 #offline { position: fixed; left: 12px; right: 12px; bottom: 12px; background: var(--p1); color: var(--ink); font-weight: 600; padding: 12px 14px; border-radius: 12px; font-size: 14px; }
 
+/* Head Games */
+.note { font-size: 1.35rem; line-height: 1.3; max-width: 70rem; color: var(--mustard); font-weight: 600; text-wrap: balance; }
+.blot { display: block; width: 100%; height: auto; background: #fff4dc; border-radius: 1.2rem; }
+.blot-stage { display: grid; grid-template-columns: 30rem 1fr; gap: 3rem; align-items: center; max-width: 80rem; text-align: left; }
+.blot-row { display: grid; grid-template-columns: 19rem 1fr; gap: 2rem; align-items: center; width: 100%; max-width: 88rem; }
+.word-card { background: var(--cream); color: var(--ink); font-family: var(--display); font-size: 4.5rem; padding: 3rem 1.5rem; border-radius: 1.2rem; text-align: center; overflow-wrap: anywhere; }
+.phone .word-card { font-size: 42px; padding: 30px 14px; border-radius: 14px; }
+.phone .blot { border-radius: 14px; }
+.phone-art { max-width: 270px; width: 100%; align-self: center; }
+.point.short { min-height: 200px; flex: none; }
+.brain { flex: 1; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.brain h2 { font-family: var(--display); font-weight: 400; font-size: 32px; color: var(--mustard); }
+.brain-zone { flex: 1; min-height: 340px; display: grid; place-items: center; border-radius: 16px; font-size: 32px; font-weight: 800; background: var(--plum-2); color: var(--cream); padding: 14px; touch-action: manipulation; }
+.brain-zone.go { background: #1fbf72; color: var(--ink); }
+.brain-zone.stop { background: var(--p1); color: var(--ink); }
+.brain-word { font-size: 56px; font-weight: 800; min-height: 120px; display: grid; place-items: center; }
+.brain-glyph { font-family: Georgia, serif; font-size: 110px; min-height: 180px; display: grid; place-items: center; }
+.brain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.brain-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.brain-btn { background: var(--cream); color: var(--ink); font-size: 22px; font-weight: 800; padding: 16px 6px; border-radius: 14px; touch-action: manipulation; }
+
+/* Main menu */
+.menu { width: 100%; max-width: 92rem; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+.menu > .logo, .menu-logo { font-size: 6.4rem; }
+.menu-shows { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; }
+.menu-show { background: rgb(36 16 26 / 0.72); border-radius: 1.4rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; text-align: left; }
+.menu-show h2 { font-family: var(--display); font-weight: 400; color: var(--mustard); font-size: 3.1rem; line-height: 1; }
+.menu-show > p { font-size: 1.4rem; }
+.episode { display: block; width: 100%; text-align: left; background: var(--cream); color: var(--ink); border-radius: 1rem; padding: 1rem 1.3rem; text-decoration: none; }
+.episode b { display: block; font-size: 1.75rem; }
+.episode span { font-size: 1.25rem; }
+.episode.played { opacity: 0.5; }
+.episode.resume { background: var(--mustard); }
+.gate { display: flex; flex-direction: column; align-items: center; gap: 1.4rem; }
+.gate input { font: 600 2.2rem var(--body); text-align: center; padding: 0.8rem 1.4rem; border-radius: 1rem; border: 0; width: 34rem; background: var(--cream); color: var(--ink); }
+.gate .problem { font-size: 1.4rem; padding: 0.7rem 1.2rem; border-radius: 0.7rem; }
+a.big-next { text-decoration: none; }
+
 /* Casting form */
 .intake section { display: flex; flex-direction: column; gap: 14px; padding-top: 12px; border-top: 2px solid rgb(255 241 214 / 0.2); }
 .intake h2 { font-family: var(--display); font-weight: 400; font-size: 27px; color: var(--mustard); }

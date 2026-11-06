@@ -182,7 +182,9 @@ async function send() {
   } catch (err) {
     console.error(err);
     problem.hidden = false;
-    problem.textContent = 'That didn\'t send, but your answers are still here. Check your connection and try again.';
+    problem.textContent = err.name === 'DataError'
+      ? 'This link looks cut off. Your answers are still on this page, but this copy of the link can\'t send them. Ask for the full link again.'
+      : 'That didn\'t send, but your answers are still here. Check your connection and try again.';
     button.disabled = false;
     button.textContent = 'Send my answers';
   }

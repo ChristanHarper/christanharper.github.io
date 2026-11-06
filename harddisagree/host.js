@@ -88,14 +88,15 @@ const SCREENS = {
     };
     const ready = v.canNext;
     return `<div class="lobby">
-      <div class="logo">Hard<br>Disagree</div>
-      <p class="tagline">The show that finally settles who was right.</p>
-      <div class="seats">${seat('p1', 'Player One')}${seat('p2', 'Jasmine')}</div>
+      <div class="logo">${v.title ? esc(v.title) : 'Hard<br>Disagree'}</div>
+      <p class="tagline">${v.title ? 'Scan in. Rex is waiting.' : 'The show that finally settles who was right.'}</p>
+      <div class="seats">${seat('p1', 'Chris')}${seat('p2', 'Jasmine')}</div>
       ${ready ? '<button class="big-next" data-next>Start the show</button>' : `<p class="wifi">${esc(v.note)}</p>`}
     </div>`;
   },
 
   welcome(v) {
+    if (v.welcome) return `<div class="center"><p class="eyebrow">Live from your living room</p><h1 class="monologue">${esc(v.welcome)}</h1></div>`;
     return `<div class="center">
       <p class="eyebrow">Live from your living room</p>
       <h1 class="monologue">Good evening. I'm your host, Rex Valentine.<br>Tonight, ${pname(v, 'p1')} and ${pname(v, 'p2')} find out how well they know each other, and who's been wrong this whole time.</h1>
@@ -282,12 +283,41 @@ const SCREENS = {
     </div>`;
   },
 
+  blot(v) {
+    const s = v.step;
+    const art = s.q.seed ? blotSvg(s.q.seed) : `<div class="word-card">${esc(s.q.word)}</div>`;
+    if (s.stage === 'answer') {
+      return `${eyebrow(s)}<div class="blot-stage">${art}<div><h1 class="question small">${esc(s.q.q)}</h1>${quip('Write what you get first, then guess what they got.')}</div></div>`;
+    }
+    const panel = (p, o) => {
+      const verdict = s.stage === 'verdict' ? (s.r.close[o] ? ' <b>✓ +100</b>' : ' <b>✗</b>') : '';
+      return card(p, pname(v, p), `${saidText(s.r.saw[p])}<p class="guess ${s.stage === 'verdict' && s.r.close[o] ? 'right' : 'wrong'}">${pname(v, o)} guessed: ${esc(s.r.guesses[o])}${verdict}</p>`);
+    };
+    return `${eyebrow(s)}<div class="blot-row">${art}<div class="duel">${panel('p1', 'p2')}${panel('p2', 'p1')}</div></div>${s.stage === 'reveal' ? quip('On your phone: did they get close to what you saw?') : ''}`;
+  },
+
+  brain(v) {
+    const s = v.step;
+    if (s.stage === 'answer') {
+      return `${eyebrow(s)}<h1 class="question">${esc(s.q.title)}</h1><p class="rules">${esc(s.q.q)}</p>${quip('Eyes on your phones. Rex will wait.')}`;
+    }
+    const panel = (p) => card(p, pname(v, p), `<p class="big">${esc(s.r.labels[p])}</p>`);
+    return `${eyebrow(s)}<h1 class="question small">${esc(s.q.title)}</h1>
+      <div class="duel">${panel('p1')}${panel('p2')}</div>
+      ${stamp(s.r.winner ? `${v.players[s.r.winner].name} wins. +150` : 'Dead even. +100 each', 'good')}`;
+  },
+
+  card(v) {
+    const s = v.step;
+    return `<div class="center"><p class="eyebrow">${esc(s.q.title)}</p><h1 class="question">${esc(s.q.q)}</h1></div>`;
+  },
+
   closing(v) {
     const s = v.step;
     if (s.stage === 'answer') {
       return `<div class="center">
         <p class="eyebrow">Closing statements</p>
-        <h1 class="question">The game is over and nothing is on the line.<br>In one sentence: why would you do all this again with them?</h1>
+        <h1 class="question">${s.q ? esc(s.q.q) : 'The game is over and nothing is on the line.<br>In one sentence: why would you do all this again with them?'}</h1>
       </div>`;
     }
     return `<p class="eyebrow">Closing statements</p>
@@ -308,6 +338,7 @@ const SCREENS = {
       ['Most stubborn', champ(r.stands, 'A dead heat')],
       ['Most gracious', champ(r.concedes, 'Equally so')],
       ['Best mind reader', champ(r.hits, 'Evenly matched')],
+      ...(r.brain.p1 || r.brain.p2 ? [['Won more brain tests', champ(r.brain, 'Dead even')]] : []),
       ['Most hearts earned', champ(r.hearts, 'Shared')],
       ['Agreed / argued', `${r.agrees} / ${r.fights}`],
       ['Widest gap', r.biggestGap ? `${r.biggestGap.gap} points apart: "${r.biggestGap.q}"` : 'None'],
@@ -317,7 +348,7 @@ const SCREENS = {
       <dl>${rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('')}</dl>
       <div class="report-end">
         <p class="logo small-logo">Goodnight!</p>
-        <button class="big-next" id="again">Run it back</button>
+        ${v.menu ? `<a class="big-next" href="${esc(v.menu)}">Back to the menu</a>` : '<button class="big-next" id="again">Run it back</button>'}
       </div>
     </div>`;
   },
@@ -413,7 +444,9 @@ function confetti() {
 function soundFor(v) {
   const s = v.step;
   const r = s.r || {};
-  if (s.t === 'round') return s.round === 4 ? 'soft' : 'fanfare';
+  if (s.t === 'round') return s.soft ? 'soft' : 'fanfare';
+  if (s.t === 'blot' && s.stage === 'verdict') return r.close.p1 || r.close.p2 ? 'ding' : 'buzzer';
+  if (s.t === 'brain' && s.stage === 'reveal') return 'ding';
   if (s.t === 'winner') return 'fanfare';
   if (s.t === 'soft' && s.stage === 'answer') return 'soft';
   if (s.t === 'mind' && s.stage === 'reveal') return r.right.p1 || r.right.p2 ? 'ding' : 'buzzer';
@@ -443,7 +476,8 @@ function onView(v) {
   if (key === lastKey) return;
   lastKey = key;
   document.body.dataset.segment = s.t;
-  stage.innerHTML = `<div class="screen">${SCREENS[s.t](v)}</div>`;
+  const note = s.q?.note && ['reveal', 'verdict'].includes(s.stage) ? `<p class="note">${esc(s.q.note)}</p>` : '';
+  stage.innerHTML = `<div class="screen">${SCREENS[s.t](v)}${note}</div>`;
   afterRender(v);
 
   const soundKey = `${v.i}:${s.stage}`;
