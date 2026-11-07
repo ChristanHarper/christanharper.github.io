@@ -366,6 +366,8 @@ window.CrimeHost = (() => {
   const LOOT_PER_ITEM = 150;
   const MAX_LOOT = 34;
   const COLORS = { p1: '#ff5a36', p2: '#25c6b5' };
+  const HUG_MIN_SECONDS = 1;
+  const SPRINT_SECONDS = 1.6;
 
   const Runners = {
     canvas: null,
@@ -378,6 +380,8 @@ window.CrimeHost = (() => {
     vanOpen: false,
     scores: { p1: null, p2: null },
     locks: { p1: false, p2: false },
+    hug: null,
+    hugArmed: true,
 
     start() {
       this.canvas = document.getElementById('runners');
@@ -433,9 +437,14 @@ window.CrimeHost = (() => {
     gesture(p, g) {
       const r = this.players?.[p];
       if (!r) return;
+      // Sprinting is the only way out of a hug. Coins can still be thrown from inside one.
+      if (this.hug) {
+        if (g === 'sprint' && this.hug.age >= HUG_MIN_SECONDS) this.letGo(p);
+        if (g !== 'throw') return;
+      }
       if (g === 'jump' && r.jump === 0) r.jv = 1;
       if (g === 'flip') r.dir *= -1;
-      if (g === 'sprint') r.boost = 1.6;
+      if (g === 'sprint') r.boost = SPRINT_SECONDS;
       if (g === 'throw') {
         if (this.vanOpen) {
           this.coins.push({ from: p, van: true, t: 0, dur: 0.6 });
@@ -447,6 +456,67 @@ window.CrimeHost = (() => {
           this.throwCoin(p);
         }
       }
+    },
+
+    startHug(delta) {
+      const back = delta >= 0 ? 'p1' : 'p2';
+      const front = other(back);
+      const { p1, p2 } = this.players;
+      this.hug = { s: this.players[back].s + Math.abs(delta) / 2, back, age: 0, heartIn: 0, dirs: { p1: p1.dir, p2: p2.dir } };
+      this.hugArmed = false;
+      for (const r of [p1, p2]) Object.assign(r, { jump: 0, jv: 0, spin: 0, stun: 0, boost: 0 });
+      this.players[back].dir = 1;
+      this.players[front].dir = -1;
+      for (let i = 0; i < 14; i++) this.floatHeart();
+    },
+
+    holdHug(dt) {
+      const hug = this.hug;
+      hug.age += dt;
+      const offset = (this.rem * 1.7 * 0.5) / this.track.length;
+      const front = other(hug.back);
+      const settle = (r, target) => { r.s = (r.s + (((target - r.s + 1.5) % 1) - 0.5) * Math.min(1, dt * 10) + 1) % 1; };
+      settle(this.players[hug.back], hug.s - offset);
+      settle(this.players[front], hug.s + offset);
+      hug.heartIn -= dt;
+      if (hug.heartIn <= 0) {
+        this.floatHeart();
+        hug.heartIn = 0.16 + Math.random() * 0.14;
+      }
+    },
+
+    // Whoever sprints runs directly away. The one left behind stumbles, then carries on as before.
+    letGo(p) {
+      const { back, dirs } = this.hug;
+      const q = other(p);
+      const at = this.at(this.players[p].s);
+      this.players[p].dir = p === back ? -1 : 1;
+      this.players[p].boost = SPRINT_SECONDS;
+      this.players[q].dir = dirs[q];
+      this.players[q].stun = 0.5;
+      this.hug = null;
+      for (let i = 0; i < 5; i++) this.fx.push({ x: at.x, y: at.y - this.rem * 2, vx: (Math.random() - 0.5) * 160, vy: -Math.random() * 140, life: 0.6, kind: 'heart' });
+    },
+
+    // Hearts drift inward from the hug, whichever edge of the screen it's on.
+    floatHeart() {
+      const { rem } = this;
+      const at = this.at(this.hug.s);
+      const ux = Math.sin(at.angle);
+      const uy = -Math.cos(at.angle);
+      const rise = rem * (4 + Math.random() * 1.5);
+      const speed = rem * (2 + Math.random() * 3);
+      const drift = (Math.random() - 0.5) * rem * 3.5;
+      this.fx.push({
+        x: at.x + ux * rise,
+        y: at.y + uy * rise,
+        vx: ux * speed + uy * drift,
+        vy: uy * speed - ux * drift,
+        life: 1 + Math.random() * 0.9,
+        kind: 'heart',
+        float: true,
+        size: rem * (0.8 + Math.random() * 0.9),
+      });
     },
 
     throwCoin(p) {
@@ -487,36 +557,35 @@ window.CrimeHost = (() => {
       for (const [p, r] of Object.entries(this.players)) {
         r.stun = Math.max(0, r.stun - dt);
         r.boost = Math.max(0, r.boost - dt);
-        const pace = (r.stun ? 0.25 : 1) * (r.boost ? 2.6 : 1);
-        r.s = (r.s + r.dir * pace * speedPerSecond * dt + 1) % 1;
-        r.phase += dt * (9 + pace * 5);
-        if (r.jv || r.jump > 0) {
-          r.jump += r.jv * dt * 4;
-          r.jv -= dt * 4.2;
-          if (r.jump <= 0) { r.jump = 0; r.jv = 0; }
+        if (!this.hug) {
+          const pace = (r.stun ? 0.25 : 1) * (r.boost ? 2.6 : 1);
+          r.s = (r.s + r.dir * pace * speedPerSecond * dt + 1) % 1;
+          r.phase += dt * (9 + pace * 5);
+          if (r.jv || r.jump > 0) {
+            r.jump += r.jv * dt * 4;
+            r.jv -= dt * 4.2;
+            if (r.jump <= 0) { r.jump = 0; r.jv = 0; }
+          }
         }
         r.spin = Math.max(0, r.spin - dt * 3);
         // Runners sweep up each other's spilled loot as they pass.
         this.dropped = this.dropped.filter((d) => Math.abs(((d.s - r.s + 1.5) % 1) - 0.5) > 0.006 || d.owner === p);
       }
       const { p1, p2 } = this.players;
-      const gap = Math.abs(((p1.s - p2.s + 1.5) % 1) - 0.5);
-      if (gap < 0.008 && !this.bumped && !p1.jump && !p2.jump) {
-        this.bumped = true;
-        p1.jv = 0.8;
-        p2.jv = 0.8;
-        p1.stun = 0.3;
-        p2.stun = 0.3;
-        const at = this.at(p1.s);
-        for (let i = 0; i < 12; i++) this.fx.push({ x: at.x, y: at.y, vx: (Math.random() - 0.5) * 240, vy: -Math.random() * 240, life: 0.7, kind: i % 2 ? 'heart' : 'spark' });
+      const delta = ((p2.s - p1.s + 1.5) % 1) - 0.5;
+      if (this.hug) {
+        this.holdHug(dt);
+      } else {
+        // After letting go, they have to get clear before they can hug again.
+        if (Math.abs(delta) > 0.03) this.hugArmed = true;
+        if (Math.abs(delta) < 0.008 && this.hugArmed) this.startHug(delta);
       }
-      if (gap > 0.03) this.bumped = false;
       for (const d of this.dropped) d.age += dt;
       this.dropped = this.dropped.filter((d) => d.age < d.life);
       for (const c of this.coins) c.t += dt;
       const landed = this.coins.filter((c) => c.t >= c.dur);
       for (const c of landed) {
-        if (c.hit) {
+        if (c.hit && !this.hug) {
           const r = this.players[c.to];
           r.stun = 0.35;
           r.spin = 1;
@@ -526,7 +595,7 @@ window.CrimeHost = (() => {
       for (const f of this.fx) {
         f.x += f.vx * dt;
         f.y += f.vy * dt;
-        f.vy += 480 * dt;
+        if (!f.float) f.vy += 480 * dt;
         f.life -= dt;
       }
       this.fx = this.fx.filter((f) => f.life > 0);
@@ -564,7 +633,7 @@ window.CrimeHost = (() => {
       for (const f of this.fx) {
         if (f.kind === 'heart') {
           g.fillStyle = `rgba(255, 90, 54, ${Math.min(1, f.life * 2)})`;
-          g.font = `${rem}px sans-serif`;
+          g.font = `${f.size || rem}px sans-serif`;
           g.fillText('♥', f.x, f.y);
         } else {
           this.coinShape(f.x, f.y, 0.24 * rem, Math.min(1, f.life * 2));
@@ -600,8 +669,11 @@ window.CrimeHost = (() => {
       g.translate(0, -r.jump * 3.4 * rem);
       g.scale(r.dir, 1);
       g.rotate(r.spin * Math.PI * 2);
-      const stride = Math.sin(r.phase);
-      const bob = Math.abs(Math.cos(r.phase)) * size * 0.1;
+      const hugging = !!this.hug;
+      // Leaning in, and rocking a little together.
+      if (hugging) g.rotate(0.05 + Math.sin(time * 2.4) * (r.dir > 0 ? 0.035 : -0.035));
+      const stride = hugging ? 0 : Math.sin(r.phase);
+      const bob = hugging ? 0 : Math.abs(Math.cos(r.phase)) * size * 0.1;
 
       // Shadow.
       g.fillStyle = 'rgba(0, 0, 0, 0.28)';
@@ -673,7 +745,13 @@ window.CrimeHost = (() => {
       g.lineWidth = size * 0.17;
       g.beginPath();
       g.moveTo(size * 0.22, -size * 1.42 - bob);
-      g.lineTo(size * 0.48 + stride * size * 0.2, -size * 1.0 - bob);
+      if (hugging) {
+        g.lineTo(size * 0.98, -size * 1.34);
+        g.moveTo(size * 0.2, -size * 1.16);
+        g.lineTo(size * 0.94, -size * 1.06);
+      } else {
+        g.lineTo(size * 0.48 + stride * size * 0.2, -size * 1.0 - bob);
+      }
       g.stroke();
       // Head.
       g.fillStyle = '#ffd7b0';
@@ -698,16 +776,28 @@ window.CrimeHost = (() => {
       }
       g.fillStyle = '#2a1820';
       g.beginPath();
-      g.arc(size * 0.2, -size * 2.03 - bob, size * 0.05, 0, Math.PI * 2);
-      g.fill();
+      if (hugging) {
+        // Eyes shut, happy.
+        g.strokeStyle = '#2a1820';
+        g.lineWidth = size * 0.05;
+        g.arc(size * 0.2, -size * 2.0, size * 0.08, Math.PI * 1.1, Math.PI * 1.9);
+        g.stroke();
+      } else {
+        g.arc(size * 0.2, -size * 2.03 - bob, size * 0.05, 0, Math.PI * 2);
+        g.fill();
+      }
       g.restore();
 
       // The name stays upright in the gutter behind their feet, so it can always be read.
       g.font = `800 ${rem * 1.15}px 'Bricolage Grotesque', sans-serif`;
       const label = `${this.names?.[p] || r.name}${this.locks[p] ? ' ✓' : ''}`;
       const half = g.measureText(label).width / 2 + rem * 0.3;
-      const tagX = Math.max(half, Math.min(this.w - half, at.x - Math.sin(at.angle) * rem * 1.2));
-      const tagY = Math.max(rem * 0.7, Math.min(this.h - rem * 0.7, at.y + Math.cos(at.angle) * rem * 1.2));
+      // When the two are close, their names slide apart along the lane so they don't print over each other.
+      const apart = ((r.s - this.players[other(p)].s + 1.5) % 1) - 0.5;
+      const side = Math.sign(apart) * Math.max(0, Math.min(1, (0.03 - Math.abs(apart)) / 0.02));
+      const along = Math.abs(Math.cos(at.angle)) * half + Math.abs(Math.sin(at.angle)) * rem * 0.7;
+      const tagX = Math.max(half, Math.min(this.w - half, at.x - Math.sin(at.angle) * rem * 1.2 + Math.cos(at.angle) * side * along));
+      const tagY = Math.max(rem * 0.7, Math.min(this.h - rem * 0.7, at.y + Math.cos(at.angle) * rem * 1.2 + Math.sin(at.angle) * side * along));
       g.textAlign = 'center';
       g.textBaseline = 'middle';
       g.fillStyle = COLORS[p];

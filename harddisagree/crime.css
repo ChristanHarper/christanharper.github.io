@@ -139,7 +139,7 @@ html.phone:has(#pocket) { --ink: #0c1220; --plum-2: #17233d; }
 body.pocket-on #app { padding-bottom: calc(190px + env(safe-area-inset-bottom)); }
 #pocket { position: fixed; left: 0; right: 0; bottom: 0; height: 176px; padding: 6px 10px max(6px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 3px; background: rgb(255 241 214 / 0.06); border-top: 1px solid rgb(255 241 214 / 0.15); z-index: 2; }
 #pocket canvas { flex: 1; min-height: 0; width: 100%; touch-action: none; }
-#pocket p { font-size: 10.5px; text-align: center; opacity: 0.6; white-space: nowrap; overflow: hidden; }
+#pocket p { font-size: 10.5px; text-align: center; opacity: 0.6; text-wrap: balance; }
 .small-q { font-size: 21px; }
 .p-clock { font-family: var(--display); color: var(--mustard); font-size: 24px; text-align: center; font-variant-numeric: tabular-nums; }
 .p-clock.big { font-size: 60px; line-height: 1; }
