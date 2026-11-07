@@ -369,6 +369,24 @@ const SCREENS = {
 
 // ---- Score plates ----
 
+// A phone that has dropped out needs its code again, and the lobby's codes are long gone by then.
+const rejoin = document.createElement('div');
+rejoin.id = 'rejoin';
+document.body.append(rejoin);
+let rejoinKey = '';
+
+function renderRejoin(v) {
+  const missing = v.qr && v.step.t !== 'credits' ? ['p1', 'p2'].filter((p) => v.players[p].joined && !v.players[p].online) : [];
+  const key = missing.join();
+  if (key === rejoinKey) return;
+  rejoinKey = key;
+  rejoin.innerHTML = missing.map((p) => {
+    const name = esc(v.players[p].name);
+    const copy = v.links ? ` or <button class="copy-link" data-copy="${p}">copy the link</button>` : '';
+    return `<div class="rejoin-card ${p}"><img src="${esc(v.qr[p])}" alt="QR code for ${name} to rejoin"><b>${name}</b><span>Scan to rejoin${copy}</span></div>`;
+  }).join('');
+}
+
 function renderScores(v) {
   const visible = v.step.t !== 'lobby';
   scores.hidden = !visible;
@@ -480,6 +498,7 @@ let lastLocked = { p1: false, p2: false };
 
 function onView(v) {
   renderScores(v);
+  renderRejoin(v);
   const s = v.step;
   const lobbyKey = s.t === 'lobby' ? JSON.stringify([v.players, v.note]) : '';
   const creditsKey = s.t === 'credits' ? [!!v.verdict, v.verdictLate, reportOpen] : null;

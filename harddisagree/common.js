@@ -8,7 +8,7 @@
 
 const PARAMS = new URLSearchParams(location.search);
 const SAVE_KEY = 'hard-disagree-show';
-const SAVE_HOURS = 12;
+const SAVE_HOURS = 14 * 24;
 const HELLO_MS = 25000;
 const ONLINE_MS = 70000;
 const PRESENCE_CHECK_MS = 10000;
