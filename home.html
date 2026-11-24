@@ -144,7 +144,8 @@
       height: 300px;
       overflow-y: auto;
       border: 1px dashed var(--cyan);
-      background: #030d0e;
+      /* translucent so the eye shows through; the text stays crisp */
+      background: rgba(3,13,14,0.6);
       box-shadow: 0 0 14px rgba(0,240,255,0.08), inset 0 0 30px rgba(0,0,0,0.6);
       padding: 12px 14px;
     }
@@ -185,7 +186,7 @@
     input[type="email"],
     input[type="password"],
     textarea {
-      background: #0a0a0a;
+      background: rgba(10,10,10,0.82);
       border: 1px solid #222;
       color: var(--text);
       font-family: inherit;
@@ -236,7 +237,7 @@
     }
 
     .post-card {
-      background: var(--surface);
+      background: rgba(11,11,11,0.6);
       border: 1px solid;
       padding: 16px;
       position: relative;
@@ -318,6 +319,7 @@
       bottom: 24px;
       left: 24px;
       border-style: dashed;
+      background: rgba(6,6,6,0.72);
       z-index: 90;
       font-size: 0.78rem;
     }
@@ -334,7 +336,7 @@
     }
 
     .modal-box {
-      background: #090909;
+      background: rgba(9,9,9,0.94);
       border: 1px solid var(--purple);
       box-shadow: 0 0 40px rgba(170,0,255,0.2);
       padding: 36px;
@@ -368,7 +370,9 @@
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #090909;
+      background: rgba(9,9,9,0.88);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
       border: 1px solid var(--fuchsia);
       box-shadow: 0 0 24px rgba(255,0,200,0.15);
       padding: 20px;
@@ -406,7 +410,7 @@
 </head>
 <body>
 
-  <canvas id="bg-canvas"></canvas>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <!-- NAV -->
   <nav style="position:relative;z-index:1;text-align:right;padding:16px 24px 0;font-size:0.78rem;letter-spacing:0.2em;">
@@ -477,71 +481,8 @@
     </div>
   </div>
 
-  <!-- BG ASCII -->
-  <script>
-    (function() {
-      const cv  = document.getElementById('bg-canvas');
-      const cx  = cv.getContext('2d');
-      const FS  = 12;
-      const LH  = 17;
-      const RAD = 90;
-      const MAX_BRIGHT = 0.6;
-      const CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      const COLS_COLORS = ['#FF00C8','#00F0FF','#2850FF','#AA00FF'];
-
-      let cw, cols, rows, cells, cellColors, charW;
-      let mx = -9999, my = -9999;
-
-      function setup() {
-        cv.width  = window.innerWidth;
-        cv.height = window.innerHeight;
-        cx.font   = `${FS}px monospace`;
-        charW = cx.measureText('M').width;
-        cols  = Math.floor(cv.width  / charW);
-        rows  = Math.floor(cv.height / LH);
-        cells = [];
-        cellColors = [];
-        for (let i = 0; i < cols * rows; i++) {
-          cells.push(CHARS[Math.floor(Math.random() * CHARS.length)]);
-          cellColors.push(COLS_COLORS[Math.floor(Math.random() * 4)]);
-        }
-      }
-
-      function draw() {
-        cx.clearRect(0, 0, cv.width, cv.height);
-        cx.font = `${FS}px monospace`;
-
-        const cMin = Math.max(0, Math.floor((mx - RAD) / charW));
-        const cMax = Math.min(cols - 1, Math.ceil((mx + RAD) / charW));
-        const rMin = Math.max(0, Math.floor((my - RAD) / LH));
-        const rMax = Math.min(rows - 1, Math.ceil((my + RAD) / LH));
-
-        for (let r = rMin; r <= rMax; r++) {
-          for (let c = cMin; c <= cMax; c++) {
-            const x  = c * charW;
-            const y  = r * LH + FS;
-            const dx = (x + charW / 2) - mx;
-            const dy = (r * LH + LH / 2) - my;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < RAD) {
-              const t = (1 - dist / RAD) * (1 - dist / RAD);
-              const color = cellColors[r * cols + c];
-              cx.globalAlpha = t * MAX_BRIGHT;
-              cx.fillStyle   = color;
-              cx.fillText(cells[r * cols + c], x, y);
-            }
-          }
-        }
-        cx.globalAlpha = 1;
-        requestAnimationFrame(draw);
-      }
-
-      window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-      window.addEventListener('resize', setup);
-      setup();
-      draw();
-    })();
-  </script>
+  <!-- BG: interactive ASCII eye -->
+  <script src="/assets/eye-bg.js"></script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
