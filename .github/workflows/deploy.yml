@@ -15,10 +15,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # Upload and deploy run as separate jobs: when deploy-pages runs in the same job,
+  # right after the upload, it can miss the fresh artifact (actions/deploy-pages#451).
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -26,5 +25,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/deploy-pages@v5
         id: deployment
