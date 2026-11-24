@@ -3,149 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title></title>
+  <title>christan harper</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
-    canvas { display: block; cursor: default; }
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    /* The way in sits in the open sky above the eye. */
+    .enter {
+      position: fixed;
+      left: 50%;
+      top: clamp(28px, 9vh, 96px);
+      transform: translateX(-50%);
+      z-index: 1;
+      font: bold clamp(1.6rem, 5.2vw, 3.4rem) / 1 monospace;
+      color: #fff;
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 0.2em 0.35em;
+      text-shadow: 0 0 14px rgba(255, 0, 200, 0.55);
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+    .enter:hover, .enter:focus-visible {
+      color: #00F0FF;
+      text-shadow: 0 0 18px rgba(0, 240, 255, 0.8);
+      outline: none;
+    }
   </style>
 </head>
 <body>
-  <canvas id="c"></canvas>
-  <script>
-    const canvas = document.getElementById('c');
-    const ctx = canvas.getContext('2d');
-
-    const FONT_SIZE = 13;
-    const LINE_HEIGHT = 19;
-    const ENTER_SIZE = 54;
-    const ENTER_TEXT = '[Enter Site]';
-    const ALL_CHARS = '!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const COLORS = [
-      [255, 0, 200],   // fuchsia
-      [0, 240, 255],   // cyan
-      [40, 80, 255],   // neon blue
-      [170, 0, 255],   // neon purple
-    ];
-
-    let charWidth = 8;
-    let cols = 0, rows = 0;
-    let cells = [];
-    let cellColors = [];
-    let mouseX = -9999, mouseY = -9999;
-    let enterX = 0, enterY = 0, enterW = 0;
-    const startTime = performance.now();
-
-    function setup() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      ctx.font = `${FONT_SIZE}px monospace`;
-      charWidth = ctx.measureText('M').width;
-      cols = Math.floor(canvas.width / charWidth);
-      rows = Math.floor(canvas.height / LINE_HEIGHT);
-
-      cells = [];
-      cellColors = [];
-      for (let i = 0; i < cols * rows; i++) {
-        cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
-        cellColors.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
-      }
-
-      ctx.font = `bold ${ENTER_SIZE}px monospace`;
-      enterW = ctx.measureText(ENTER_TEXT).width;
-      enterX = (canvas.width - enterW) / 2;
-      enterY = canvas.height / 2 - ENTER_SIZE / 2;
-    }
-
-    function venomShape(dx, dy, t) {
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-
-      const blob = 52
-        + 18 * Math.sin(angle * 2 + t * 0.5)
-        + 11 * Math.sin(angle * 5 - t * 0.9)
-        + 7  * Math.cos(angle * 8 + t * 0.4);
-
-      let tendril = 0;
-      const count = 7;
-      for (let i = 0; i < count; i++) {
-        const ta = (i / count) * Math.PI * 2 + t * 0.18 + i * 0.93;
-        const diff = Math.abs(((angle - ta + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-        const width = 0.10 + 0.04 * Math.sin(t * 0.7 + i * 2.1);
-        if (diff < width) {
-          const s = 1 - diff / width;
-          tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i)));
-        }
-      }
-
-      const totalR = blob + tendril;
-      return { inside: dist < totalR, dist, blob, totalR };
-    }
-
-    function draw() {
-      const t = (performance.now() - startTime) / 1000;
-
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const maxR = 220;
-      const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth));
-      const cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
-      const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT));
-      const rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
-
-      ctx.font = `${FONT_SIZE}px monospace`;
-
-      for (let row = rMin; row <= rMax; row++) {
-        for (let col = cMin; col <= cMax; col++) {
-          const x = col * charWidth;
-          const y = row * LINE_HEIGHT + FONT_SIZE;
-          const cx = x + charWidth / 2;
-          const cy = row * LINE_HEIGHT + LINE_HEIGHT / 2;
-
-          const { inside, dist, blob, totalR } = venomShape(cx - mouseX, cy - mouseY, t);
-
-          if (inside) {
-            const coreEdge = blob * 0.65;
-            let brightness;
-            if (dist < coreEdge) {
-              brightness = 1;
-            } else {
-              brightness = 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
-            }
-            const [cr, cg, cb] = cellColors[row * cols + col];
-            ctx.fillStyle = `rgb(${Math.round(cr * brightness)},${Math.round(cg * brightness)},${Math.round(cb * brightness)})`;
-            ctx.fillText(cells[row * cols + col], x, y);
-          }
-        }
-      }
-
-      ctx.font = `bold ${ENTER_SIZE}px monospace`;
-      ctx.fillStyle = '#fff';
-      ctx.fillText(ENTER_TEXT, enterX, enterY + ENTER_SIZE);
-
-      requestAnimationFrame(draw);
-    }
-
-    window.addEventListener('mousemove', e => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-
-      const overEnter = e.clientX >= enterX && e.clientX <= enterX + enterW
-        && e.clientY >= enterY && e.clientY <= enterY + ENTER_SIZE * 1.2;
-      canvas.style.cursor = overEnter ? 'pointer' : 'default';
-    });
-
-    canvas.addEventListener('click', e => {
-      const overEnter = e.clientX >= enterX && e.clientX <= enterX + enterW
-        && e.clientY >= enterY && e.clientY <= enterY + ENTER_SIZE * 1.2;
-      if (overEnter) window.location.href = '/home.html';
-    });
-
-    window.addEventListener('resize', setup);
-    setup();
-    draw();
-  </script>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <a class="enter" href="/home.html">[Enter Site]</a>
+  <script src="/assets/eye-bg.js"></script>
 </body>
 </html>

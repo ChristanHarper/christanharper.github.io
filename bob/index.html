@@ -21,7 +21,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace; }
     #app { padding-bottom: 80px; }
-    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block; }
+    #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
     .login-screen, #app { position: relative; z-index: 1; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
@@ -51,7 +51,7 @@
 
     /* login */
     .login-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
-    .login-box { background: #090909; border: 1px solid var(--purple); box-shadow: 0 0 40px rgba(170,0,255,0.18); padding: 26px 22px; width: min(340px, 100%); display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+    .login-box { background: rgba(9,9,9,0.9); border: 1px solid var(--purple); box-shadow: 0 0 40px rgba(170,0,255,0.18); padding: 26px 22px; width: min(340px, 100%); display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
     .login-box h3 { color: var(--purple); font-size: 0.9rem; letter-spacing: 0.35em; font-weight: normal; text-shadow: 0 0 12px var(--purple); }
     .err { font-size: 0.78rem; color: var(--fuchsia); min-height: 14px; line-height: 1.5; }
 
@@ -59,7 +59,7 @@
     .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
     .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0 4px; font-size: 0.74rem; letter-spacing: 0.12em; }
     .topbar .who { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #222; padding: 6px 10px; color: var(--mid); white-space: nowrap; background: #080808; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #222; padding: 6px 10px; color: var(--mid); white-space: nowrap; background: rgba(8,8,8,0.8); }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
     .dot.on  { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
     .dot.off { background: var(--fuchsia); box-shadow: 0 0 8px var(--fuchsia); }
@@ -76,7 +76,7 @@
     .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); }
     .label-purple  { color: var(--purple);  border-color: var(--purple);  text-shadow: 0 0 8px var(--purple); }
     .label-blue    { color: var(--blue2);   border-color: var(--blue);    text-shadow: 0 0 8px var(--blue); }
-    .panel { background: var(--surface); border: 1px solid #1a1a1a; padding: 16px 14px; margin-top: 16px; }
+    .panel { background: rgba(11,11,11,0.8); border: 1px solid #1a1a1a; padding: 16px 14px; margin-top: 16px; }
     @media (min-width: 900px) { .panel { padding: 18px 20px; } }
     .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
     .pos { color: var(--cyan); }
@@ -93,7 +93,7 @@
     .note-box { border: 1px dashed var(--purple); background: rgba(170,0,255,0.05); padding: 10px 12px; font-size: 0.78rem; line-height: 1.6; margin: 8px 0; }
 
     /* bot cards */
-    .bot { border: 1px solid #1f1f1f; background: #090909; margin-top: 14px; }
+    .bot { border: 1px solid #1f1f1f; background: rgba(9,9,9,0.82); margin-top: 14px; }
     .bot.run { border-color: rgba(0,240,255,0.45); box-shadow: 0 0 16px rgba(0,240,255,0.08); }
     .bot.bad { border-color: rgba(255,0,200,0.45); }
     .bot.wait { border-color: rgba(170,0,255,0.45); }
@@ -117,7 +117,7 @@
     @media (min-width: 700px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     .tiles.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     @media (min-width: 700px) { .tiles.six { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-    .tile { border: 1px solid #1c1c1c; background: #070707; padding: 9px 11px; min-width: 0; }
+    .tile { border: 1px solid #1c1c1c; background: rgba(7,7,7,0.72); padding: 9px 11px; min-width: 0; }
     .tile .k { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: #555; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tile .v { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tile .s { font-size: 0.66rem; color: var(--mid); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -130,7 +130,7 @@
     td { padding: 7px 6px; border-bottom: 1px dashed #181818; }
     td.r, th.r { text-align: right; }
     .table-wrap { overflow-x: auto; }
-    .log { max-height: 220px; overflow-y: auto; font-size: 0.7rem; line-height: 1.6; background: #060606; border: 1px solid #1a1a1a; padding: 8px 10px; }
+    .log { max-height: 220px; overflow-y: auto; font-size: 0.7rem; line-height: 1.6; background: rgba(6,6,6,0.86); border: 1px solid #1a1a1a; padding: 8px 10px; }
     .log div { border-bottom: 1px dashed #141414; padding: 3px 0; word-break: break-word; }
     .log time { color: #555; margin-right: 8px; }
     details > summary { cursor: pointer; font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mid); padding: 10px 0 6px; list-style: none; user-select: none; }
@@ -138,7 +138,7 @@
     details[open] > summary::before { content: "▾ "; }
 
     /* inputs */
-    input, select, textarea { background: #0a0a0a; border: 1px solid #222; color: var(--text); font-family: inherit; font-size: 16px; padding: 10px 11px; width: 100%; outline: none; border-radius: 0; transition: border-color .2s, box-shadow .2s; }
+    input, select, textarea { background: rgba(10,10,10,0.86); border: 1px solid #222; color: var(--text); font-family: inherit; font-size: 16px; padding: 10px 11px; width: 100%; outline: none; border-radius: 0; transition: border-color .2s, box-shadow .2s; }
     select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
     input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 6px rgba(0,240,255,0.25); }
     input:disabled, select:disabled { color: #555; }
@@ -170,7 +170,7 @@
     .lib-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
     @media (min-width: 760px) { .lib-grid { grid-template-columns: 1fr 1fr; } }
     @media (min-width: 1080px) { .lib-grid { grid-template-columns: 1fr 1fr 1fr; } }
-    .lib { border: 1px solid #1f1f1f; background: #090909; padding: 12px; display: flex; flex-direction: column; }
+    .lib { border: 1px solid #1f1f1f; background: rgba(9,9,9,0.82); padding: 12px; display: flex; flex-direction: column; }
     .lib.sel { border-color: var(--cyan); box-shadow: 0 0 14px rgba(0,240,255,0.14); }
     .lib h4 { font-weight: normal; font-size: 0.92rem; letter-spacing: 0.08em; display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
     .lib .desc { font-size: 0.7rem; color: var(--mid); line-height: 1.6; margin: 6px 0 8px; min-height: 3.2em; }
@@ -186,7 +186,7 @@
     /* builder */
     .tpl-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
     @media (min-width: 700px) { .tpl-grid { grid-template-columns: 1fr 1fr 1fr; } }
-    .tpl { border: 1px solid #222; background: #080808; padding: 12px; text-align: left; text-transform: none; letter-spacing: normal; font-size: 0.8rem; min-height: 0; }
+    .tpl { border: 1px solid #222; background: rgba(8,8,8,0.82); padding: 12px; text-align: left; text-transform: none; letter-spacing: normal; font-size: 0.8rem; min-height: 0; }
     .tpl b { display: block; font-weight: normal; color: var(--cyan); letter-spacing: 0.08em; margin-bottom: 6px; }
     .tpl span { color: var(--mid); font-size: 0.7rem; line-height: 1.55; }
     .tpl:hover { border-color: var(--cyan); }
@@ -195,7 +195,7 @@
 
     /* modal + toast */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
-    .modal-box { background: #090909; border: 1px solid var(--fuchsia); box-shadow: 0 0 40px rgba(255,0,200,0.2); padding: 22px 20px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 14px; max-height: 92vh; overflow: auto; }
+    .modal-box { background: rgba(9,9,9,0.95); border: 1px solid var(--fuchsia); box-shadow: 0 0 40px rgba(255,0,200,0.2); padding: 22px 20px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 14px; max-height: 92vh; overflow: auto; }
     .modal-box h3 { color: var(--fuchsia); font-weight: normal; letter-spacing: 0.3em; font-size: 0.9rem; text-shadow: 0 0 12px var(--fuchsia); }
     .modal-box p { font-size: 0.82rem; line-height: 1.7; }
     .code-box { width: min(980px, 100%); border-color: var(--cyan); box-shadow: 0 0 40px rgba(0,240,255,0.15); }
@@ -207,71 +207,8 @@
   </style>
 </head>
 <body>
-<canvas id="bg" aria-hidden="true"></canvas>
-<script>
-/* Same effect as christanharper.com's landing page: random neon characters that only
-   show inside a wobbling "venom" blob with tendrils that follows the pointer. */
-(() => {
-  const canvas = document.getElementById("bg");
-  const ctx = canvas.getContext("2d");
-  const FONT_SIZE = 13, LINE_HEIGHT = 19;
-  const ALL_CHARS = "!@#$%^&*_+=|;:,.?~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const COLORS = [[255, 0, 200], [0, 240, 255], [40, 80, 255], [170, 0, 255]];
-  let charWidth = 8, cols = 0, rows = 0, cells = [], cellColors = [];
-  let mouseX = -9999, mouseY = -9999;
-  const startTime = performance.now();
-  function setup() {
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    ctx.font = `${FONT_SIZE}px monospace`;
-    charWidth = ctx.measureText("M").width;
-    cols = Math.floor(canvas.width / charWidth); rows = Math.floor(canvas.height / LINE_HEIGHT);
-    cells = []; cellColors = [];
-    for (let i = 0; i < cols * rows; i++) {
-      cells.push(ALL_CHARS[Math.floor(Math.random() * ALL_CHARS.length)]);
-      cellColors.push(COLORS[Math.floor(Math.random() * COLORS.length)]);
-    }
-  }
-  function venomShape(dx, dy, t) {
-    const dist = Math.sqrt(dx * dx + dy * dy), angle = Math.atan2(dy, dx);
-    const blob = 52 + 18 * Math.sin(angle * 2 + t * 0.5) + 11 * Math.sin(angle * 5 - t * 0.9) + 7 * Math.cos(angle * 8 + t * 0.4);
-    let tendril = 0;
-    for (let i = 0; i < 7; i++) {
-      const ta = (i / 7) * Math.PI * 2 + t * 0.18 + i * 0.93;
-      const diff = Math.abs(((angle - ta + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-      const width = 0.10 + 0.04 * Math.sin(t * 0.7 + i * 2.1);
-      if (diff < width) { const s = 1 - diff / width; tendril = Math.max(tendril, s * s * (105 + 28 * Math.sin(t * 0.5 + i))); }
-    }
-    const totalR = blob + tendril;
-    return { inside: dist < totalR, dist, blob, totalR };
-  }
-  function draw() {
-    const t = (performance.now() - startTime) / 1000;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const maxR = 220;
-    const cMin = Math.max(0, Math.floor((mouseX - maxR) / charWidth)), cMax = Math.min(cols - 1, Math.ceil((mouseX + maxR) / charWidth));
-    const rMin = Math.max(0, Math.floor((mouseY - maxR) / LINE_HEIGHT)), rMax = Math.min(rows - 1, Math.ceil((mouseY + maxR) / LINE_HEIGHT));
-    ctx.font = `${FONT_SIZE}px monospace`;
-    for (let row = rMin; row <= rMax; row++) for (let col = cMin; col <= cMax; col++) {
-      const x = col * charWidth, y = row * LINE_HEIGHT + FONT_SIZE;
-      const { inside, dist, blob, totalR } = venomShape(x + charWidth / 2 - mouseX, row * LINE_HEIGHT + LINE_HEIGHT / 2 - mouseY, t);
-      if (!inside) continue;
-      const coreEdge = blob * 0.65;
-      const b = dist < coreEdge ? 1 : 0.65 + 0.35 * (1 - (dist - coreEdge) / (totalR - coreEdge));
-      const [cr, cg, cb] = cellColors[row * cols + col];
-      ctx.fillStyle = `rgb(${Math.round(cr * b)},${Math.round(cg * b)},${Math.round(cb * b)})`;
-      ctx.fillText(cells[row * cols + col], x, y);
-    }
-    requestAnimationFrame(draw);
-  }
-  const follow = (x, y) => { mouseX = x; mouseY = y; };
-  window.addEventListener("mousemove", e => follow(e.clientX, e.clientY));
-  window.addEventListener("touchstart", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
-  window.addEventListener("touchmove", e => { const p = e.touches[0]; if (p) follow(p.clientX, p.clientY); }, { passive: true });
-  document.addEventListener("mouseleave", () => follow(-9999, -9999));
-  window.addEventListener("resize", setup);
-  setup(); draw();
-})();
-</script>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<script src="/assets/eye-bg.js"></script>
 
 <!-- ===================== LOGIN ===================== -->
 <section class="login-screen hidden" id="loginScreen">
