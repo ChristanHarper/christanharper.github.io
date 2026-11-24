@@ -520,20 +520,23 @@
   }
 
   // ── Club scene ─────────────────────────────────────────────────────────
-  // Beams sweep out from behind the eye; the crowd stands on a floor whose horizon
-  // runs just under the iris, so everyone's chest sits near eye level.
+  // Everything here is drawn as characters on the shared grid: the crowd, the
+  // spotlights and the haze. The crowd stands on a floor whose horizon runs just
+  // under the iris; spotlights come from behind the eye and are aimed at groups.
   let mask, cellAng, cellDist, occ, occList = [];
-  let OX = 0, OY = 0, eyePath = null;
-  let figures = [];
+  let OX = 0, OY = 0;
+  let figures = [], groups = [];
 
+  // One shared beat clock drives every dancer.
+  const BPM = 118;
+  const PHRASE = 16;                               // beats between spotlight moves
   const BEAMS = [
-    { col: FU, c: 1.95, amp: 0.55, per: 19, ph: 0.0, w: 0.11, k: 1.0 },   // sweeps the lower left
-    { col: CY, c: 1.1,  amp: 0.6,  per: 26, ph: 2.1, w: 0.09, k: 0.9 },   // sweeps the lower right
-    { col: PU, c: 3.75, amp: 0.35, per: 31, ph: 4.0, w: 0.14, k: 0.85 },  // up and to the left
-    { col: BL, c: 5.6,  amp: 0.35, per: 34, ph: 1.0, w: 0.14, k: 0.85 },  // up and to the right
-    { col: FU, c: 0.3,  amp: 0.42, per: 41, ph: 3.3, w: 0.08, k: 0.7 },   // slow pass along the right
+    { col: FU, k: 1.0 },
+    { col: CY, k: 1.0 },
+    { col: PU, k: 0.95 },
+    { col: BL, k: 1.0 },
   ];
-  const beamNow = BEAMS.map(() => ({ ang: 0, k: 0 }));
+  const beamNow = BEAMS.map(() => ({ ang: 0, w: 0.1, k: 0 }));
 
   function setupScene() {
     const n = cols * rows;
@@ -542,7 +545,7 @@
     cellDist = new Float32Array(n);
     occ = new Uint8Array(n);
     occList = [];
-    OX = ex; OY = ey - 0.05 * a;                 // beams come from behind the iris
+    OX = ex; OY = ey - 0.05 * a;                 // spotlights sit behind the iris
     const F = LH * 0.8;
     for (let r = 0; r < rows; r++) {
       const yC = (r + 0.5) * LH, dy = yC - ey;
@@ -560,18 +563,6 @@
         cellDist[i] = Math.hypot(xC - OX, yC - OY);
       }
     }
-    eyePath = new Path2D();
-    const steps = 80;
-    for (let s = 0; s <= steps; s++) {
-      const u = ZU0 + (ZU1 - ZU0) * s / steps;
-      const x = ex + u * a, y = ey + zoneUpper(u);
-      if (s === 0) eyePath.moveTo(x, y); else eyePath.lineTo(x, y);
-    }
-    for (let s = steps; s >= 0; s--) {
-      const u = ZU0 + (ZU1 - ZU0) * s / steps;
-      eyePath.lineTo(ex + u * a, ey + zoneLower(u));
-    }
-    eyePath.closePath();
     buildCrowd();
   }
 
@@ -583,27 +574,35 @@
 
   function buildCrowd() {
     figures = [];
+    groups = [];
     const yh = ey + 0.12 * a;                        // horizon: chests line up here
-    // Everyone stands well back in the room: small, distant figures.
-    // On tall (portrait) screens the small crowd also fills the open floor below the eye.
+    // People stand back in the room; on tall screens they also fill the floor below the eye.
     const yNear = yh + Math.max(LH * 6, Math.min(H - yh, 0.55 * a), (H - yh) * 0.85);
-    const hMaxNear = Math.min(Math.max(0.48 * a, 0.26 * W), H * 0.4);
+    const hMaxNear = Math.min(Math.max(0.55 * a, 0.28 * W), H * 0.42);
     const k = Math.min(1.82, hMaxNear / Math.max(1, yNear - yh));
     const hMin = Math.max(0.15 * a, LH * 5);
-    const target = clamp(Math.round((W * H) / 48000), 8, 30);
-    const placed = [];
+    const nGroups = clamp(Math.round((W * H) / 150000), 4, 10);
     const rand = Math.random;
     const R = (lo, hi) => lo + (hi - lo) * rand();
+    // Where people can stand without the eye hiding their heads: a band on each side
+    // of the eye and a strip of floor under it.
+    const eyeBottom = ey + 0.44 * a;
+    const sideL = [0, ex - 0.82 * a], sideR = [ex + 0.92 * a, W];
+    const regions = [];
+    if (sideL[1] - sideL[0] > hMin * 0.5) regions.push({ x: sideL, side: true });
+    if (sideR[1] - sideR[0] > hMin * 0.5) regions.push({ x: sideR, side: true });
+    if (H - eyeBottom > hMin * 0.6) regions.push({ x: [0.08 * W, 0.92 * W], side: false });
+    if (!regions.length) regions.push({ x: [0, W], side: false });
+    let seed = 0;
 
-    const mkFig = (x, feet, h, face, type, extra) => {
+    const mkFig = (gi, x, feet, h, face, type, extra) => {
       const f = Object.assign({
-        x, feet, h, face, type,
+        g: gi, x, feet, h, face, type,
         z: clamp((feet - yh) / (yNear - yh), 0, 1),
-        ph: R(0, 6.283), tempo: R(0.42, 0.6) * 6.283, slow: R(0.12, 0.22) * 6.283,
-        sw: R(0.85, 1.0), hw: R(0.85, 1.0),
-        skirt: rand() < 0.3,
-        modeA: (rand() * 4) | 0, modeB: (rand() * 4) | 0, modeRate: R(0.05, 0.1),
-        drink: 0, partner: 0,
+        ph: R(0, 6.283), slow: R(0.12, 0.2) * 6.283,
+        sw: R(0.85, 1.0), hw: R(0.85, 1.0), skirt: rand() < 0.3,
+        move: seed++ * 3 + ((rand() * 5) | 0), mirror: rand() < 0.5 ? 1 : -1, energy: R(0.75, 1.15),
+        drink: 0,
         caps: new Float32Array(5 * 20), nCaps: 0, drinkCap: -1,
       }, extra || {});
       figures.push(f);
@@ -611,36 +610,42 @@
     };
 
     let guard = 0;
-    while (figures.length < target && guard++ < 400) {
-      const z = Math.pow(rand(), 0.75);
-      const feet = yh + (yNear - yh) * (0.07 + 0.93 * z);
-      const h = Math.max(hMin, k * (feet - yh));
-      const x = R(-0.04 * W, 1.04 * W);
-      // People hidden behind the eye are skipped; the crowd gathers at the sides and below.
-      if (maskAt(x, feet - 0.62 * h) > 0.3 || maskAt(x, feet - 0.9 * h) > 0.3) continue;
-      if (placed.some(p => Math.abs(p.x - x) < 0.32 * (p.h + h) && Math.abs(p.feet - feet) < 0.18 * (p.h + h))) continue;
-      const roll = rand();
-      const members = [];
-      if (roll < 0.34) {
-        members.push(mkFig(x, feet, h, rand() < 0.5 ? 1 : -1, 'dance'));
-      } else if (roll < 0.54) {
-        const g = R(0.13, 0.17) * h;
-        const ph = R(0, 6.283), tempo = R(0.42, 0.55) * 6.283;
-        members.push(mkFig(x - g, feet, h * R(0.97, 1.03), 1, 'couple', { ph, tempo, partner: 1 }));
-        members.push(mkFig(x + g, feet + R(-0.01, 0.01) * h, h * R(0.92, 1.0), -1, 'couple', { ph: ph + 0.3, tempo, partner: -1 }));
-      } else if (roll < 0.84) {
-        const nMem = rand() < 0.5 ? 2 : 3;
-        const gap = R(0.27, 0.34) * h;
-        for (let m = 0; m < nMem; m++) {
-          const off = (m - (nMem - 1) / 2) * gap;
-          const face = nMem === 3 && m === 1 ? (rand() < 0.5 ? 1 : -1) : (off < 0 ? 1 : -1);
-          members.push(mkFig(x + off, feet + R(-0.03, 0.03) * h, h * R(0.92, 1.04), face, 'social',
-            { drink: rand() < 0.6 ? (rand() < 0.5 ? 1 : -1) : 0 }));
-        }
+    while (groups.length < nGroups && guard++ < 600) {
+      const reg = regions[groups.length % regions.length];
+      let feet, h;
+      if (reg.side) {
+        const z = Math.pow(rand(), 0.8);
+        feet = yh + (yNear - yh) * (0.07 + 0.93 * z);
+        h = Math.max(hMin, k * (feet - yh));
       } else {
-        members.push(mkFig(x, feet, h, rand() < 0.5 ? 1 : -1, 'lean'));
+        // Under the eye: smaller people whose heads clear the lower lashes.
+        const room = Math.max(hMin, (H - eyeBottom) / 0.8);
+        h = R(hMin, Math.max(hMin, Math.min(hMaxNear, room)));
+        feet = R(eyeBottom + 0.95 * h, Math.max(eyeBottom + 0.95 * h, H + 0.12 * h));
       }
-      placed.push({ x, feet, h: h * (members.length > 1 ? 1.4 : 1) });
+      const x = R(reg.x[0], reg.x[1]);
+      if (maskAt(x, feet - 0.5 * h) > 0.3 || maskAt(x, feet - 0.75 * h) > 0.3 || maskAt(x, feet - 0.93 * h) > 0.3) continue;
+      const roll = rand();
+      const type = roll < 0.45 ? 'dance' : roll < 0.6 ? 'couple' : roll < 0.85 ? 'social' : 'watch';
+      const nMem = type === 'dance' ? 2 + ((rand() * 3) | 0)
+        : type === 'couple' ? 2
+        : type === 'social' ? 2 + (rand() < 0.5 ? 1 : 0)
+        : 1 + (rand() < 0.5 ? 1 : 0);
+      const gap = (type === 'couple' ? 0.28 : type === 'social' ? 0.3 : 0.36) * h;
+      const half = ((nMem - 1) / 2) * gap + 0.18 * h;
+      if (x - half < -0.05 * W || x + half > 1.05 * W) continue;
+      if (maskAt(x - half, feet - 0.9 * h) > 0.3 || maskAt(x + half, feet - 0.9 * h) > 0.3) continue;
+      if (groups.some(g => Math.abs(g.cx - x) < g.half + half && Math.abs(g.feet - feet) < 0.35 * (g.h + h))) continue;
+      const gi = groups.length;
+      groups.push({ cx: x, cy: feet - 0.55 * h, feet, h, half });
+      for (let m = 0; m < nMem; m++) {
+        const off = (m - (nMem - 1) / 2) * gap + (type === 'dance' ? R(-0.06, 0.06) * h : 0);
+        const fFeet = feet + (type === 'dance' ? R(-0.05, 0.05) : R(-0.02, 0.02)) * h;
+        const fh = h * R(0.92, 1.05);
+        let face = rand() < 0.5 ? 1 : -1;
+        if (type === 'couple' || type === 'social') face = off < 0 ? 1 : -1;   // turn toward each other
+        mkFig(gi, x + off, fFeet, fh, face, type, type === 'social' ? { drink: rand() < 0.6 ? 1 : 0 } : null);
+      }
     }
     // Draw nearest first so they occlude the people (and haze) behind them.
     figures.sort((p, q) => q.feet - p.feet);
@@ -657,61 +662,78 @@
     else { out[2] = fx; out[3] = fy; }
   }
 
-  // Arm angles: phi1 from straight down (positive = away from the body), phi2 elbow (negative = inward/up).
-  function danceArms(mode, t, f, side) {
-    const w = f.tempo, p = f.ph + (side > 0 ? 0.9 : 0);
-    switch (mode) {
-      case 0: return [2.55 + 0.22 * Math.sin(w * t + p), -0.45 + 0.3 * Math.sin(w * t + p + 1)];          // hands up
-      case 1: return [0.55 + 0.25 * Math.sin(2 * w * t + p), -1.6 + 0.35 * Math.sin(2 * w * t + p + 0.5)]; // grooving at the chest
-      case 2: return side > 0 ? [2.2 + 0.35 * Math.sin(w * t + p), -0.3] : [0.45 + 0.2 * Math.sin(2 * w * t + p), -1.4];
-      default: return [0.35 + 0.18 * Math.sin(w * t + p), -0.55 + 0.2 * Math.sin(w * t + p + 2)];         // loose
-    }
-  }
+  // Dance moves. Every move is a function of the same beat: `hit` peaks on each beat,
+  // `two` swings left/right and reaches its extremes on the beats.
+  // Arm angles: [phi1 from straight down (positive = away from body), phi2 elbow (negative = inward/up)].
+  const MOVES = [
+    // bounce, pumping forearms
+    (hit, two) => ({ sway: 0.02 * two, bob: 0.032 * hit, lean: 0.02 * two, head: 0.12 * hit, hip: 0.06 * two,
+      aL: [0.55, -1.75 + 0.5 * hit], aR: [0.55, -1.75 + 0.5 * hit], lift: 0 }),
+    // hands up
+    (hit, two) => ({ sway: 0.03 * two, bob: 0.026 * hit, lean: 0.03 * two, head: 0.06 * hit, hip: 0.08 * two,
+      aL: [2.6 + 0.12 * two, -0.3 - 0.35 * hit], aR: [2.6 - 0.12 * two, -0.3 - 0.35 * hit], lift: 0 }),
+    // fist pump on the beat
+    (hit, two) => ({ sway: 0.015 * two, bob: 0.022 * hit, lean: 0.02, head: 0.1 * hit, hip: 0.05 * two,
+      aL: [0.3, -1.2], aR: [1.85 + 0.7 * hit, -0.15 - 0.6 * (1 - hit)], lift: 0 }),
+    // step-touch, arms swinging
+    (hit, two) => ({ sway: 0.05 * two, bob: 0.018 * hit, lean: 0.05 * two, head: 0.05 * two, hip: 0.1 * two,
+      aL: [0.45 + 0.35 * two, -0.9], aR: [0.45 - 0.35 * two, -0.9], lift: 0.04 }),
+    // hip groove
+    (hit, two) => ({ sway: 0.04 * two, bob: 0.02 * hit, lean: 0.015 * two, head: 0.13 * hit, hip: 0.16 * two,
+      aL: [0.85, -1.95 + 0.25 * hit], aR: [0.85, -1.95 + 0.25 * hit], lift: 0 }),
+  ];
 
   const tmp = new Float32Array(4);
   function poseAndCaps(f, t) {
-    // Body motion parameters (units of figure height, y up is negative).
-    let sway = 0, bob = 0, lean = 0, headTilt = 0, hipTilt = 0;
+    const beat = t * BPM / 60;
+    const bp = beat - Math.floor(beat);
+    const hit = Math.exp(-6 * bp);                  // lands on every beat, then eases off
+    const two = Math.cos(Math.PI * beat);           // weight left / right, extremes on the beat
+    let sway = 0, bob = 0, lean = 0, headTilt = 0, hipTilt = 0, lift = 0;
     let aL, aR;                                       // [phi1, phi2] for screen-left / screen-right arm
-    const w = f.tempo, p = f.ph;
+    const p = f.ph;
+
     if (f.type === 'dance' || f.type === 'couple') {
-      sway = 0.035 * Math.sin(w * t + p);
-      bob = 0.018 * (0.5 - 0.5 * Math.cos(2 * w * t + p));
-      lean = 0.07 * Math.sin(w * t + p + 0.6) + (f.type === 'couple' ? 0.09 * f.face : 0);
-      hipTilt = 0.12 * Math.sin(w * t + p);
-      headTilt = 0.16 * Math.sin(w * t + p + 1.2);
+      // Moves change together on 8-beat phrases, each person with their own move.
+      const phrase = Math.floor(beat / 8);
+      const into = beat - phrase * 8;
+      const cur = f.type === 'couple' ? 4 : (f.move + phrase) % MOVES.length;
+      const prev = f.type === 'couple' ? 4 : (f.move + phrase - 1 + MOVES.length) % MOVES.length;
+      const A = MOVES[prev](hit, two * f.mirror), B = MOVES[cur](hit, two * f.mirror);
+      const m = ss(0, 0.75, into), e = f.energy;
+      const L = (x, y) => x + (y - x) * m;
+      sway = L(A.sway, B.sway) * e; bob = L(A.bob, B.bob) * e; lean = L(A.lean, B.lean) * e;
+      headTilt = L(A.head, B.head) * e * f.face; hipTilt = L(A.hip, B.hip) * e; lift = L(A.lift, B.lift);
+      aL = [L(A.aL[0], B.aL[0]), L(A.aL[1], B.aL[1])];
+      aR = [L(A.aR[0], B.aR[0]), L(A.aR[1], B.aR[1])];
       if (f.type === 'couple') {
-        const reach = [1.25 + 0.1 * Math.sin(w * t + p), -0.25];
-        const free = danceArms(1, t, f, 1);
-        if (f.face > 0) { aR = reach; aL = free; } else { aL = reach; aR = free; }
-      } else {
-        const mix = ss(0.25, 0.75, 0.5 + 0.5 * Math.sin(t * f.modeRate * 6.283 + p));
-        const A1 = danceArms(f.modeA, t, f, -1), B1 = danceArms(f.modeB, t, f, -1);
-        const A2 = danceArms(f.modeA, t, f, 1), B2 = danceArms(f.modeB, t, f, 1);
-        aL = [A1[0] + (B1[0] - A1[0]) * mix, A1[1] + (B1[1] - A1[1]) * mix];
-        aR = [A2[0] + (B2[0] - A2[0]) * mix, A2[1] + (B2[1] - A2[1]) * mix];
+        // Partners lean in and reach for each other, on the same beat.
+        lean += 0.1 * f.face;
+        const reach = [1.2 + 0.12 * hit, -0.3];
+        if (f.face > 0) aR = reach; else aL = reach;
       }
     } else if (f.type === 'social') {
+      // Talking: restrained, with a small nod to the music.
       const s = f.slow;
-      sway = 0.015 * Math.sin(s * t + p);
-      lean = 0.07 * f.face + 0.03 * Math.sin(s * 0.7 * t + p);
-      hipTilt = 0.08 * Math.sin(s * t + p);
+      sway = 0.012 * Math.sin(s * t + p);
+      bob = 0.006 * hit;
+      lean = 0.07 * f.face + 0.025 * Math.sin(s * 0.7 * t + p);
+      hipTilt = 0.06 * Math.sin(s * t + p);
       const talk = ss(0.55, 0.9, Math.sin(0.33 * t + p));
-      headTilt = 0.1 * f.face + 0.06 * Math.sin(1.7 * t + p) * (0.4 + talk);
+      headTilt = 0.1 * f.face + 0.05 * Math.sin(1.7 * t + p) * (0.4 + talk) + 0.03 * hit;
       const sip = ss(0.9, 0.99, Math.sin(0.19 * t + p * 1.7));
       const drinkArm = [0.15 + 0.7 * sip, -2.3 - 0.35 * sip];
       const gest = [0.22 + 0.4 * talk, -0.7 - 0.9 * talk + 0.3 * talk * Math.sin(4.2 * t + p)];
-      const rest = [0.12 + 0.04 * Math.sin(s * t), -0.25];
-      const towardRight = f.face > 0;
-      if (f.drink) {
-        // The drink stays in the hand away from the conversation; the other hand talks.
-        if (towardRight) { aL = drinkArm; aR = gest; } else { aR = drinkArm; aL = gest; }
-      } else if (towardRight) { aR = gest; aL = rest; } else { aL = gest; aR = rest; }
-    } else {                                           // leaning, arms folded
-      sway = 0.008 * Math.sin(f.slow * t + p);
-      lean = 0.15 * f.face;
-      headTilt = 0.08 * Math.sin(0.5 * t + p) - 0.05 * f.face;
-      aL = [0.32, -2.15 + 0.05 * Math.sin(0.4 * t)];
+      const rest = [0.12, -0.25];
+      if (f.drink) { if (f.face > 0) { aL = drinkArm; aR = gest; } else { aR = drinkArm; aL = gest; } }
+      else if (f.face > 0) { aR = gest; aL = rest; } else { aL = gest; aR = rest; }
+    } else {
+      // Watching the floor: arms folded, nodding on the beat.
+      sway = 0.008 * Math.cos(Math.PI * beat / 2);
+      bob = 0.008 * hit;
+      lean = 0.04 * f.face;
+      headTilt = 0.07 * hit * f.face;
+      aL = [0.32, -2.15];
       aR = [0.28, -2.2];
     }
 
@@ -738,16 +760,14 @@
     const hLx = pelX - ch * hpW, hLy = pelY - sh * hpW;
     const hRx = pelX + ch * hpW, hRy = pelY + sh * hpW;
 
-    // Legs with planted feet.
-    const footW = 0.075 * (f.type === 'lean' ? 0.6 : 1);
-    const liftL = f.type === 'dance' ? 0.03 * Math.max(0, Math.sin(f.tempo * t + p)) : 0;
-    const liftR = f.type === 'dance' ? 0.03 * Math.max(0, -Math.sin(f.tempo * t + p)) : 0;
+    // Legs with planted feet; step-touch lifts the unweighted foot.
+    const footW = 0.075 * (f.type === 'watch' ? 0.6 : 1);
+    const liftL = lift * Math.max(0, two * f.mirror), liftR = lift * Math.max(0, -two * f.mirror);
     knee(hLx, hLy, -footW, -liftL, 0.26, 0.25, 1, tmp);
     const kLx = tmp[0], kLy = tmp[1], fLx = tmp[2], fLy = tmp[3];
     knee(hRx, hRy, footW, -liftR, 0.26, 0.25, -1, tmp);
     const kRx = tmp[0], kRy = tmp[1], fRx = tmp[2], fRy = tmp[3];
 
-    // Arms by forward kinematics.
     const arm = (sx0, sy0, ang, side) => {
       const d1x = side * Math.sin(ang[0]), d1y = Math.cos(ang[0]);
       const ex0 = sx0 + d1x * 0.17, ey0 = sy0 + d1y * 0.17;
@@ -756,8 +776,7 @@
     };
     const AL = arm(shLx, shLy, aL, -1), AR = arm(shRx, shRy, aR, 1);
 
-    // Body.
-    // Slender proportions throughout.
+    // Slender, angular proportions.
     cap(hdX, hdY, hdX, hdY, 0.052);                       // head
     cap(hdX, hdY, nkX, nkY, 0.018);                       // neck
     cap(nkX, nkY + 0.03, chX, chY, 0.05 * f.sw);          // chest
@@ -797,20 +816,45 @@
     return best;
   }
 
-  // Light at a cell: strongest beam colour and total intensity.
+  // Spotlights: each holds on a group, then sweeps to another on a musical phrase.
+  // Beams are staggered so several colours sit on different groups at once.
+  function aimBeams(t) {
+    const nG = groups.length;
+    if (!nG) return;
+    const beatLen = 60 / BPM, T = PHRASE * beatLen, travel = 4 * beatLen;
+    const step = Math.max(1, Math.floor(nG / BEAMS.length));
+    const aimOf = (gi) => {
+      const g = groups[((gi % nG) + nG) % nG];
+      const dx = g.cx - OX, dy = g.cy - OY, d = Math.hypot(dx, dy) || 1;
+      return [Math.atan2(dy, dx), clamp(Math.atan2(g.half * 1.1, d), 0.05, 0.26)];
+    };
+    for (let j = 0; j < BEAMS.length; j++) {
+      const tt = t + j * T / BEAMS.length;
+      const slot = Math.floor(tt / T), local = tt - slot * T;
+      const [a0, w0] = aimOf(slot - 1 + j * step), [a1, w1] = aimOf(slot + j * step);
+      let d = a1 - a0;
+      d -= Math.round(d / 6.283185) * 6.283185;
+      const m = ss(0, travel, local);
+      beamNow[j].ang = a0 + d * m + 0.015 * Math.sin(Math.PI * t / (4 * beatLen) + j);
+      beamNow[j].w = w0 + (w1 - w0) * m;
+      beamNow[j].k = BEAMS[j].k;
+    }
+  }
+
+  // Light at a cell: total intensity, with the strongest beam's colour in lightCol.
   let lightCol = 0;
   function lightAt(i) {
-    const ang = cellAng[i], dist = cellDist[i];
-    const fd = ss(0.45 * a, 0.95 * a, dist) * (1 - 0.5 * ss(1.1 * a, 2.8 * a, dist));
+    const dist = cellDist[i];
+    const fd = ss(0.42 * a, 0.8 * a, dist);       // the cone emerges from behind the eye
     if (fd <= 0) return 0;
+    const ang = cellAng[i];
     let sum = 0, best = 0;
     for (let j = 0; j < BEAMS.length; j++) {
       let d = ang - beamNow[j].ang;
       d -= Math.round(d / 6.283185) * 6.283185;
-      const x = Math.abs(d) / BEAMS[j].w;
+      const x = Math.abs(d) / beamNow[j].w;
       if (x >= 1) continue;
-      const q = 1 - x * x;
-      const v = q * q * beamNow[j].k;
+      const v = ss(1, 0.55, x) * beamNow[j].k;     // flat core, soft edge
       sum += v;
       if (v > best) { best = v; lightCol = BEAMS[j].col; }
     }
@@ -819,40 +863,7 @@
 
   function renderScene(t) {
     sctx.clearRect(0, 0, W, H);
-    for (let j = 0; j < BEAMS.length; j++) {
-      const B = BEAMS[j];
-      beamNow[j].ang = B.c + B.amp * Math.sin(6.283185 * t / B.per + B.ph);
-      beamNow[j].k = B.k * (0.78 + 0.22 * Math.sin(t * 0.21 + B.ph * 1.3));
-    }
-
-    // Soft volumetric wedges: three nested fans give the beams feathered edges.
-    const far = Math.hypot(W, H);
-    sctx.save();
-    sctx.globalCompositeOperation = 'lighter';
-    for (let j = 0; j < BEAMS.length; j++) {
-      const B = BEAMS[j], c = BASES[B.col], ang = beamNow[j].ang, kk = beamNow[j].k;
-      for (const [wm, al] of [[1.0, 0.03], [0.7, 0.035], [0.4, 0.035]]) {
-        const g = sctx.createRadialGradient(OX, OY, 0.4 * a, OX, OY, far);
-        g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-        g.addColorStop(0.12, `rgba(${c[0]},${c[1]},${c[2]},${(al * kk).toFixed(3)})`);
-        g.addColorStop(0.55, `rgba(${c[0]},${c[1]},${c[2]},${(al * kk * 0.45).toFixed(3)})`);
-        g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-        sctx.fillStyle = g;
-        const w = B.w * wm;
-        sctx.beginPath();
-        sctx.moveTo(OX, OY);
-        sctx.lineTo(OX + Math.cos(ang - w) * far, OY + Math.sin(ang - w) * far);
-        sctx.lineTo(OX + Math.cos(ang + w) * far, OY + Math.sin(ang + w) * far);
-        sctx.closePath();
-        sctx.fill();
-      }
-    }
-    // The eye stands in front of the light: cut its zone out with a soft edge.
-    sctx.globalCompositeOperation = 'destination-out';
-    sctx.filter = `blur(${Math.max(4, LH * 0.6)}px)`;
-    sctx.fillStyle = '#000';
-    sctx.fill(eyePath);
-    sctx.restore();
+    aimBeams(t);
 
     for (let q = 0; q < NB; q++) sBuckets[q].length = 0;
     for (let j = 0; j < occList.length; j++) occ[occList[j]] = 0;
@@ -863,7 +874,8 @@
       sBuckets[base * (LV + 1) + l].push(i * 128 + CI[ch]);
     };
 
-    // Crowd, nearest first.
+    // Crowd, nearest first. Light is applied per character: only the cells inside a
+    // beam take its colour, so a beam can catch just a shoulder and an arm.
     const edgeW = Math.max(cw, LH) * 0.55;
     for (const f of figures) {
       poseAndCaps(f, t);
@@ -875,8 +887,7 @@
       }
       const ca = Math.max(0, Math.floor(x0 / cw)), cb = Math.min(cols - 1, Math.ceil(x1 / cw));
       const ra = Math.max(0, Math.floor(y0 / LH)), rb = Math.min(rows - 1, Math.ceil(y1 / LH));
-      // Distant people are hazier; near people are darker, back-lit shapes.
-      const ambient = 0.16 + 0.06 * (1 - f.z);
+      const ambient = 0.15 + 0.06 * (1 - f.z);
       for (let r = ra; r <= rb; r++) {
         const yC = (r + 0.5) * LH;
         for (let c = ca; c <= cb; c++) {
@@ -892,37 +903,37 @@
           const L = lightAt(i);
           const lc = lightCol;
           if (d > -edgeW) {
-            // Edge: outline glyph along the body contour, rim-lit on the side facing the beam source.
+            // Outline glyph along the body contour; lit outlines take the beam's colour.
             const gx = sdf(f, xC + 1, yC) - sdf(f, xC - 1, yC);
             const gy = sdf(f, xC, yC + 1) - sdf(f, xC, yC - 1);
-            const gl = Math.hypot(gx, gy) || 1;
-            const facing = -((gx / gl) * (xC - OX) + (gy / gl) * (yC - OY)) / (cellDist[i] || 1);
-            const rim = L * Math.max(0, facing + 0.25) / 1.25;
-            const ch = isInCap(f, 0, xC, yC) ? 'o' : dirGlyph(Math.atan2(gy, gx) + Math.PI / 2);   // a simple round head
-            if (rim > 0.06) add(lc, (0.2 + 0.55 * rim) * vis, ch, i);
-            else add(SH, (ambient + 0.08 + 0.2 * L) * vis, ch, i);
+            const ch = isInCap(f, 0, xC, yC) ? 'o' : dirGlyph(Math.atan2(gy, gx) + Math.PI / 2);
+            if (L > 0.08) add(lc, (0.3 + 0.5 * L) * vis, ch, i);
+            else add(SH, (ambient + 0.07) * vis, ch, i);
           } else if (f.drinkCap >= 0 && L > 0.08 && isInCap(f, f.drinkCap, xC, yC)) {
-            add(WH, (0.25 + 0.45 * L) * vis, '!', i);
+            add(WH, (0.25 + 0.4 * L) * vis, '!', i);
           } else {
-            // Interior: sparse in shadow; light reveals denser texture.
+            // Interior: sparse in shadow; inside a beam it fills in with denser, coloured glyphs.
             const rv = rnd[i];
-            if (rv < 0.3 + 0.2 * L) {
-              const ch = LIGHT[(rnd2[i] * 6) | 0];
-              if (L > 0.12) add(lc, (0.08 + 0.18 * L) * vis, ch, i);
-              else add(SH, ambient * 0.75 * vis, ch, i);
-            }
+            if (L > 0.08) {
+              if (rv < 0.25 + 0.35 * L) add(lc, (0.12 + 0.35 * L) * vis, pick(0.2 + 0.45 * L, rnd2[i]), i);
+            } else if (rv < 0.3) add(SH, ambient * 0.75 * vis, LIGHT[(rnd2[i] * 6) | 0], i);
           }
         }
       }
     }
 
-    // Haze: drifting motes inside the beams, hidden behind people and the eye.
+    // Beams and haze, as characters: ray-aligned strokes and drifting motes whose
+    // density and brightness trace each cone. Hidden behind people and the eye.
     for (let i = 0, n = cols * rows; i < n; i++) {
       if (occ[i] || mask[i] > 0.55) continue;
       const L = lightAt(i);
-      if (L < 0.06) continue;
-      const s = (rnd[i] * 7.31 + t * (0.05 + 0.08 * rnd2[i])) % 1;
-      if (s < L * 0.5) add(lightCol, L * 0.3 * (1 - mask[i]), LIGHT[(rnd2[i] * 6) | 0], i);
+      if (L < 0.05) continue;
+      const vis = 1 - mask[i];
+      const s = (rnd[i] * 7.31 + t * (0.04 + 0.07 * rnd2[i])) % 1;
+      if (s < 0.1 + 0.4 * L) {
+        const ray = rnd2[i] < 0.4;
+        add(lightCol, (0.1 + 0.3 * L) * vis, ray ? dirGlyph(cellAng[i]) : LIGHT[(rnd2[i] * 6) | 0], i);
+      }
     }
 
     drawBuckets(sctx, sBuckets);
@@ -939,7 +950,7 @@
   }
 
   // ── Loop ───────────────────────────────────────────────────────────────
-  const SCENE_STATIC_T = 7.5;                     // a balanced moment for the still version
+  const SCENE_STATIC_T = 5;                       // a moment with every beam resting on a group
   function frame(now) {
     if (reduced) return;
     requestAnimationFrame(frame);
