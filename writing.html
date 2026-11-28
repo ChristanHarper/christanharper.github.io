@@ -532,20 +532,27 @@
       btn.disabled = true;
       status.textContent = editingId ? 'saving...' : 'adding...';
 
-      if (editingId) {
-        await db.collection('writing').doc(editingId).update({ author, title, body });
-        status.textContent = 'saved.';
-      } else {
-        await db.collection('writing').add({
-          author, title, body,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        status.textContent = 'added.';
-      }
+      try {
+        if (editingId) {
+          await db.collection('writing').doc(editingId).update({ author, title, body });
+          status.textContent = 'saved.';
+        } else {
+          await db.collection('writing').add({
+            author, title, body,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          status.textContent = 'added.';
+        }
 
-      resetPanel();
-      setTimeout(() => status.textContent = '', 2500);
-      btn.disabled = false;
+        resetPanel();
+        setTimeout(() => status.textContent = '', 2500);
+      } catch (err) {
+        // Keep what was typed so nothing is lost, and say why it failed.
+        console.error(err);
+        status.textContent = 'failed: ' + (err && (err.code || err.message) || 'unknown error');
+      } finally {
+        btn.disabled = false;
+      }
     });
   </script>
 </body>
