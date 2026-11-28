@@ -558,7 +558,7 @@
             `<span class="msg-time">[${fmtTime(timestamp) || '--:--'}]</span>` +
             `<span class="msg-name" style="color:${color}">&lt;${esc(name)}&gt;</span>` +
             `<span class="msg-text">${esc(text)}</span>` +
-            `<button class="msg-del" data-id="${doc.id}">✕</button>`;
+            `<button class="msg-del">✕</button>`;
 
           const del = div.querySelector('.msg-del');
           del.style.display = loggedIn ? 'inline' : 'none';
@@ -607,7 +607,7 @@
           const card = document.createElement('article');
           card.className = 'log-entry';
           card.innerHTML =
-            `<button class="btn-delete" data-id="${doc.id}">✕</button>` +
+            `<button class="btn-delete">✕</button>` +
             `<div class="le-date">${fmtStamp(timestamp)}</div>` +
             (title   ? `<div class="le-title">${esc(title)}</div>` : '') +
             (content ? `<div class="le-body">${esc(content)}</div>` : '');
