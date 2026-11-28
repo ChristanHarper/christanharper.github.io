@@ -60,7 +60,7 @@
     }
     .made li {
       display: grid;
-      grid-template-columns: 8ch minmax(0, 26ch) 1fr;
+      grid-template-columns: 8ch minmax(0, 24ch) 9ch 1fr;
       gap: 0 2ch;
       align-items: baseline;
     }
@@ -69,10 +69,33 @@
     .m-name a::before { content: '> '; color: var(--fuchsia); }
     .m-name a:hover, .m-name a:focus-visible { color: var(--cyan); outline: none; }
     .m-what { color: #8a8a8a; }
+    .m-tag { color: #555; }
+    .m-tag.rev { color: var(--fuchsia); }
+    .wrap + .wrap { margin-top: 56px; }
+
+    .tech-list { display: flex; flex-direction: column; gap: 14px; }
+    .tech {
+      background: rgba(4,4,4,0.66);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-left: 2px solid var(--cyan);
+      padding: 14px 18px;
+      font-size: 0.86rem;
+    }
+    .t-head { display: flex; gap: 2ch; align-items: baseline; margin-bottom: 8px; }
+    .t-name { color: #e6e6e6; }
+    .t-name::before { content: '> '; color: var(--fuchsia); }
+    .t-body { color: #9a9a9a; line-height: 1.75; max-width: 72ch; }
+    .tech img {
+      display: block;
+      max-width: 100%;
+      margin-top: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
     @media (max-width: 620px) {
       .made { padding: 8px 12px; font-size: 0.8rem; }
       .made li { grid-template-columns: 8ch 1fr; padding: 3px 0; }
-      .m-what { grid-column: 2; line-height: 1.4; }
+      .m-tag, .m-what { grid-column: 2; line-height: 1.4; }
+      .tech { padding: 12px 14px; font-size: 0.8rem; }
     }
   </style>
   <link rel="stylesheet" href="/assets/term.css">
@@ -92,29 +115,67 @@
   </nav>
 
   <section class="wrap">
-    <div class="section-label term-label"><span class="n">01</span>made</div>
+    <div class="section-label term-label"><span class="n">01</span>sites</div>
     <ul class="made">
       <li>
         <span class="m-date">2026-11</span>
-        <span class="m-name"><a href="/harddisagree/">game night</a></span>
-        <span class="m-what">tv + phone party game, phones are the controllers</span>
+        <span class="m-name"><a href="https://neumannlimo.com" target="_blank" rel="noopener">neumannlimo.com</a></span>
+        <span class="m-tag rev">revamped</span>
+        <span class="m-what">limo company site, service + city pages</span>
+      </li>
+      <li>
+        <span class="m-date">2026-11</span>
+        <span class="m-name"><a href="https://toursbyneumann.com" target="_blank" rel="noopener">toursbyneumann.com</a></span>
+        <span class="m-tag">built</span>
+        <span class="m-what">tour booking, per-seat stripe checkout</span>
       </li>
       <li>
         <span class="m-date">2026-10</span>
         <span class="m-name"><a href="https://secondstrikedrums.com" target="_blank" rel="noopener">secondstrikedrums.com</a></span>
+        <span class="m-tag">built</span>
         <span class="m-what">drum restoration shop, work-order form</span>
       </li>
       <li>
         <span class="m-date">2026-08</span>
         <span class="m-name"><a href="https://ongodnocap.com" target="_blank" rel="noopener">ongodnocap.com</a></span>
+        <span class="m-tag">built</span>
         <span class="m-what">private capital group, divisions + portals</span>
       </li>
       <li>
         <span class="m-date">2026-06</span>
         <span class="m-name"><a href="https://clawsbykait.com" target="_blank" rel="noopener">clawsbykait.com</a></span>
+        <span class="m-tag">built</span>
         <span class="m-what">nail artist, booking + admin</span>
       </li>
+      <li>
+        <span class="m-date">2026-05</span>
+        <span class="m-name"><a href="https://carew-construction.com" target="_blank" rel="noopener">carew-construction.com</a></span>
+        <span class="m-tag">built</span>
+        <span class="m-what">handyman + home repair, sacramento</span>
+      </li>
     </ul>
+  </section>
+
+  <section class="wrap">
+    <div class="section-label term-label"><span class="n">02</span>tech</div>
+    <div class="tech-list">
+    <article class="tech">
+      <div class="t-head"><span class="m-date">2026-11</span><span class="t-name">game night</span></div>
+      <p class="t-body">A couples game show written by Claude. Each player fills out a private form on their phone, encrypted on the device before it's stored. Claude reads both and writes the episodes around them: the questions, the rounds, and a host with his own voice. Each player sets their limits and the show follows the gentler one. Answers from every show go into the next batch, so it gets more personal the more you play. The TV runs the show and phones join by QR code.</p>
+    </article>
+    <article class="tech">
+      <div class="t-head"><span class="m-date">2026-11</span><span class="t-name">hr portal</span></div>
+      <p class="t-body">Onboarding for a company. An applicant starts on a computer, scans a QR code, and the same session carries over to their phone for documents and signatures. Staff see every applicant's progress on a document dashboard, with a separate track for each position and DOT checks before an offer goes out.</p>
+    </article>
+    <article class="tech">
+      <div class="t-head"><span class="m-date">2026-09</span><span class="t-name">bob</span></div>
+      <p class="t-body">A control panel for a friend's forex trading bots. Sign-in is invite-only. Bots start and stop from the page, with live prices and every trade listed. There's a library of strategies, each backtested over two years, and a builder for making new ones.</p>
+    </article>
+    <article class="tech">
+      <div class="t-head"><span class="m-date">2026-08</span><span class="t-name">catyl</span></div>
+      <p class="t-body">A live map of every system feeding a company's database, laid out like a factory floor. Each pipe animates when real data moves through it and breaks visibly when a sync fails. Click a node to see what it is, how it was built, and whether it's healthy.</p>
+    </article>
+    </div>
   </section>
 
   <script src="/assets/eye-bg.js"></script>
