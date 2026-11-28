@@ -7,7 +7,7 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-05-13 13:01  B  driver roster page + import script
 2026-05-20 16:31  B  first security hardening pass
 2026-05-24 16:40  B  sync removes trips deleted upstream (ghost trips)
-2026-05-25 14:00  B  reservation sync over plain http, replaced browser scraper
+2026-05-25 14:00  B  reservation sync rebuilt, replaced browser automation
 2026-05-27 13:05  B  state training form T-01 printed over official form image
 2026-05-27 13:54  B  telematics driver sync into personnel
 2026-05-31 13:37  B  time-off request system
@@ -19,7 +19,7 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-06-11 17:35  B  scheduler redesign: week/day/month
 2026-06-15 16:23  B  revenue + AR dashboard
 2026-06-16 16:27  B  billing settlement feed
-2026-06-17 12:16  B  full trip notes via vendor's internal /v1 api
+2026-06-17 12:16  B  full trip notes via vendor api
 2026-06-23 12:56  L  1MB/page response from one unneeded field; project it out
 2026-06-23 13:25  B  db indexes for hot queries
 2026-06-25 12:35  B  dispatch conflict detection + air-brake restriction
@@ -34,7 +34,7 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-07-15 15:05  B  compliance page rebuilt as guided controls
 2026-07-16 00:29  B  trip audit date filters + review queue
 2026-07-20 12:45  B  layered company-knowledge system for AI inbox
-2026-07-21 12:18  B  SSN + drug test masked behind HR capability
+2026-07-21 12:18  B  sensitive HR fields masked behind permissions
 2026-07-22 14:53  B  account disable replaces delete
 2026-07-22 14:57  L  disabled users still in scheduler: no consumers list for users collection
 2026-07-23 14:22  B  AI inbox conversation continuity + customer profile panel
@@ -54,8 +54,8 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-08-18 19:14  L  flight tracker scrapped same day; nobody needed it
 2026-08-23 15:10  B  time-off email notifications + daily reminder
 2026-08-23 15:36  B  home dashboard: real today/tomorrow overview
-2026-08-24 18:09  L  mail compliance rule copied private time-off notes to a shared inbox
-2026-08-24 20:35  L  stored XSS in new page caught before use; escape everything
+2026-08-24 18:09  L  mail rule routed private data too widely; scoped it down
+2026-08-24 20:35  L  injection bug caught before release; escape everything
 2026-08-26 19:22  B  client trip request portal for an event account
 2026-08-27 17:13  B  client portal: 4-tier roles, approvals, email invites
 2026-09-02 19:31  B  valet pay periods, hour adjustment, lead crew review
@@ -65,39 +65,39 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-09-07 13:45  B  clock-in blocked before window opens
 2026-09-09 18:44  B  valets told exactly why a clock action has no GPS
 2026-09-10 14:08  B  corporate shuttle demo: staff dashboard, rider portal, partner api
-2026-09-11 14:31  L  IDOR: rider portal took any run_id; scope by owner + date
+2026-09-11 14:31  L  access-control gap in a portal; scope every lookup by owner
 2026-09-14 15:21  B  live map + road-following routes for shuttle
 2026-09-14 19:07  B  quote calc: multi-day billing, per-night surcharges
 2026-09-14 20:33  B  per-seat tour sales with stripe checkout
 2026-09-15 13:35  B  live traffic ETA for riders
 2026-09-15 17:12  B  ridership raffle via QR scan
-2026-09-15 17:18  L  raffle scan leaked real portal token; fixed
-2026-09-24 18:52  L  revenue/AR off vs vendor; matched their definitions
-2026-09-29 12:02  L  vendor started 406ing headless browser UA; switched to plain fetch
+2026-09-15 17:18  L  QR flow exposed more than it should; fixed
+2026-09-24 18:52  L  financial totals reconciled against vendor's definitions
+2026-09-29 12:02  L  vendor integration moved off the headless browser
 2026-09-30 00:06  B  personal: login-gated control panel for a friend's trading bots
 2026-09-30 14:39  B  same-day booking alert to dispatch chat
-2026-09-30 --:--  L  maps api died when cloud free trial ended
+2026-09-30 --:--  L  maps api lapsed with a cloud trial
 2026-10-01 00:06  B  personal: bot library w/ 2-year backtests, custom bot builder
 2026-10-01 --:--  B  QR payment link for event parking
-2026-10-02 01:41  L  quote calc double-charged fuel on all-inclusive airport transfers
+2026-10-02 01:41  L  quote calc double-counted a surcharge on one trip type
 2026-10-05 17:44  B  gmail sidebar add-on: client + trips beside the email
 2026-10-05 20:33  B  one-click print of tomorrow's trip tickets
-2026-10-12 14:41  L  vendor flagged ~1 req/s; skip detail calls for unchanged trips
+2026-10-12 14:41  L  cut api load; skip detail calls for unchanged records
 2026-10-19 16:44  B  directory: accounts own contacts by role
 2026-10-20 15:22  B  client booking portal, clients sign in with vendor login
 2026-10-22 19:08  B  booking portal: live trip progress
 2026-10-26 15:07  B  dispatch board view for tracking the day
 2026-10-26 16:16  B  driver workload page: completed vs assigned hours
-2026-10-26 --:--  L  driver paid hours exceed billed ~10% on hourly trips
+2026-10-26 --:--  L  payroll vs billing hours discrepancy surfaced
 2026-10-27 14:05  B  office scheduler: live sync, change history
 2026-10-27 17:12  B  compliance: learner permits, to-do tab, weekly email
 2026-10-29 16:27  B  legal-name standard; telematics add can't duplicate
 2026-10-30 01:45  B  personal: drum restoration shop site, work-order form
-2026-11-02 15:16  B  vendor api token via plain http login, not chromium
-2026-11-02 21:36  B  quote calc: per-vehicle fuel surcharge
+2026-11-02 15:16  B  vendor auth without a headless browser
+2026-11-02 21:36  B  quote calc: per-vehicle surcharges
 2026-11-03 17:15  B  tours site on its own domain, served by portal by hostname
 2026-11-03 18:52  L  CDN served stale css with new pages; version asset urls
-2026-11-04 14:46  B  tours site paused pending state regulator answer
+2026-11-04 14:46  B  tours site paused pending a regulatory question
 2026-11-04 18:29  B  HR onboarding portal + document dashboard
 2026-11-04 20:28  B  driver hours page + editable timecard
 2026-11-05 14:12  B  onboarding per-position tracks, DOT checks before offer
@@ -110,20 +110,20 @@ times = commit time (job repos Pacific, personal repos UTC). --:-- = no commit. 
 2026-11-10 17:47  L  commit -am swept others' WIP into a deploy; stage paths only
 2026-11-10 19:08  B  client sign-in rate limits, fail closed
 2026-11-11 10:29  L  unknown trip status defaulted to "Booked"; same no-data bug
-2026-11-11 16:34  B  nightly encrypted db backup (free tier keeps none)
-2026-11-11 18:26  B  shuttle demo shut down, proposal not won
+2026-11-11 16:34  B  nightly encrypted db backups
+2026-11-11 18:26  B  shuttle demo retired
 2026-11-11 21:47  B  HR platform: people, separations, calendar, reports
-2026-11-11 --:--  L  carriers block any SMS containing our portal domain
+2026-11-11 --:--  L  carriers filter SMS containing certain links
 2026-11-12 17:28  B  weekly dispatch whiteboard
 2026-11-12 17:57  B  name cleanup worklist across every app
-2026-11-14 --:--  L  forced vendor password change broke every integration
+2026-11-14 --:--  L  credential change upstream broke integrations
 2026-11-17 14:43  B  dynamic pricing page from expected fleet use
 2026-11-17 15:58  B  check: CDL class vs endorsements
-2026-11-18 11:10  B  LAN-only time clock reachable from home via proxy
+2026-11-18 11:10  B  remote access to an on-site system
 2026-11-22 17:44  B  workbench: chat index + open-loops ledger
 2026-11-22 18:19  B  everything backed up nightly to shared drive
 2026-11-23 15:33  B  tours: request-a-tour form, whole tours only
-2026-11-23 16:02  L  public itinerary leaked addresses; names only
+2026-11-23 16:02  L  public page showed too much detail; trimmed
 2026-11-23 18:45  B  workbench: staff request api, read-only lanes
 2026-11-23 19:54  B  workbench: editor, terminal, ctrl+k
 2026-11-24 04:53  B  personal: ascii eye + club scene background
