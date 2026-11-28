@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --fuchsia: #FF00C8; --cyan: #00F0FF; }
+    html, body { min-height: 100%; background: #060606; }
+    body {
+      color: #cccccc;
+      font-family: 'Courier New', Courier, monospace;
+      overflow-x: hidden;
+    }
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .term {
+      position: relative;
+      z-index: 1;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: clamp(40px, 12vh, 120px) 20px 40px;
+      font-size: clamp(0.82rem, 2.4vw, 1rem);
+      line-height: 1.9;
+      text-shadow: 0 0 4px #000, 0 0 10px #000, 0 0 18px #000;
+    }
+    .ps1 { color: #8a8a8a; }
+    .ps1 b { color: #e6e6e6; font-weight: normal; }
+    .err { color: var(--fuchsia); }
+    .path { overflow-wrap: anywhere; }
+    .cur {
+      color: var(--fuchsia);
+      animation: blink 1.1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .back { margin-top: 18px; }
+    .back a { color: #e6e6e6; text-decoration: none; }
+    .back a::before { content: '> '; color: var(--fuchsia); }
+    .back a:hover, .back a:focus-visible { color: var(--cyan); outline: none; }
+    @media (prefers-reduced-motion: reduce) { .cur { animation: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <main class="term">
+    <div><span class="ps1"><b>christan</b>@harper:~$</span> cd <span class="path" id="p1">/</span></div>
+    <div class="err">bash: cd: <span class="path" id="p2">/</span>: No such file or directory</div>
+    <div><span class="ps1"><b>christan</b>@harper:~$</span> <span class="cur">_</span></div>
+    <div class="back"><a href="/home.html">cd /home</a></div>
+  </main>
+
+  <script>
+    // textContent keeps whatever was typed in the URL from being read as HTML.
+    let path = location.pathname;
+    try { path = decodeURIComponent(path); } catch (e) {}
+    document.getElementById('p1').textContent = path;
+    document.getElementById('p2').textContent = path;
+  </script>
+  <script src="/assets/eye-bg.js"></script>
+</body>
+</html>

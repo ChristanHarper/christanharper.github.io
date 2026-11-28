@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>◈ obol ◈</title>
+  <title>obol</title>
   <style>
     :root {
       --fuchsia: #FF00C8;
@@ -109,6 +109,7 @@
 
     /* ── LAYOUT ── */
     .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+    :root { --term-w: 1000px; --term-pad: 16px; }
 
     .section-label {
       font-size: 0.78rem;
@@ -410,34 +411,59 @@
     /* Shared background (eye + club scene) sits behind everything. */
     #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
     nav, .site-header, .wrap { position: relative; z-index: 1; }
+
+    /* ── Match the rest of the site: flat borders, no neon glows ── */
+    .panel, details { background: rgba(6,6,6,0.82); border-color: rgba(255,255,255,0.1); }
+    .wl-safe { font-size: clamp(2rem, 8vw, 3rem); }
+    .wl-safe.ok, .wl-safe.warn, .wl-safe.bad,
+    .total-liquid .money, .savings, .target-tag,
+    .day-rel.overdue, .day-rel.today, .del:hover { text-shadow: none; }
+    .wl-safe.ok { color: #f0f0f0; }
+    .total-liquid .money { color: #f0f0f0; }
+    .seg-committed, .seg-buffer, .seg-safe, .seg-reserved { box-shadow: none; }
+    .wl-bar { height: 14px; border-color: rgba(255,255,255,0.1); }
+    .card-row { background: rgba(4,4,4,0.6); }
+    .card-row.target { box-shadow: none; }
+
+    button { letter-spacing: 0.14em; }
+    .btn-c, .btn-f, .btn-p { color: #9a9a9a; border-color: #333; }
+    .btn-c:hover, .btn-f:hover, .btn-p:hover { color: #f0f0f0; background: transparent; box-shadow: none; }
+    .btn-c:hover { border-color: var(--cyan); }
+    .btn-f:hover { border-color: var(--fuchsia); }
+    .btn-p:hover { border-color: var(--purple); }
+
+    #syncBar { margin-bottom: 18px; }
+    #syncBar button { flex: none; min-height: 0; padding: 7px 14px; font-size: 0.72rem; }
+    #syncStatus { letter-spacing: 0.12em; }
+
+    details > summary { letter-spacing: 0.32em; color: #9a9a9a; }
+    details > summary::after { content: "[+]"; }
+    details[open] > summary { color: #e6e6e6; text-shadow: none; }
+    details[open] > summary::after { content: "[-]"; }
   </style>
+  <link rel="stylesheet" href="/assets/term.css">
 </head>
 <body>
 
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <script src="/assets/eye-bg.js"></script>
 
-  <nav>
-    <a href="/home.html" style="color:#444;">home</a>
-    <a href="/writing.html" style="color:#444;">writing</a>
-    <a href="/beings.html" style="color:#444;">beautiful beings</a>
-    <a href="/obol.html" style="color:#2850FF;text-shadow:0 0 8px #2850FF;">obol</a>
+  <nav class="term-bar">
+    <span class="tb-host"><b>christan</b>@harper:~$<span class="tb-cur">_</span></span>
+    <span class="tb-links">
+      <a href="/home.html">/home</a>
+      <a href="/writing.html">/writing</a>
+      <a href="/beings.html">/beings</a>
+      <a href="/obol.html" class="on">/obol</a>
+    </span>
   </nav>
 
-  <header class="site-header">
-    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
-    <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="obol">obol</h1>
-    </div>
-    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
-    <div class="tagline">a coin for the ferryman · what's committed · what's yours</div>
-  </header>
 
   <div class="wrap">
 
   <!-- ===== SYNC ===== -->
   <div class="io-row" id="syncBar" style="align-items:center;">
-    <span class="tagline" id="syncStatus" style="flex:1;text-align:left;">☁ signed out — local only</span>
+    <span class="tagline" id="syncStatus" style="flex:1;text-align:left;">local only</span>
     <button class="btn-p" id="btnSignIn">sign in to sync</button>
     <button class="btn-c hidden" id="btnSignOut">sign out</button>
   </div>
@@ -458,9 +484,8 @@
 
   <!-- ===== SAFE TO SPEND ===== -->
   <section class="panel" id="waterline">
-    <div class="section-label label-cyan">safe to spend</div>
+    <div class="section-label term-label"><span class="n">01</span>safe to spend</div>
     <div class="wl-safe money" id="safeAmt">$0.00</div>
-    <div class="wl-sub" id="safeExplain"></div>
     <div class="wl-bar" id="wlBar" role="img" aria-label="Allocation of liquid funds"></div>
     <div class="wl-legend" id="wlLegend"></div>
     <div id="shortfallBox" class="hidden"></div>
@@ -470,7 +495,7 @@
     <!-- ===== LEFT ===== -->
     <div class="col">
       <section class="panel">
-        <div class="section-label label-fuchsia">upcoming · 60 days</div>
+        <div class="section-label term-label"><span class="n">02</span>upcoming · 60 days</div>
         <div id="feed"></div>
       </section>
     </div>
@@ -478,7 +503,7 @@
     <!-- ===== RIGHT ===== -->
     <div class="col">
       <section class="panel">
-        <div class="section-label label-purple">money on hand</div>
+        <div class="section-label term-label"><span class="n">03</span>money on hand</div>
         <div class="field"><label for="bank">bank balance</label><input id="bank" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div>
         <div class="field"><label for="cash">cash</label><input id="cash" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00"></div>
         <div class="field"><label for="buffer">never-touch buffer</label><input id="buffer" type="number" step="10" min="0" inputmode="decimal"></div>
@@ -486,7 +511,7 @@
       </section>
 
       <section class="panel">
-        <div class="section-label label-blue">paychecks</div>
+        <div class="section-label term-label"><span class="n">04</span>paychecks</div>
         <div class="field-row">
           <div class="field"><label for="payFreq">cadence</label>
             <select id="payFreq">
@@ -503,13 +528,13 @@
       </section>
 
       <section class="panel">
-        <div class="section-label label-cyan">60-day forecast</div>
+        <div class="section-label term-label"><span class="n">05</span>60-day forecast</div>
         <svg id="projchart" viewBox="0 0 340 120" preserveAspectRatio="none" aria-label="Projected balance over the next 60 days"></svg>
         <div class="proj-note" id="projNote"></div>
       </section>
 
       <section class="panel">
-        <div class="section-label label-fuchsia">debt payoff plan</div>
+        <div class="section-label term-label"><span class="n">06</span>debt payoff plan</div>
         <div id="advisor"></div>
       </section>
     </div>
@@ -527,12 +552,12 @@
     <div class="inner">
       <div class="mng-list" id="billList"></div>
       <div class="add-form">
-        <div class="field"><label for="bName">name</label><input id="bName" placeholder="Rent"></div>
-        <div class="field"><label for="bAmt">amount</label><input id="bAmt" type="number" min="0" step="0.01" inputmode="decimal" placeholder="750"></div>
+        <div class="field"><label for="bName">name</label><input id="bName"></div>
+        <div class="field"><label for="bAmt">amount</label><input id="bAmt" type="number" min="0" step="0.01" inputmode="decimal"></div>
         <div class="field"><label for="bFreq">repeats</label>
           <select id="bFreq"><option value="monthly">monthly</option><option value="once">one-time</option></select>
         </div>
-        <div class="field" id="bDayWrap"><label for="bDay">due day of month</label><input id="bDay" type="number" min="1" max="31" inputmode="numeric" placeholder="1"></div>
+        <div class="field" id="bDayWrap"><label for="bDay">due day of month</label><input id="bDay" type="number" min="1" max="31" inputmode="numeric"></div>
         <div class="field hidden" id="bDateWrap"><label for="bDate">due date</label><input id="bDate" type="date"></div>
         <div class="field"><label for="bAuto">autopay</label>
           <select id="bAuto"><option value="no">no</option><option value="yes">yes</option></select>
@@ -547,15 +572,15 @@
     <div class="inner">
       <div class="mng-list" id="cardList"></div>
       <div class="add-form">
-        <div class="field"><label for="cName">name</label><input id="cName" placeholder="Capital One"></div>
+        <div class="field"><label for="cName">name</label><input id="cName"></div>
         <div class="field"><label for="cType">type</label>
           <select id="cType"><option value="card">credit card</option><option value="loan">loan</option></select>
         </div>
-        <div class="field"><label for="cBal">balance</label><input id="cBal" type="number" min="0" step="0.01" inputmode="decimal" placeholder="2400"></div>
-        <div class="field"><label for="cLimit">limit (cards)</label><input id="cLimit" type="number" min="0" step="0.01" inputmode="decimal" placeholder="3000"></div>
-        <div class="field"><label for="cApr">apr %</label><input id="cApr" type="number" min="0" step="0.01" inputmode="decimal" placeholder="26.99"></div>
-        <div class="field"><label for="cMin">min payment</label><input id="cMin" type="number" min="0" step="0.01" inputmode="decimal" placeholder="42"></div>
-        <div class="field"><label for="cDay">due day</label><input id="cDay" type="number" min="1" max="31" inputmode="numeric" placeholder="7"></div>
+        <div class="field"><label for="cBal">balance</label><input id="cBal" type="number" min="0" step="0.01" inputmode="decimal"></div>
+        <div class="field"><label for="cLimit">limit (cards)</label><input id="cLimit" type="number" min="0" step="0.01" inputmode="decimal"></div>
+        <div class="field"><label for="cApr">apr %</label><input id="cApr" type="number" min="0" step="0.01" inputmode="decimal"></div>
+        <div class="field"><label for="cMin">min payment</label><input id="cMin" type="number" min="0" step="0.01" inputmode="decimal"></div>
+        <div class="field"><label for="cDay">due day</label><input id="cDay" type="number" min="1" max="31" inputmode="numeric"></div>
         <button class="btn-f" id="addCard">add debt</button>
       </div>
     </div>
@@ -566,10 +591,6 @@
     <div class="inner"><div class="mng-list" id="historyList"></div></div>
   </details>
 
-  <p class="footnote">
-    ◈ sign in above to sync across phone and desktop — data is stored in a private Firestore document tied to your account, not on the page itself. signed out, everything still works from this browser's local storage only.
-    safe-to-spend = the lowest point of the 60-day forecast minus the buffer. spending it today never puts a future bill underwater, assuming the bills and paychecks here are complete. planning tool, not financial advice.
-  </p>
   </div>
 
 <script>
@@ -577,7 +598,7 @@
 /* ============ storage ============ */
 const KEY = "obol.v1";
 const defaultState = () => ({
-  bank: 0, cash: 0, buffer: 200,
+  bank: 0, cash: 0, buffer: 0,
   pay: { freq: "none", amount: 0, next: "" },
   bills: [],     // {id,name,amount,freq:'monthly'|'once',dueDay,dueDate,autopay,paidOnce}
   cards: [],     // {id,name,type:'card'|'loan',balance,limit,apr,minPay,dueDay}
@@ -711,9 +732,6 @@ function renderWaterline(A){
   const safeEl = $("safeAmt");
   safeEl.textContent = fmt(Math.max(0, A.safe));
   safeEl.className = "wl-safe money " + (A.safe > 0 ? "ok" : A.safe > -50 ? "warn" : "bad");
-  $("safeExplain").textContent = A.nextPay
-    ? "lowest forecast balance is " + fmt(A.minBal) + " on " + fmtDate(A.minDate) + ". safe-to-spend keeps you above your " + fmt(A.buffer) + " buffer at that low point."
-    : "no income entered, so this assumes zero money coming in for 60 days. set paychecks for a real number.";
 
   // bar segments over liquid
   const L = Math.max(A.liquid, 1);
@@ -729,7 +747,7 @@ function renderWaterline(A){
   ];
   $("wlBar").innerHTML = segs.filter(s=>s[2]>0).map(s=>
     '<div class="wl-seg '+s[0]+'" style="width:'+(s[2]/L*100)+'%" title="'+s[1]+': '+fmt(s[2])+'"></div>'
-  ).join("") || '<div style="padding:8px 12px;color:var(--dim);font-size:0.78rem">enter your bank balance to see the bar.</div>';
+  ).join("") || '<div style="padding:8px 12px;color:var(--dim);font-size:0.78rem">-- empty --</div>';
   const dots = {"seg-committed":"var(--fuchsia)","seg-buffer":"var(--purple)","seg-safe":"var(--cyan)","seg-reserved":"var(--blue)"};
   $("wlLegend").innerHTML = segs.map(s=>
     '<span><span class="dot" style="background:'+dots[s[0]]+'"></span>'+s[1]+' <span class="money">'+fmt(s[2])+'</span></span>'
@@ -747,7 +765,7 @@ function renderWaterline(A){
 
 function renderFeed(A){
   const feed = $("feed");
-  if(!A.inst.length){ feed.innerHTML = '<div class="empty">nothing due in the next 60 days. add bills under "manage bills" below.</div>'; return; }
+  if(!A.inst.length){ feed.innerHTML = '<div class="empty">-- none --</div>'; return; }
   // group by date
   const groups = new Map();
   for(const i of A.inst){ const k = iso(i.date); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(i); }
@@ -800,14 +818,14 @@ function renderChart(A){
     '<line x1="0" y1="'+buf+'" x2="'+W+'" y2="'+buf+'" stroke="#AA00FF" stroke-dasharray="3 4" stroke-width="1" opacity=".8"/>' +
     '<line x1="0" y1="'+zero+'" x2="'+W+'" y2="'+zero+'" stroke="#FF00C8" stroke-width="1" opacity=".9"/>' +
     '<path d="'+line+'" fill="none" stroke="#cccccc" stroke-width="2"/>' + payTicks;
-  $("projNote").innerHTML = 'fuchsia line = $0 · dashed purple = buffer · cyan ticks = paydays. low point: <span class="money">'+fmt(A.minBal)+'</span> on '+fmtDate(A.minDate)+'.';
+  $("projNote").innerHTML = 'low <span class="money">'+fmt(A.minBal)+'</span> · '+fmtDate(A.minDate);
 }
 
 let extraSlider = null; // persist slider value across re-renders
 function renderAdvisor(A){
   const el = $("advisor");
   const cards = S.cards.filter(c=>c.balance>0).sort((a,b)=>b.apr-a.apr);
-  if(!cards.length){ el.innerHTML = '<div class="empty">no debts with a balance. add cards or loans under "manage debts" and the plan builds itself.</div>'; return; }
+  if(!cards.length){ el.innerHTML = '<div class="empty">-- none --</div>'; return; }
   const target = cards[0];
   const maxExtra = Math.max(0, Math.floor(Math.max(A.safe,0)/10)*10);
   if(extraSlider===null) extraSlider = Math.min(Math.round(maxExtra*0.5/10)*10, maxExtra);
@@ -846,8 +864,6 @@ function renderAdvisor(A){
          + '<div><div class="lbl">min + extra</div><div>'+(boosted?boosted.months+' mo · <span class="money">'+fmt(boosted.interest)+'</span> interest':'—')+'</div></div></div>';
     if(boosted && extraSlider>0){
       html += '<div class="advice">send an extra <span class="money">'+fmt(extraSlider)+'</span>/mo to <strong>'+esc(target.name)+'</strong>: debt-free <strong>'+(base.months-boosted.months)+' months sooner</strong>, saving <span class="savings">'+fmt(base.interest-boosted.interest)+'</span> in interest. keep minimums on every other card until this one hits zero, then roll the whole payment to the next-highest APR.</div>';
-    } else {
-      html += '<div class="advice">drag the slider — it\'s capped at your safe-to-spend so the plan never touches bill or buffer money.</div>';
     }
   }
   el.innerHTML = html;
@@ -859,16 +875,16 @@ function renderManage(){
     '<div class="mng-item"><span class="grow">'+esc(b.name)+' <span class="money">'+fmt(b.amount)+'</span> · '
     + (b.freq==="once" ? "one-time "+(b.dueDate||"") + (b.paidOnce?" · paid":"") : "monthly, day "+b.dueDay)
     + (b.autopay?' · autopay':'') + '</span><button class="del" data-del-bill="'+b.id+'" aria-label="Delete '+esc(b.name)+'">✕</button></div>'
-  ).join("") || '<div class="empty">nothing here yet.</div>';
+  ).join("") || '<div class="empty">-- none --</div>';
   $("cardList").innerHTML = S.cards.map(c =>
     '<div class="mng-item"><span class="grow">'+esc(c.name)+' <span class="money">'+fmt(c.balance)+'</span> · '
     + (c.type==="loan"?"loan":"card"+(c.limit>0?", limit "+fmt(c.limit):"")) + ' · '+c.apr+'% · min '+fmt(c.minPay)+' · day '+c.dueDay
     + '</span><button class="del" data-del-card="'+c.id+'" aria-label="Delete '+esc(c.name)+'">✕</button></div>'
-  ).join("") || '<div class="empty">nothing here yet.</div>';
+  ).join("") || '<div class="empty">-- none --</div>';
   $("historyList").innerHTML = S.payments.slice().reverse().map(p =>
     '<div class="mng-item"><span class="grow">'+p.date+' — '+esc(p.name)+' <span class="money">'+fmt(p.amount)+'</span></span>'
     + '<button class="del" data-undo="'+p.id+'" title="Undo this payment" aria-label="Undo payment">↩</button></div>'
-  ).join("") || '<div class="empty">payments you mark show up here. undo restores them to the feed.</div>';
+  ).join("") || '<div class="empty">-- none --</div>';
 }
 
 function renderAll(){
@@ -1045,7 +1061,7 @@ auth.onAuthStateChanged(user => {
       setSyncStatus("⚠ sync error — working from local copy");
     });
   } else {
-    setSyncStatus("☁ signed out — local only");
+    setSyncStatus("local only");
   }
 });
 

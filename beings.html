@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>beautiful beings</title>
+  <title>beings</title>
   <style>
     :root {
       --fuchsia: #FF00C8;
@@ -340,31 +340,29 @@
       letter-spacing: 0.1em;
     }
   </style>
+  <link rel="stylesheet" href="/assets/term.css">
 </head>
 <body>
 
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-  <nav>
-    <a href="/home.html" style="color:#444;">home</a>
-    <a href="/writing.html" style="color:#444;">writing</a>
-    <a href="/beings.html" style="color:var(--purple);text-shadow:0 0 8px var(--purple);">beautiful beings</a>
-    <a href="/obol.html" style="color:#444;">obol</a>
+  <nav class="term-bar">
+    <span class="tb-host"><b>christan</b>@harper:~$<span class="tb-cur">_</span></span>
+    <span class="tb-links">
+      <a href="/home.html">/home</a>
+      <a href="/writing.html">/writing</a>
+      <a href="/beings.html" class="on">/beings</a>
+      <a href="/obol.html">/obol</a>
+    </span>
   </nav>
 
-  <header class="site-header">
-    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
-    <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="beautiful beings">beautiful beings</h1>
-    </div>
-    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
-  </header>
 
   <section class="wrap">
+    <div class="section-label term-label"><span class="n">01</span>index</div>
     <div class="beings-grid" id="beings"></div>
   </section>
 
-  <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+  <button class="btn btn-p term-auth" id="login-btn">login</button>
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
@@ -382,9 +380,9 @@
 
   <!-- ADD/EDIT PANEL -->
   <div id="add-panel" style="display:none">
-    <h3 id="panel-title">add a being</h3>
-    <input type="text" id="being-name" placeholder="their name">
-    <textarea id="being-body" placeholder="write about them..."></textarea>
+    <h3 id="panel-title">new record</h3>
+    <input type="text" id="being-name" placeholder="name">
+    <textarea id="being-body" placeholder="record..."></textarea>
     <div class="panel-status" id="panel-status"></div>
     <div class="panel-row">
       <button class="btn btn-p" id="do-add">add</button>
@@ -427,7 +425,7 @@
       .onSnapshot(snap => {
         beingsEl.innerHTML = '';
         if (snap.empty) {
-          beingsEl.innerHTML = '<div class="no-beings">. . . no one added yet . . .</div>';
+          beingsEl.innerHTML = '<div class="no-beings term-empty">-- no records --</div>';
           return;
         }
         let i = 0;
@@ -452,14 +450,14 @@
           actions.style.display = loggedIn ? 'flex' : 'none';
 
           card.querySelector('.btn-delete').addEventListener('click', () => {
-            if (confirm('remove this being?')) db.collection('beings').doc(doc.id).delete();
+            if (confirm('remove this record?')) db.collection('beings').doc(doc.id).delete();
           });
 
           card.querySelector('.btn-edit').addEventListener('click', () => {
             editingId = doc.id;
             document.getElementById('being-name').value = name || '';
             document.getElementById('being-body').value = body || '';
-            document.getElementById('panel-title').textContent = 'edit being';
+            document.getElementById('panel-title').textContent = 'edit record';
             document.getElementById('do-add').textContent = 'save';
             document.getElementById('being-name').focus();
           });
@@ -499,7 +497,7 @@
         await auth.signInWithEmailAndPassword(email, pass);
         loginModal.style.display = 'none';
       } catch {
-        document.getElementById('login-err').textContent = 'nope. try again.';
+        document.getElementById('login-err').textContent = 'wrong email or password.';
       }
     });
 
@@ -514,7 +512,7 @@
       editingId = null;
       document.getElementById('being-name').value = '';
       document.getElementById('being-body').value = '';
-      document.getElementById('panel-title').textContent = 'add a being';
+      document.getElementById('panel-title').textContent = 'new record';
       document.getElementById('do-add').textContent = 'add';
     }
 

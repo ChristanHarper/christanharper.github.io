@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>◈ you found it ◈</title>
+  <title>christan harper</title>
   <style>
     :root {
       --fuchsia: #FF00C8;
@@ -138,31 +138,33 @@
     .label-fuchsia { color: var(--fuchsia); border-color: var(--fuchsia); text-shadow: 0 0 8px var(--fuchsia); transform: rotate(-0.4deg); display: inline-block; }
 
     /* ── CHAT ── */
-    .chat-section { margin: 20px auto 0; }
+    .chat-section { margin: 56px auto 0; }
 
     .messages-box {
       height: 300px;
       overflow-y: auto;
-      border: 1px dashed var(--cyan);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: none;
       /* translucent so the eye shows through; the text stays crisp */
-      background: rgba(3,13,14,0.6);
-      box-shadow: 0 0 14px rgba(0,240,255,0.08), inset 0 0 30px rgba(0,0,0,0.6);
+      background: rgba(4,4,4,0.66);
       padding: 12px 14px;
     }
 
+    /* IRC-style lines: [time] <nick> text */
     .msg {
-      padding: 4px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 2px 0;
       font-size: 0.86rem;
       line-height: 1.55;
-      border-bottom: 1px solid #0f0f0f;
     }
-    .msg:last-child { border-bottom: none; }
-
-    .msg-name { font-weight: bold; margin-right: 6px; }
-    .msg-time { font-size: 0.68rem; color: var(--dim); margin-left: 6px; }
+    .msg-time { flex: none; color: #555; }
+    .msg-name { flex: none; }
+    .msg-text { flex: 1; min-width: 0; color: #d0d0d0; overflow-wrap: anywhere; }
 
     .msg-del {
-      float: right;
+      flex: none;
       background: none;
       border: none;
       color: #333;
@@ -177,10 +179,14 @@
 
     .chat-inputs {
       display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(6,6,6,0.86);
     }
+    .chat-inputs input[type="text"] { background: transparent; border: none; box-shadow: none; }
+    .chat-inputs:focus-within { border-color: rgba(0,240,255,0.5); }
+    .chat-prompt { color: var(--fuchsia); padding-left: 4px; user-select: none; }
+    .chat-inputs #send-btn { border: none; border-left: 1px solid rgba(255,255,255,0.1); align-self: stretch; }
 
     input[type="text"],
     input[type="email"],
@@ -201,8 +207,14 @@
       box-shadow: 0 0 6px rgba(0,240,255,0.25);
     }
 
-    #chat-name { width: 130px; flex-shrink: 0; }
-    #chat-msg  { flex: 1; min-width: 140px; }
+    #chat-name { width: 120px; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.1) !important; color: #888; }
+    #chat-msg  { flex: 1; min-width: 0; }
+
+    @media (max-width: 520px) {
+      .msg { flex-wrap: wrap; gap: 0 8px; }
+      .msg-text { flex-basis: 100%; padding-left: 1ch; }
+      #chat-name { width: 84px; }
+    }
 
     /* ── WEIRD DIVIDER ── */
     .divider {
@@ -229,6 +241,24 @@
 
     /* ── BLOG ── */
     .blog-section { margin: 0 auto; }
+
+    /* The log: one long column, newest first. */
+    .log-list {
+      background: rgba(4,4,4,0.66);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 18px;
+      font-size: 0.86rem;
+      line-height: 1.65;
+    }
+    .log-entry { position: relative; padding: 16px 0; }
+    .log-entry + .log-entry { border-top: 1px dashed rgba(255,255,255,0.08); }
+    .le-date { color: #666; font-size: 0.76rem; letter-spacing: 0.08em; }
+    .le-title { margin-top: 6px; color: #f0f0f0; }
+    .le-body { margin-top: 6px; color: #a8a8a8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .log-entry .btn-delete { top: 16px; right: 0; }
+    @media (max-width: 520px) {
+      .log-list { padding: 4px 12px; }
+    }
 
     .posts-grid {
       display: grid;
@@ -407,53 +437,45 @@
       letter-spacing: 0.1em;
     }
   </style>
+  <link rel="stylesheet" href="/assets/term.css">
 </head>
 <body>
 
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <!-- NAV -->
-  <nav style="position:relative;z-index:1;text-align:right;padding:16px 24px 0;font-size:0.78rem;letter-spacing:0.2em;">
-    <a href="/home.html" style="color:#444;text-decoration:none;">home</a>
-    <a href="/writing.html" style="color:#444;text-decoration:none;margin-left:20px;">writing</a>
-    <a href="/beings.html" style="color:#AA00FF;text-decoration:none;margin-left:20px;text-shadow:0 0 8px #AA00FF;">beautiful beings</a>
-    <a href="/obol.html" style="color:#444;text-decoration:none;margin-left:20px;">obol</a>
+  <nav class="term-bar">
+    <span class="tb-host"><b>christan</b>@harper:~$<span class="tb-cur">_</span></span>
+    <span class="tb-links">
+      <a href="/home.html" class="on">/home</a>
+      <a href="/writing.html">/writing</a>
+      <a href="/beings.html">/beings</a>
+      <a href="/obol.html">/obol</a>
+    </span>
   </nav>
-
-  <!-- HEADER -->
-  <header class="site-header">
-    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
-    <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="asphodel rising">asphodel rising</h1>
-    </div>
-    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
-  </header>
 
   <!-- CHAT -->
   <section class="chat-section wrap">
-    <div class="section-label label-cyan">chat</div>
+    <div class="section-label term-label"><span class="n">01</span>channel</div>
     <div class="messages-box" id="messages"></div>
     <div class="chat-inputs">
-      <input type="text" id="chat-name" placeholder="name" maxlength="30">
-      <input type="text" id="chat-msg"  placeholder="message..." maxlength="500">
-      <button class="btn btn-c" id="send-btn">send →</button>
+      <input type="text" id="chat-name" placeholder="handle" maxlength="30" aria-label="handle">
+      <span class="chat-prompt" aria-hidden="true">&gt;</span>
+      <input type="text" id="chat-msg" maxlength="500" aria-label="message">
+      <button class="btn btn-c" id="send-btn">send</button>
     </div>
   </section>
 
-  <!-- DIVIDER -->
-  <div class="divider">
-    <span class="divider-line">✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦</span>
-    <span class="divider-line">◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈ ─── ✦ ─── ◈</span>
-  </div>
+  <div class="divider" aria-hidden="true"></div>
 
   <!-- BLOG -->
   <section class="blog-section wrap">
-    <div class="section-label label-fuchsia">blog</div>
-    <div class="posts-grid" id="posts"></div>
+    <div class="section-label term-label"><span class="n">02</span>log</div>
+    <div class="log-list" id="posts"></div>
   </section>
 
   <!-- LOGIN BUTTON -->
-  <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+  <button class="btn btn-p term-auth" id="login-btn">login</button>
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
@@ -473,7 +495,7 @@
   <div id="post-panel" style="display:none">
     <h3>new post</h3>
     <input type="text" id="post-title"   placeholder="title">
-    <textarea          id="post-content" placeholder="content..."></textarea>
+    <textarea          id="post-content" placeholder="entry..."></textarea>
     <div class="upload-status" id="up-status"></div>
     <div class="panel-row">
       <button class="btn btn-f" id="do-post">post</button>
@@ -515,7 +537,7 @@
 
     function fmtTime(ts) {
       if (!ts) return '';
-      return ts.toDate().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+      return ts.toDate().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', hourCycle:'h23' });
     }
 
     // ── CHAT ─────────────────────────────────────────────
@@ -533,10 +555,10 @@
           const div   = document.createElement('div');
           div.className = 'msg';
           div.innerHTML =
-            `<button class="msg-del" data-id="${doc.id}">✕</button>` +
-            `<span class="msg-name" style="color:${color}">${esc(name)}</span>` +
-            `<span>${esc(text)}</span>` +
-            `<span class="msg-time">${fmtTime(timestamp)}</span>`;
+            `<span class="msg-time">[${fmtTime(timestamp) || '--:--'}]</span>` +
+            `<span class="msg-name" style="color:${color}">&lt;${esc(name)}&gt;</span>` +
+            `<span class="msg-text">${esc(text)}</span>` +
+            `<button class="msg-del" data-id="${doc.id}">✕</button>`;
 
           const del = div.querySelector('.msg-del');
           del.style.display = loggedIn ? 'inline' : 'none';
@@ -562,7 +584,13 @@
     document.getElementById('send-btn').addEventListener('click', sendMsg);
     document.getElementById('chat-msg').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
 
-    // ── BLOG ─────────────────────────────────────────────
+    // ── LOG ──────────────────────────────────────────────
+    const pad2 = n => String(n).padStart(2, '0');
+    function fmtStamp(ts) {
+      if (!ts) return 'pending';
+      const d = ts.toDate();
+      return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    }
     const postsEl = document.getElementById('posts');
     let loggedIn  = false;
 
@@ -571,34 +599,26 @@
       .onSnapshot(snap => {
         postsEl.innerHTML = '';
         if (snap.empty) {
-          postsEl.innerHTML = '<div class="no-posts">. . . nothing here yet . . .</div>';
+          postsEl.innerHTML = '<div class="term-empty" style="padding:16px 0">-- log empty --</div>';
           return;
         }
-        let i = 0;
         snap.forEach(doc => {
           const { title, content, timestamp } = doc.data();
-          const color = COLORS[i % 4];
-          const rot   = ((Math.random() * 2) - 1).toFixed(2);
-          const card  = document.createElement('div');
-          card.className = 'post-card';
-          card.style.borderColor = color;
-          card.style.boxShadow   = `0 0 12px ${color}22`;
-          card.style.transform   = `rotate(${rot}deg)`;
-
+          const card = document.createElement('article');
+          card.className = 'log-entry';
           card.innerHTML =
             `<button class="btn-delete" data-id="${doc.id}">✕</button>` +
-            `<div class="post-title" style="color:${color}">${esc(title || '')}</div>` +
-            `<div class="post-body">${esc(content || '')}</div>` +
-            `<div class="post-footer">${timestamp ? timestamp.toDate().toLocaleDateString() : ''}</div>`;
+            `<div class="le-date">${fmtStamp(timestamp)}</div>` +
+            (title   ? `<div class="le-title">${esc(title)}</div>` : '') +
+            (content ? `<div class="le-body">${esc(content)}</div>` : '');
 
           const del = card.querySelector('.btn-delete');
           del.style.display = loggedIn ? 'block' : 'none';
           del.addEventListener('click', () => {
-            if (confirm('delete this?')) db.collection('posts').doc(doc.id).delete();
+            if (confirm('delete this entry?')) db.collection('posts').doc(doc.id).delete();
           });
 
           postsEl.appendChild(card);
-          i++;
         });
       });
 
@@ -635,7 +655,7 @@
         await auth.signInWithEmailAndPassword(email, pass);
         loginModal.style.display = 'none';
       } catch {
-        document.getElementById('login-err').textContent = 'nope. try again.';
+        document.getElementById('login-err').textContent = 'wrong email or password.';
       }
     });
 
@@ -655,7 +675,7 @@
       if (!title && !content) return;
 
       btn.disabled = true;
-      status.textContent = 'transmitting...';
+      status.textContent = 'posting...';
 
       await db.collection('posts').add({
         title, content,
@@ -664,7 +684,7 @@
 
       document.getElementById('post-title').value   = '';
       document.getElementById('post-content').value = '';
-      status.textContent = 'done.';
+      status.textContent = 'posted.';
       setTimeout(() => status.textContent = '', 2500);
       btn.disabled = false;
     });

@@ -125,6 +125,7 @@
       100% { color: var(--cyan);    text-shadow: 0 0 18px var(--cyan); }
     }
 
+    :root { --term-w: 640px; }
     .wrap {
       max-width: 640px;
       margin: 0 auto;
@@ -344,33 +345,29 @@
       letter-spacing: 0.1em;
     }
   </style>
+  <link rel="stylesheet" href="/assets/term.css">
 </head>
 <body>
 
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-  <nav>
-    <a href="/home.html" style="color:#444;">home</a>
-    <a href="/writing.html" style="color:var(--cyan);text-shadow:0 0 8px var(--cyan);">writing</a>
-    <a href="/beings.html" style="color:#444;">beautiful beings</a>
-    <a href="/obol.html" style="color:#444;">obol</a>
+  <nav class="term-bar">
+    <span class="tb-host"><b>christan</b>@harper:~$<span class="tb-cur">_</span></span>
+    <span class="tb-links">
+      <a href="/home.html">/home</a>
+      <a href="/writing.html" class="on">/writing</a>
+      <a href="/beings.html">/beings</a>
+      <a href="/obol.html">/obol</a>
+    </span>
   </nav>
 
-  <header class="site-header">
-    <span class="deco-row">◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆</span>
-    <div class="glitch-wrap">
-      <h1 class="glitch-title" data-text="writing">writing</h1>
-    </div>
-    <span class="deco-row" style="font-style:italic;letter-spacing:0.3em;margin-top:10px;">words that found me</span>
-    <span class="deco-row">◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇</span>
-  </header>
 
   <section class="wrap">
-    <div class="section-label">favorites</div>
+    <div class="section-label term-label"><span class="n">01</span>archive</div>
     <div class="writing-list" id="entries"></div>
   </section>
 
-  <button class="btn btn-p" id="login-btn">Are you Chris?</button>
+  <button class="btn btn-p term-auth" id="login-btn">login</button>
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
@@ -388,10 +385,10 @@
 
   <!-- ADD/EDIT PANEL -->
   <div id="add-panel" style="display:none">
-    <h3 id="panel-title">add a piece</h3>
+    <h3 id="panel-title">new entry</h3>
     <input type="text" id="entry-author" placeholder="author">
     <input type="text" id="entry-title" placeholder="title (optional)">
-    <textarea id="entry-body" placeholder="the writing..."></textarea>
+    <textarea id="entry-body" placeholder="text..."></textarea>
     <div class="panel-status" id="panel-status"></div>
     <div class="panel-row">
       <button class="btn btn-c" id="do-add">add</button>
@@ -433,7 +430,7 @@
       .onSnapshot(snap => {
         entriesEl.innerHTML = '';
         if (snap.empty) {
-          entriesEl.innerHTML = '<div class="no-entries">. . . nothing written yet . . .</div>';
+          entriesEl.innerHTML = '<div class="no-entries term-empty">-- archive empty --</div>';
           return;
         }
         let i = 0;
@@ -459,7 +456,7 @@
           actions.style.display = loggedIn ? 'flex' : 'none';
 
           card.querySelector('.btn-delete').addEventListener('click', () => {
-            if (confirm('remove this?')) db.collection('writing').doc(doc.id).delete();
+            if (confirm('remove this entry?')) db.collection('writing').doc(doc.id).delete();
           });
 
           card.querySelector('.btn-edit').addEventListener('click', () => {
@@ -467,7 +464,7 @@
             document.getElementById('entry-author').value = author || '';
             document.getElementById('entry-title').value  = title  || '';
             document.getElementById('entry-body').value   = body   || '';
-            document.getElementById('panel-title').textContent = 'edit piece';
+            document.getElementById('panel-title').textContent = 'edit entry';
             document.getElementById('do-add').textContent = 'save';
             document.getElementById('entry-author').focus();
           });
@@ -506,7 +503,7 @@
         await auth.signInWithEmailAndPassword(email, pass);
         loginModal.style.display = 'none';
       } catch {
-        document.getElementById('login-err').textContent = 'nope. try again.';
+        document.getElementById('login-err').textContent = 'wrong email or password.';
       }
     });
 
@@ -521,7 +518,7 @@
       document.getElementById('entry-author').value = '';
       document.getElementById('entry-title').value  = '';
       document.getElementById('entry-body').value   = '';
-      document.getElementById('panel-title').textContent = 'add a piece';
+      document.getElementById('panel-title').textContent = 'new entry';
       document.getElementById('do-add').textContent = 'add';
     }
 

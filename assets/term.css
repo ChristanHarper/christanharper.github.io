@@ -1,0 +1,154 @@
+/* Shared terminal framing for the content pages: a prompt-style nav bar,
+   a left-aligned header that reads like command output, numbered section
+   labels and squared-off cards. Loaded after each page's own styles. */
+
+/* ── NAV: a shell prompt ── */
+nav.term-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  max-width: var(--term-w, 920px);
+  margin: 0 auto;
+  padding: 16px var(--term-pad, 20px) 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-align: left;
+}
+.tb-host { color: #8a8a8a; white-space: nowrap; user-select: none; }
+.tb-host b { color: #e6e6e6; font-weight: normal; }
+.tb-cur {
+  display: inline-block;
+  width: 0.6em;
+  margin-left: 2px;
+  color: var(--fuchsia);
+  animation: tb-blink 1.1s steps(1) infinite;
+}
+@keyframes tb-blink { 50% { opacity: 0; } }
+.tb-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+nav.term-bar a {
+  margin: 0;
+  color: #6a6a6a;
+  text-decoration: none;
+  text-shadow: inherit;
+  transition: color 0.15s;
+}
+nav.term-bar a:hover { color: #e6e6e6; }
+nav.term-bar a.on { color: #e6e6e6; }
+nav.term-bar a.on::before { content: '>'; color: var(--fuchsia); margin-right: 0.4em; }
+
+/* No page titles: the content starts a little below the prompt bar. */
+nav.term-bar + section, nav.term-bar + .wrap { margin-top: 56px; }
+
+/* ── HEADER: command plus output ── */
+.site-header.term-head {
+  position: relative;
+  z-index: 1;
+  max-width: var(--term-w, 920px);
+  margin: 0 auto;
+  padding: 64px var(--term-pad, 20px) 34px;
+  text-align: left;
+}
+.th-cmd {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: #6a6a6a;
+  user-select: none;
+}
+.th-cmd::before { content: '$ '; color: var(--cyan); }
+.term-head .glitch-wrap { display: block; margin: 14px 0 12px; }
+.term-head .glitch-title {
+  font-size: clamp(2.1rem, 7vw, 4.4rem);
+  font-weight: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #f2f2f2;
+  text-shadow: 0 0 22px rgba(255, 255, 255, 0.12);
+  animation: none;
+}
+.th-out {
+  max-width: 62ch;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: #9a9a9a;
+}
+.th-meta {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  user-select: none;
+}
+.th-meta span + span::before { content: '  //  '; white-space: pre; color: #3a3a3a; }
+.th-meta .ok { color: var(--cyan); }
+
+/* Small text that sits over the background gets a dark halo. */
+.th-cmd, .th-out, .th-meta, .term-label, nav.term-bar {
+  text-shadow: 0 0 4px #000, 0 0 10px #000, 0 0 18px #000;
+}
+
+/* ── SECTION LABELS: numbered, flat ── */
+.section-label.term-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  transform: none;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d8d8d8;
+  font-size: 0.76rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.term-label .n { color: var(--fuchsia); letter-spacing: 0.1em; }
+.term-label .note {
+  margin-left: auto;
+  color: #8a8a8a;
+  letter-spacing: 0.12em;
+  text-transform: none;
+  font-size: 0.7rem;
+}
+
+/* ── CARDS: squared, still, accent on the left edge ── */
+.post-card, .writing-card, .being-card {
+  border-width: 1px 1px 1px 2px !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.term-empty {
+  grid-column: 1 / -1;
+  padding: 40px 0;
+  color: #555;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-align: left;
+}
+
+/* ── LOGIN TRIGGER ── */
+#login-btn.term-auth {
+  border-style: solid;
+  border-color: #333;
+  color: #777;
+  letter-spacing: 0.2em;
+}
+#login-btn.term-auth:hover { color: #e6e6e6; border-color: var(--purple); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-cur { animation: none; }
+}
+@media (max-width: 600px) {
+  .site-header.term-head { padding-top: 40px; }
+  .th-meta span + span::before { content: ' / '; }
+}
