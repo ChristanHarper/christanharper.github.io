@@ -174,7 +174,8 @@
     const n = cols * rows;
     rnd = new Float32Array(n);
     rnd2 = new Float32Array(n);
-    for (let i = 0; i < n; i++) { rnd[i] = Math.random(); rnd2[i] = Math.random(); }
+    seedState = 0x5eed1e;
+    for (let i = 0; i < n; i++) { rnd[i] = srand(); rnd2[i] = srand(); }
     lashLv = new Float32Array(n);
     lashCh = new Array(n);
     touched = [];
@@ -184,13 +185,13 @@
     const NU = 24;
     for (let i = 0; i < NU; i++) {
       const t = i / (NU - 1);
-      const u = -0.76 + 1.74 * Math.pow(t, 0.88) + (Math.random() - 0.5) * 0.015;
+      const u = -0.76 + 1.74 * Math.pow(t, 0.88) + (srand() - 0.5) * 0.015;
       upLashes.push({
         u,
         len: a * (0.03 + 0.04 * ss(-0.6, 0.5, u) + 0.1 * ss(0.3, 0.95, u))
-          * (0.84 + 0.24 * Math.random()) * (u > 0.97 ? 0.85 : 1),
+          * (0.84 + 0.24 * srand()) * (u > 0.97 ? 0.85 : 1),
         tilt: 0.08 + 0.5 * u + 0.55 * Math.pow(Math.max(u, 0), 1.3),
-        curl: -0.24 - 0.46 * Math.max(u, 0) + (Math.random() - 0.5) * 0.09,
+        curl: -0.24 - 0.46 * Math.max(u, 0) + (srand() - 0.5) * 0.09,
       });
     }
     // Fine companion lashes make loose, wispy fans instead of a picket fence.
@@ -204,10 +205,10 @@
     const NL = 8;
     for (let i = 0; i < NL; i++) {
       const t = i / (NL - 1);
-      const u = 0.05 + 0.9 * t + (Math.random() - 0.5) * 0.03;
+      const u = 0.05 + 0.9 * t + (srand() - 0.5) * 0.03;
       lowLashes.push({
         u,
-        len: a * (0.012 + 0.028 * ss(-0.3, 1.0, u)) * (0.7 + 0.5 * Math.random()),
+        len: a * (0.012 + 0.028 * ss(-0.3, 1.0, u)) * (0.7 + 0.5 * srand()),
         tilt: 0.25 + 0.6 * Math.max(u, 0),
         curl: -0.2 * u,
       });
@@ -219,6 +220,16 @@
   // ── Motion state ───────────────────────────────────────────────────────
   const gaze = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 };
   let pointerIn = false, px = 0, py = 0;
+
+  // The eye's look (lashes, iris grain) comes from a fixed seed, so every page
+  // draws the same eye. Only her behavior (blinks, glances) stays random.
+  let seedState = 0;
+  const srand = () => { seedState = (Math.imul(seedState, 1664525) + 1013904223) >>> 0; return seedState / 4294967296; };
+
+  // The club runs on the wall clock, so the beat, lights and dancers carry on
+  // across page loads instead of restarting. The offset keeps numbers small.
+  const EPOCH = Date.now() - performance.now() - 1.7e12;
+  const wallNow = (now = performance.now()) => (now + EPOCH) / 1000;
   let jitterX = 0, jitterY = 0, nextJitter = 0;
   let wanderX = 0, wanderY = 0, nextWander = 0;
   let blinkStart = -1, nextBlink = 0, pendingDouble = false, lastBlinkEnd = 0;
@@ -604,7 +615,7 @@
   // ── Sky ────────────────────────────────────────────────────────────────
   let skyStars = [], moon = null, shooting = null, nextShooting = 6, skyBottom = 180;
   function setupSky() {
-    skyStars = []; shooting = null; nextShooting = 5 + hash(W, H) * 5;
+    skyStars = []; shooting = null; nextShooting = wallNow() + 5 + hash(W, H) * 5;
     skyBottom = Math.max(135, ey - 0.64 * a);
     const count = W < 650 ? 17 : 36;
     for (let j = 0; j < count; j++) {
@@ -1167,8 +1178,9 @@
     // The scene runs at ~30 fps.
     if (now - lastScene >= 32) {
       lastScene = now;
-      beatTime = now / 1000 * BPM / 60;
-      renderScene(now / 1000);
+      const wt = wallNow(now);
+      beatTime = wt * BPM / 60;
+      renderScene(wt);
     }
   }
 
@@ -1198,8 +1210,38 @@
   (mqReduce.addEventListener ? mqReduce.addEventListener('change', onMQ) : mqReduce.addListener(onMQ));
   (mqTouch.addEventListener ? mqTouch.addEventListener('change', onMQ) : mqTouch.addListener(onMQ));
 
+  // Hand the gaze to the next page so she keeps looking where she was.
+  const GAZE_KEY = 'eye-bg.gaze';
+  window.addEventListener('pagehide', () => {
+    try {
+      sessionStorage.setItem(GAZE_KEY, JSON.stringify({
+        x: gaze.x, y: gaze.y, tx: gaze.tx, ty: gaze.ty, px, py, pointerIn, at: Date.now(),
+      }));
+    } catch (e) {}
+  });
+  function restoreGaze() {
+    try {
+      const g = JSON.parse(sessionStorage.getItem(GAZE_KEY) || 'null');
+      if (!g || Date.now() - g.at > 10000) return;
+      const ok = v => typeof v === 'number' && isFinite(v);
+      if (![g.x, g.y, g.tx, g.ty, g.px, g.py].every(ok)) return;
+      gaze.x = gaze.tx = clamp(g.x, -1, 1);
+      gaze.y = gaze.ty = clamp(g.y, -1, 1);
+      px = g.px; py = g.py; pointerIn = !!g.pointerIn && !touch;
+    } catch (e) {}
+  }
+
   resize();
   scheduleBlink(performance.now());
   if (reduced) renderStatic();
-  else requestAnimationFrame(frame);
+  else {
+    restoreGaze();
+    render();
+    const wt = wallNow();
+    beatTime = wt * BPM / 60;
+    renderScene(wt);
+    lastScene = performance.now();
+    dirty = false;
+    requestAnimationFrame(frame);
+  }
 })();

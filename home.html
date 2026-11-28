@@ -459,9 +459,9 @@
     <div class="section-label term-label"><span class="n">01</span>channel</div>
     <div class="messages-box" id="messages"></div>
     <div class="chat-inputs">
-      <input type="text" id="chat-name" placeholder="handle" maxlength="30" aria-label="handle">
+      <input type="text" id="chat-name" name="chat-nick" placeholder="handle" maxlength="30" aria-label="handle" autocomplete="off" data-1p-ignore data-lpignore="true">
       <span class="chat-prompt" aria-hidden="true">&gt;</span>
-      <input type="text" id="chat-msg" maxlength="500" aria-label="message">
+      <input type="text" id="chat-msg" name="chat-line" maxlength="500" aria-label="message" autocomplete="off" data-1p-ignore data-lpignore="true">
       <button class="btn btn-c" id="send-btn">send</button>
     </div>
   </section>
@@ -479,16 +479,16 @@
 
   <!-- LOGIN MODAL -->
   <div class="modal-overlay" id="login-modal" style="display:none">
-    <div class="modal-box">
+    <form class="modal-box" id="login-form" autocomplete="on">
       <h3>login</h3>
-      <input type="email"    id="email-in" placeholder="email"    autocomplete="email">
-      <input type="password" id="pass-in"  placeholder="password" autocomplete="current-password">
+      <input type="email"    id="email-in" placeholder="email"    name="email" autocomplete="username">
+      <input type="password" id="pass-in"  placeholder="password" name="password" autocomplete="current-password">
       <div class="modal-err" id="login-err"></div>
       <div class="modal-btns">
-        <button class="btn btn-f" id="do-login">login</button>
-        <button class="btn btn-p" id="close-modal">cancel</button>
+        <button type="submit" class="btn btn-f" id="do-login">login</button>
+        <button type="button" class="btn btn-p" id="close-modal">cancel</button>
       </div>
-    </div>
+    </form>
   </div>
 
   <!-- POST PANEL -->
@@ -648,7 +648,8 @@
       loginModal.style.display = 'none';
     });
 
-    document.getElementById('do-login').addEventListener('click', async () => {
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
       const email = document.getElementById('email-in').value.trim();
       const pass  = document.getElementById('pass-in').value;
       try {
@@ -659,9 +660,6 @@
       }
     });
 
-    document.getElementById('pass-in').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('do-login').click();
-    });
 
     document.getElementById('do-logout').addEventListener('click', () => auth.signOut());
 

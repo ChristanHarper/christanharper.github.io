@@ -2,6 +2,10 @@
    a left-aligned header that reads like command output, numbered section
    labels and squared-off cards. Loaded after each page's own styles. */
 
+/* Page changes crossfade instead of flashing (browsers that support it). */
+@view-transition { navigation: auto; }
+::view-transition-group(root) { animation-duration: 0.18s; }
+
 /* ── NAV: a shell prompt ── */
 nav.term-bar {
   position: relative;
