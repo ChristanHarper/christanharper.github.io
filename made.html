@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>made</title>
+  <style>
+    :root {
+      --fuchsia: #FF00C8;
+      --cyan:    #00F0FF;
+      --bg:      #060606;
+      --text:    #cccccc;
+      --term-w:  920px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: var(--cyan); }
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .section-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      padding-bottom: 10px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--cyan);
+      color: var(--cyan);
+      user-select: none;
+    }
+
+    /* Same look as the build log on /home: one line per thing. */
+    .made {
+      background: rgba(4,4,4,0.66);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 18px;
+      font-size: 0.86rem;
+      line-height: 1.9;
+      list-style: none;
+    }
+    .made li {
+      display: grid;
+      grid-template-columns: 8ch minmax(0, 26ch) 1fr;
+      gap: 0 2ch;
+      align-items: baseline;
+    }
+    .m-date { color: #777; }
+    .m-name a { color: #e6e6e6; text-decoration: none; overflow-wrap: anywhere; }
+    .m-name a::before { content: '> '; color: var(--fuchsia); }
+    .m-name a:hover, .m-name a:focus-visible { color: var(--cyan); outline: none; }
+    .m-what { color: #8a8a8a; }
+    @media (max-width: 620px) {
+      .made { padding: 8px 12px; font-size: 0.8rem; }
+      .made li { grid-template-columns: 8ch 1fr; padding: 3px 0; }
+      .m-what { grid-column: 2; line-height: 1.4; }
+    }
+  </style>
+  <link rel="stylesheet" href="/assets/term.css">
+</head>
+<body>
+
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <nav class="term-bar">
+    <span class="tb-host"><b>christan</b>@harper:~$<span class="tb-cur">_</span></span>
+    <span class="tb-links">
+      <a href="/home.html">/home</a>
+      <a href="/made.html" class="on">/made</a>
+      <a href="/writing.html">/writing</a>
+      <a href="/beings.html">/beings</a>
+    </span>
+  </nav>
+
+  <section class="wrap">
+    <div class="section-label term-label"><span class="n">01</span>made</div>
+    <ul class="made">
+      <li>
+        <span class="m-date">2026-11</span>
+        <span class="m-name"><a href="/harddisagree/">game night</a></span>
+        <span class="m-what">tv + phone party game, phones are the controllers</span>
+      </li>
+      <li>
+        <span class="m-date">2026-10</span>
+        <span class="m-name"><a href="https://secondstrikedrums.com" target="_blank" rel="noopener">secondstrikedrums.com</a></span>
+        <span class="m-what">drum restoration shop, work-order form</span>
+      </li>
+      <li>
+        <span class="m-date">2026-08</span>
+        <span class="m-name"><a href="https://ongodnocap.com" target="_blank" rel="noopener">ongodnocap.com</a></span>
+        <span class="m-what">private capital group, divisions + portals</span>
+      </li>
+      <li>
+        <span class="m-date">2026-06</span>
+        <span class="m-name"><a href="https://clawsbykait.com" target="_blank" rel="noopener">clawsbykait.com</a></span>
+        <span class="m-what">nail artist, booking + admin</span>
+      </li>
+    </ul>
+  </section>
+
+  <script src="/assets/eye-bg.js"></script>
+</body>
+</html>
