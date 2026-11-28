@@ -259,6 +259,49 @@
     @media (max-width: 520px) {
       .log-list { padding: 4px 12px; }
     }
+    #posts { margin-bottom: 14px; }
+    #posts[hidden] { display: none; }
+
+    /* Build log: one line per entry, newest first, the date shown once per day. */
+    .build-log {
+      background: rgba(4,4,4,0.66);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 18px;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+    .bl-row {
+      display: grid;
+      grid-template-columns: 10.5ch 5.5ch 2ch 1fr;
+      gap: 0 1ch;
+      align-items: baseline;
+    }
+    .bl-row.newday { margin-top: 6px; }
+    .bl-row:first-child { margin-top: 0; }
+    .bl-date { color: #777; }
+    .bl-time { color: #4a4a4a; }
+    .bl-tag.b { color: var(--cyan); }
+    .bl-tag.l { color: var(--fuchsia); }
+    .bl-text { color: #c8c8c8; overflow-wrap: anywhere; }
+    .bl-row.l .bl-text { color: #9a9a9a; }
+    .bl-more {
+      margin-top: 10px;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #777;
+      font: inherit;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+    }
+    .bl-more:hover, .bl-more:focus-visible { color: #e6e6e6; outline: none; }
+    .term-label .key { margin-left: auto; letter-spacing: 0.12em; text-transform: none; font-size: 0.7rem; color: #777; }
+    .term-label .key b { font-weight: normal; }
+    @media (max-width: 520px) {
+      .build-log { padding: 8px 12px; font-size: 0.78rem; }
+      .bl-row { grid-template-columns: 10.5ch 2ch 1fr; }
+      .bl-time { display: none; }
+    }
 
     .posts-grid {
       display: grid;
@@ -470,8 +513,9 @@
 
   <!-- BLOG -->
   <section class="blog-section wrap">
-    <div class="section-label term-label"><span class="n">02</span>log</div>
-    <div class="log-list" id="posts"></div>
+    <div class="section-label term-label"><span class="n">02</span>log<span class="key"><b style="color:var(--cyan)">B</b> built &nbsp;<b style="color:var(--fuchsia)">L</b> learned</span></div>
+    <div class="log-list" id="posts" hidden></div>
+    <div class="build-log" id="buildlog"></div>
   </section>
 
   <!-- LOGIN BUTTON -->
@@ -598,10 +642,8 @@
       .orderBy('timestamp','desc')
       .onSnapshot(snap => {
         postsEl.innerHTML = '';
-        if (snap.empty) {
-          postsEl.innerHTML = '<div class="term-empty" style="padding:16px 0">-- log empty --</div>';
-          return;
-        }
+        postsEl.hidden = snap.empty;
+        if (snap.empty) return;
         snap.forEach(doc => {
           const { title, content, timestamp } = doc.data();
           const card = document.createElement('article');
@@ -621,6 +663,59 @@
           postsEl.appendChild(card);
         });
       });
+
+    // ── BUILD LOG ────────────────────────────────────────
+    // Lines from /assets/buildlog.txt: "YYYY-MM-DD HH:MM  B|L  text".
+    // Add new lines to that file; they show up here newest first.
+    const buildEl = document.getElementById('buildlog');
+    const BL_FIRST = 40;
+    fetch('/assets/buildlog.txt', { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(txt => {
+        const rows = [];
+        for (const raw of txt.split('\n')) {
+          const m = raw.trimEnd().match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}|--:--)\s+([BL])\s+(.+)$/);
+          if (m) rows.push({ date: m[1], time: m[2], tag: m[3], text: m[4].trim() });
+        }
+        rows.reverse();
+        let shown = 0;
+        function renderRows(upto) {
+          const frag = document.createDocumentFragment();
+          for (let i = shown; i < upto && i < rows.length; i++) {
+            const r = rows[i], prev = rows[i - 1];
+            const newDay = !prev || prev.date !== r.date;
+            const row = document.createElement('div');
+            row.className = 'bl-row ' + r.tag.toLowerCase() + (newDay ? ' newday' : '');
+            const cells = [
+              ['bl-date', newDay ? r.date : ''],
+              ['bl-time', r.time],
+              ['bl-tag ' + r.tag.toLowerCase(), r.tag],
+              ['bl-text', r.text],
+            ];
+            for (const [cls, text] of cells) {
+              const span = document.createElement('span');
+              span.className = cls;
+              span.textContent = text;
+              row.appendChild(span);
+            }
+            frag.appendChild(row);
+          }
+          shown = Math.min(upto, rows.length);
+          const more = buildEl.querySelector('.bl-more');
+          if (more) more.remove();
+          buildEl.appendChild(frag);
+          if (shown < rows.length) {
+            const btn = document.createElement('button');
+            btn.className = 'bl-more';
+            btn.textContent = `show all ${rows.length}`;
+            btn.addEventListener('click', () => renderRows(rows.length));
+            buildEl.appendChild(btn);
+          }
+        }
+        if (!rows.length) { buildEl.innerHTML = '<div class="term-empty" style="padding:8px 0">-- log empty --</div>'; return; }
+        renderRows(BL_FIRST);
+      })
+      .catch(() => { buildEl.hidden = true; });
 
     // ── AUTH ─────────────────────────────────────────────
     const loginBtn   = document.getElementById('login-btn');

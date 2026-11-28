@@ -425,6 +425,7 @@
     let loggedIn = false;
     let editingId = null;
 
+    const shuffleKey = new Map();
     db.collection('writing')
       .orderBy('timestamp', 'desc')
       .onSnapshot(snap => {
@@ -433,8 +434,16 @@
           entriesEl.innerHTML = '<div class="no-entries term-empty">-- archive empty --</div>';
           return;
         }
-        let i = 0;
+        // Random order on every visit. Each entry keeps its spot while the
+        // page is open, so edits and new entries don't reshuffle everything.
+        const docs = [];
         snap.forEach(doc => {
+          if (!shuffleKey.has(doc.id)) shuffleKey.set(doc.id, Math.random());
+          docs.push(doc);
+        });
+        docs.sort((x, y) => shuffleKey.get(x.id) - shuffleKey.get(y.id));
+        let i = 0;
+        docs.forEach(doc => {
           const { title, author, body } = doc.data();
           const color = COLORS[i % 4];
           const rot   = ((Math.random() * 1.2) - 0.6).toFixed(2);
